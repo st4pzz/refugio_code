@@ -240,7 +240,7 @@
             <p class="section-subtitle">Encontre-nos facilmente em Analândia</p>
             
             <div class="mapa-container">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.234567890123!2d-47.314756!3d-22.125434!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94b9e5c5c5c5c5c5%3A0x5c5c5c5c5c5c5c5c!2sAnal%C3%A2ndia%2C%20SP!5e0!3m2!1spt-BR!2sbr!4v1234567890" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.9029382895996!2d-47.6694005!3d-22.1337652!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94b9d6c5c5c5c5c5%3A0x5c5c5c5c5c5c5c5c!2sRefúgio%20do%20Cuscuzeiro!5e0!3m2!1spt-BR!2sbr!4v1715701800000" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
 
             <div class="info-contact">
@@ -255,14 +255,14 @@
                     <i class="fas fa-phone"></i>
                     <div>
                         <h4>Contato</h4>
-                        <p>+55 (14) 9999-9999</p>
+                        <p>(16) 99621-2350</p>
                     </div>
                 </div>
                 <div class="info-item">
                     <i class="fas fa-envelope"></i>
                     <div>
                         <h4>Email</h4>
-                        <p>contato@refugiocuscuzeiro.com.br</p>
+                        <p>refugiodocuscuzeiro@gmail.com</p>
                     </div>
                 </div>
             </div>
@@ -278,21 +278,40 @@
     </footer>
 
     <!-- BOTÕES FLUTUANTES (CALL TO ACTION) -->
-    <div class="floating-buttons">
-        <a href="https://wa.me/5514999999999?text=Olá!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Refúgio%20do%20Cuscuzeiro" target="_blank" class="float-btn whatsapp" title="Conversar no WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-            <span class="float-label">WhatsApp</span>
-        </a>
-        
-        <a href="https://www.booking.com/" target="_blank" class="float-btn booking" title="Reservar no Booking">
-            <i class="fas fa-calendar"></i>
-            <span class="float-label">Booking</span>
-        </a>
-        
-        <a href="https://www.airbnb.com/" target="_blank" class="float-btn airbnb" title="Reservar no Airbnb">
-            <i class="fab fa-airbnb"></i>
-            <span class="float-label">Airbnb</span>
-        </a>
+    <div class="floating-buttons-container">
+        <!-- WhatsApp -->
+        <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
+            <a href="https://wa.me/message/VAHOR3ECX675N1" target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
+                <span class="float-ping"></span>
+                <span class="float-glow"></span>
+                <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+            </a>
+            <div class="float-tooltip">Fale conosco no WhatsApp</div>
+        </div>
+
+        <!-- Booking -->
+        <div class="float-button-wrapper" data-tooltip="Reservar no Booking">
+            <a href="https://www.booking.com/" target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
+                <span class="float-ping"></span>
+                <span class="float-glow"></span>
+                <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
+                    <path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H6zm0 2h12v14H6V4zm2 2v2h2V6H8zm4 0v2h2V6h-2zm4 0v2h2V6h-2zm-8 4v2h2v-2H4zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2z"/>
+                </svg>
+            </a>
+            <div class="float-tooltip">Reservar no Booking</div>
+        </div>
+
+        <!-- Airbnb -->
+        <div class="float-button-wrapper" data-tooltip="Reservar no Airbnb">
+            <a href="https://www.airbnb.com/" target="_blank" rel="noopener noreferrer" class="float-btn float-airbnb" aria-label="Reservar no Airbnb">
+                <span class="float-ping"></span>
+                <span class="float-glow"></span>
+                <i class="fab fa-airbnb"></i>
+            </a>
+            <div class="float-tooltip">Reservar no Airbnb</div>
+        </div>
     </div>
 
     <script>
@@ -337,6 +356,20 @@
             } else {
                 header.classList.remove('scrolled');
             }
+        });
+
+        // Floating Buttons - Tooltip Hover
+        document.querySelectorAll('.float-button-wrapper').forEach(wrapper => {
+            const btn = wrapper.querySelector('.float-btn');
+            const tooltip = wrapper.querySelector('.float-tooltip');
+
+            btn.addEventListener('mouseenter', () => {
+                tooltip.classList.add('show');
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
         });
 
         // Animação de aparecimento ao scroll (Intersection Observer)
