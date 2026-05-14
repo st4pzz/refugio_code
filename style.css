@@ -74,7 +74,7 @@ body {
 }
 
 .logo-img {
-    height: 60px;
+    height: 80px;
     width: auto;
     object-fit: contain;
     opacity: 1;
@@ -83,7 +83,7 @@ body {
 }
 
 .header.scrolled .logo-img {
-    height: 50px;
+    height: 65px;
 }
 
 .logo-section:hover .logo-img {
@@ -653,6 +653,7 @@ section {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    pointer-events: auto;
 }
 
 .float-button-wrapper {
@@ -660,6 +661,7 @@ section {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    pointer-events: auto;
 }
 
 .float-btn {
@@ -678,6 +680,8 @@ section {
     font-size: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     font-weight: bold;
+    pointer-events: auto;
+    z-index: 1000;
 }
 
 /* Animação de Ping */
@@ -904,11 +908,11 @@ section {
     }
 
     .logo-img {
-        height: 45px;
+        height: 60px;
     }
 
     .header.scrolled .logo-img {
-        height: 40px;
+        height: 50px;
     }
 
     .logo-text {

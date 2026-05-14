@@ -240,7 +240,7 @@
             <p class="section-subtitle">Encontre-nos facilmente em Analândia</p>
             
             <div class="mapa-container">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.9029382895996!2d-47.6694005!3d-22.1337652!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94b9d6c5c5c5c5c5%3A0x5c5c5c5c5c5c5c5c!2sRefúgio%20do%20Cuscuzeiro!5e0!3m2!1spt-BR!2sbr!4v1715701800000" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.9029382895996!2d-47.6694005!3d-22.1337652!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1sRefúgio%20do%20Cuscuzeiro!2s-22.1337652,-47.6694005!5e0!3m2!1spt-BR!2sbr!4v1715701800000" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
 
             <div class="info-contact">
