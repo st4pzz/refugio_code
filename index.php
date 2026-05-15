@@ -11,6 +11,15 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="assets/images/logo_refugio.webp">
     <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18158463231"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18158463231');
+</script>
     
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
     <link rel="stylesheet" href="style.css">
