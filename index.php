@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <meta name="description" content="Refúgio do Cuscuzeiro - Chácara de aluguel por temporada em Analândia, São Paulo. Piscina, suítes, churrasqueira e muito mais.">
     <meta name="keywords" content="chácara, aluguel, temporada, Analândia, piscina, refúgio">
     <meta property="og:title" content="Refúgio do Cuscuzeiro - Chácara de Aluguel">

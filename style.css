@@ -5,6 +5,7 @@
 
 /* ---- RESET E VARIÁVEIS GLOBAIS ---- */
 :root {
+    color-scheme: light;
     --primary-color: #4B4A39;
     --secondary-color: #4B4A39;
     --accent-color: #4B4A39;
