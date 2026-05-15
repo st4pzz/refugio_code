@@ -425,7 +425,10 @@
 
                 <div class="explore-card" id="gastronomia-card">
                     <div class="card-image">
-                        <img src="assets/images/comida_Analandia.webp" alt="Gastronomia">
+                        <picture>
+                    <source srcset="assets/images/comida_Analandia.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw">
+                    <img src="assets/images/comida_Analandia.webp" alt="Gastronomia Local" loading="lazy" decoding="async" width="400" height="300">
+                </picture>
                         <span class="card-badge">Cultura</span>
                     </div>
                     <div class="card-content">
