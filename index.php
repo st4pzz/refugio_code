@@ -62,10 +62,10 @@
     <section class="hero" id="chacara">
         <div class="hero-background">
             <picture>
-                    <source media="(max-width: 640px)" srcset="assets/images/noturno-480.webp 480w" type="image/webp">
-                    <source media="(max-width: 768px)" srcset="assets/images/noturno-768.webp 768w" type="image/webp">
-                    <source media="(min-width: 769px)" srcset="assets/images/noturno.webp 1920w" type="image/webp">
-                    <img class="hero-img" src="assets/images/noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
+                    <source media="(max-width: 640px)" srcset="assets/images/Noturno-480.webp 480w" type="image/webp">
+                    <source media="(max-width: 768px)" srcset="assets/images/Noturno-768.webp 768w" type="image/webp">
+                    <source media="(min-width: 769px)" srcset="assets/images/Noturno.webp 1920w" type="image/webp">
+                    <img class="hero-img" src="assets/images/Noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
                 </picture>
             <div class="hero-overlay"></div>
         </div>
