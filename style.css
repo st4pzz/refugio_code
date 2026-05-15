@@ -1357,28 +1357,6 @@ section {
     }
 }
 
-/* Tratamento para Dark Mode (opcional) */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-white: #1a1a1a;
-        --bg-light: #2a2a2a;
-        --text-dark: #E8DED5;
-        --text-light: #9D9C8F;
-    }
-
-    .nav-menu {
-        background: #1a1a1a;
-    }
-
-    .comodidade-card,
-    .explore-card {
-        background: #2a2a2a;
-    }
-
-    .info-item {
-        background: #2a2a2a;
-    }
-}
 
 /* Acessibilidade - Focus visible */
 button:focus-visible,
