@@ -46,8 +46,7 @@ body {
     right: 0;
     z-index: 50;
     width: 100%;
-    background: rgba(255, 255, 255, 0.80);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.95);
     padding: 0;
     height: 64px;
     box-shadow: none;

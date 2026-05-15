@@ -1,22 +1,28 @@
 /**
  * Lazy Loading com Intersection Observer
  * Carrega imagens sob demanda para otimizar performance
+ * Otimizado para não bloquear a thread principal
  */
 
 (function() {
   'use strict';
 
+  // Usar requestIdleCallback para não bloquear a thread principal
+  const scheduleWork = typeof requestIdleCallback !== 'undefined' 
+    ? requestIdleCallback 
+    : (callback) => setTimeout(callback, 0);
+
   // Verificar suporte para Intersection Observer
   if (!('IntersectionObserver' in window)) {
     console.warn('IntersectionObserver não suportado. Carregando imagens normalmente.');
-    loadAllImages();
+    scheduleWork(loadAllImages);
     return;
   }
 
   // Configuração do Intersection Observer
   const observerOptions = {
     root: null,
-    rootMargin: '50px', // Começar a carregar 50px antes da imagem aparecer na tela
+    rootMargin: '50px',
     threshold: 0.01
   };
 
@@ -25,22 +31,22 @@
       if (entry.isIntersecting) {
         const img = entry.target;
         
-        // Se tem data-src, carregar WebP
-        if (img.dataset.src) {
-          loadImage(img);
-        }
+        // Usar requestAnimationFrame para decode
+        requestAnimationFrame(() => {
+          if (img.dataset.src) {
+            loadImage(img);
+          }
+        });
         
-        // Parar de observar após carregamento
         imageObserver.unobserve(img);
       }
     });
   }, observerOptions);
 
   /**
-   * Carrega a imagem a partir de data-src para data-src
+   * Carrega a imagem a partir de data-src
    */
   function loadImage(img) {
-    // Se é uma picture, carregar todas as sources
     const picture = img.closest('picture');
     if (picture) {
       const sources = picture.querySelectorAll('source');
@@ -52,18 +58,16 @@
       });
     }
     
-    // Carregar a imagem principal
     if (img.dataset.src) {
       img.src = img.dataset.src;
       img.removeAttribute('data-src');
     }
     
-    // Adicionar classe para animação fade-in
     img.classList.add('loaded');
   }
 
   /**
-   * Fallback: carrega todas as imagens se Intersection Observer falhar
+   * Fallback: carrega todas as imagens
    */
   function loadAllImages() {
     const images = document.querySelectorAll('img[data-src]');
@@ -82,20 +86,20 @@
     });
   }
 
-  // Iniciar quando DOM estiver pronto
+  // Iniciar quando DOM estiver pronto (usando DOMContentLoaded, não document.readyState)
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', observeImages);
   } else {
-    observeImages();
+    // Se DOM já está pronto, agendar para próximo idle
+    scheduleWork(observeImages);
   }
 
-  // Exportar função para uso manual se necessário
+  // Exportar funções públicas
   window.lazyLoadImage = function(element) {
     loadImage(element);
     imageObserver.unobserve(element);
   };
 
-  // Função para reobservar imagens adicionadas dinamicamente
   window.reinitLazyLoad = function() {
     observeImages();
   };

@@ -13,14 +13,16 @@
     
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome CSS (defer loading, não-crítico) -->
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <!-- Preload hero image (above-the-fold) -->
+    <!-- Preload hero image (above-the-fold) e logo -->
     <link rel="preload" as="image" href="assets/images/noturno.webp" type="image/webp">
-    <link rel="preload" as="image" href="assets/images/noturno.JPG" type="image/jpeg">
+    <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
     <style>
        img[data-src] { opacity: 0; transition: opacity 0.3s ease-in-out; }
        img.loaded { opacity: 1; }
@@ -33,11 +35,9 @@
         <div class="header-inner">
             <div class="logo-section">
                 <picture>
-                    <source media="(max-width: 768px)" srcset="assets/images/logo_crema.png">
-                    <picture>
-                    <source class="logo-img" data-srcset="assets/images/logo_crema.webp" type="image/webp">
-                    <img class="logo-img" data-src="assets/images/logo_crema.png" alt="Refúgio do Cuscuzeiro Logo" loading="lazy">
-                </picture>
+                    <source media="(max-width: 768px)" srcset="assets/images/logo_crema.webp" type="image/webp">
+                    <source media="(min-width: 769px)" srcset="assets/images/logo_crema.webp" type="image/webp">
+                    <img class="logo-img" src="assets/images/logo_crema.webp" alt="Refúgio do Cuscuzeiro Logo" loading="eager" fetchpriority="low" decoding="async" width="50" height="50">
                 </picture>
             </div>
             
@@ -62,8 +62,10 @@
     <section class="hero" id="chacara">
         <div class="hero-background">
             <picture>
-                    <source class="hero-img" data-srcset="assets/images/noturno.webp" type="image/webp">
-                    <img class="hero-img" data-src="assets/images/noturno.JPG" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="lazy">
+                    <source media="(max-width: 640px)" srcset="assets/images/noturno-480.webp 480w" type="image/webp">
+                    <source media="(max-width: 768px)" srcset="assets/images/noturno-768.webp 768w" type="image/webp">
+                    <source media="(min-width: 769px)" srcset="assets/images/noturno.webp 1920w" type="image/webp">
+                    <img class="hero-img" src="assets/images/noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
                 </picture>
             <div class="hero-overlay"></div>
         </div>
@@ -157,216 +159,216 @@
             <div class="galeria-grid">
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/4_quartos.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/4_quartos.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/4_quartos.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/4_quartos.JPG" alt="4 Quartos" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>4 Quartos</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/campo_futebol.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/campo_futebol.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/campo_futebol.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/campo_futebol.JPG" alt="Campo de Futebol" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Campo de Futebol</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/churrasqueira.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/churrasqueira.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/churrasqueira.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/churrasqueira.jpg" alt="Churrasqueira" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Churrasqueira</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/garagem.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/garagem.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/garagem.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/garagem.jpg" alt="Garagem Coberta" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Garagem Coberta</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_3401 (1).webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_3401 (1).webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_3401 (1).JPG" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_3525.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_3525.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_3525.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_3525.JPG" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_3527.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_3527.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_3527.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_3527.JPG" alt="Área Externa" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Área Externa</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_3881.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_3881.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_3881.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_3881.JPG" alt="Piscina & Lazer" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_3891.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_3891.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_3891.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_3891.JPG" alt="Interior" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Interior</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_4293.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_4293.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_4293.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_4293.JPG" alt="Suítes" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Suítes</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_4303.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_4303.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_4303.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_4303.JPG" alt="Comodidades" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Comodidades</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_4310.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_4310.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_4310.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_4310.JPG" alt="Piscina" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_4319.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_4319.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_4319.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_4319.JPG" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_4341.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_4341.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_4341.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_4341.JPG" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_4476.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_4476.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_4476.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_4476.JPG" alt="Chácara" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Chácara</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8232.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8232.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8232.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8232.jpg" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8237.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8237.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8237.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8237.jpg" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8241.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8241.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8241.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8241.jpg" alt="Detalhe" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Detalhe</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8242.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8242.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8242.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8242.jpg" alt="Lazer" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8258.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8258.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8258.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8258.jpg" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8260 2.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8260 2.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8260 2.jpg" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8262 2.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8262 2.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8262 2.jpg" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/IMG_8266.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/IMG_8266.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/IMG_8266.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/IMG_8266.jpg" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/piscina.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/piscina.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/piscina.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/piscina.jpg" alt="Piscina" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/quadra_de_areia.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/quadra_de_areia.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/quadra_de_areia.JPG" alt="Quadra de Areia" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Quadra de Areia</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/sala_de_jogos.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/sala_de_jogos.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/sala_de_jogos.JPG" alt="Salão de Jogos" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Salão de Jogos</p></div>
                 </div>
 
                 <div class="galeria-item">
                     <picture>
-                    <source data-srcset="assets/images/galeria/varanda.webp" type="image/webp">
-                    <img data-src="assets/images/galeria/varanda.jpg" alt="Galeria" loading="lazy">
+                    <source srcset="assets/images/galeria/varanda.webp" type="image/webp" sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw">
+                    <img src="assets/images/galeria/varanda.jpg" alt="Varanda" loading="lazy" decoding="async" width="400" height="300">
                 </picture>
                     <div class="galeria-overlay"><p>Varanda</p></div>
                 </div>
