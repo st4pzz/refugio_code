@@ -142,137 +142,137 @@
             
             <div class="galeria-grid">
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/4_quartos.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/4_quartos.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>4 Quartos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/campo_futebol.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/campo_futebol.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Campo de Futebol</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/churrasqueira.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/churrasqueira.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Churrasqueira</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/garagem.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/garagem.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Garagem Coberta</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3525.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_3525.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3527.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_3527.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Área Externa</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3881.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_3881.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3891.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_3891.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Interior</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4293.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_4293.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Suítes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4303.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_4303.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Comodidades</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4310.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_4310.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4319.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_4319.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4341.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_4341.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4476.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_4476.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Chácara</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8232.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8232.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8237.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8237.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8241.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8241.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Detalhe</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8242.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8242.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8258.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8258.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8266.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/IMG_8266.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/piscina.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/piscina.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Quadra de Areia</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria">
+                    <img src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Salão de Jogos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/varanda.jpg" alt="Galeria">
+                    <img src="assets/images/galeria/varanda.jpg" alt="Galeria" loading="lazy">
                     <div class="galeria-overlay"><p>Varanda</p></div>
                 </div>
             </div>
@@ -288,7 +288,7 @@
             <div class="cards-grid">
                 <div class="explore-card" id="cuscuzeiro-card">
                     <div class="card-image">
-                        <img src="assets/images/cuscuzeiro.jpeg" alt="Cuscuzeiro">
+                        <img src="assets/images/cuscuzeiro.jpeg" alt="Cuscuzeiro" loading="lazy">
                         <span class="card-badge">Natureza</span>
                     </div>
                     <div class="card-content">
@@ -299,7 +299,7 @@
 
                 <div class="explore-card" id="cachoeira-card">
                     <div class="card-image">
-                        <img src="assets/images/cachoeira.jpg" alt="Cachoeiras">
+                        <img src="assets/images/cachoeira.jpg" alt="Cachoeiras" loading="lazy">
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
@@ -310,7 +310,7 @@
 
                 <div class="explore-card" id="ecoturismo-card">
                     <div class="card-image">
-                        <img src="assets/images/foto_ecoturismo.jpg" alt="Ecoturismo">
+                        <img src="assets/images/foto_ecoturismo.jpg" alt="Ecoturismo" loading="lazy">
                         <span class="card-badge">Ecologia</span>
                     </div>
                     <div class="card-content">
@@ -321,7 +321,7 @@
 
                 <div class="explore-card" id="gastronomia-card">
                     <div class="card-image">
-                        <img src="assets/images/comida_Analandia.webp" alt="Gastronomia">
+                        <img src="assets/images/comida_Analandia.webp" alt="Gastronomia" loading="lazy">
                         <span class="card-badge">Cultura</span>
                     </div>
                     <div class="card-content">
@@ -332,7 +332,7 @@
 
                 <div class="explore-card" id="ciclismo-card">
                     <div class="card-image">
-                        <img src="assets/images/ciclismo.jpg" alt="Ciclismo">
+                        <img src="assets/images/ciclismo.jpg" alt="Ciclismo" loading="lazy">
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
