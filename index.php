@@ -8,6 +8,8 @@
     <meta property="og:title" content="Refúgio do Cuscuzeiro - Chácara de Aluguel">
     <meta property="og:description" content="Seu refúgio perfeito em Analândia. Natureza, conforto e exclusividade.">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/images/logo_refugio.png">
+    <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
     
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
     <link rel="stylesheet" href="style.css">
@@ -18,10 +20,14 @@
 </head>
 <body>
     <!-- HEADER STICKY -->
-    <header class="header">
-        <div class="header-container">
+    <header class="header scrolled">
+         <div class="header-container">
+        <div class="header-inner">
             <div class="logo-section">
-                <img src="assets/images/logo_transparente.png" alt="Refúgio do Cuscuzeiro Logo" class="logo-img">
+                <picture>
+                    <source media="(max-width: 768px)" srcset="assets/images/logo_crema.png">
+                    <img src="assets/images/logo_crema.png" alt="Refúgio do Cuscuzeiro Logo" class="logo-img">
+                </picture>
             </div>
             
             <nav class="navigation">
@@ -38,12 +44,13 @@
                 </ul>
             </nav>
         </div>
+         </div>
     </header>
 
     <!-- HERO SECTION -->
     <section class="hero" id="chacara">
         <div class="hero-background">
-            <img src="https://images.unsplash.com/photo-1628745277994-2b266f9e8de4?w=1200&h=600&fit=crop" alt="Refúgio do Cuscuzeiro" class="hero-img">
+            <img src="assets/images/noturno.JPG" alt="Refúgio do Cuscuzeiro" class="hero-img">
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">
@@ -60,7 +67,7 @@
             <p class="section-subtitle">Tudo que você precisa para uma estadia inesquecível</p>
             
             <div class="comodidades-grid">
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="quartos-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-door-open"></i>
                     </div>
@@ -68,7 +75,7 @@
                     <p>Quartos espaçosos e confortáveis para sua família</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="piscina-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-water"></i>
                     </div>
@@ -76,7 +83,7 @@
                     <p>Piscina bem cuidada para refrescantes mergulhos</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="jogos-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-dice"></i>
                     </div>
@@ -84,7 +91,7 @@
                     <p>Diversão garantida para toda a família</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="garagem-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-car"></i>
                     </div>
@@ -92,7 +99,7 @@
                     <p>Espaço seguro para 4 veículos</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="futebol-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-futbol"></i>
                     </div>
@@ -100,7 +107,7 @@
                     <p>Diversão ao ar livre para os esportistas</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="quadra-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-square"></i>
                     </div>
@@ -108,7 +115,7 @@
                     <p>Perfeita para vôlei e outros esportes</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="churrasqueira-card">
                     <div class="comodidade-icon">
                         <i class="fas fa-fire"></i>
                     </div>
@@ -116,12 +123,12 @@
                     <p>Churrascarias memoráveis com amigos</p>
                 </div>
 
-                <div class="comodidade-card">
+                <div class="comodidade-card" id="varanda-card">
                     <div class="comodidade-icon">
-                        <i class="fas fa-spa"></i>
+                        <i class="fas fa-home"></i>
                     </div>
-                    <h3>Hidromassagem</h3>
-                    <p>Relaxamento total após dias de diversão</p>
+                    <h3>Varanda Térrea</h3>
+                    <p>Espaço perfeito para aproveitar a vista e o ar livre</p>
                 </div>
             </div>
         </div>
@@ -134,46 +141,139 @@
             <p class="section-subtitle">Conheça cada detalhe da nossa chácara</p>
             
             <div class="galeria-grid">
-                <div class="galeria-item item-1">
-                    <img src="assets/images/IMG_3881.JPG" alt="Piscina e Área de Lazer">
-                    <div class="galeria-overlay">
-                        <p>Piscina & Lazer</p>
-                    </div>
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/4_quartos.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>4 Quartos</p></div>
                 </div>
 
-                <div class="galeria-item item-2">
-                    <img src="assets/images/IMG_3903.JPG" alt="Interior da Chácara">
-                    <div class="galeria-overlay">
-                        <p>Interior Elegante</p>
-                    </div>
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/campo_futebol.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Campo de Futebol</p></div>
                 </div>
 
-                <div class="galeria-item item-3">
-                    <img src="assets/images/IMG_4270.JPG" alt="Área Externa">
-                    <div class="galeria-overlay">
-                        <p>Área Externa</p>
-                    </div>
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/churrasqueira.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Churrasqueira</p></div>
                 </div>
 
-                <div class="galeria-item item-4">
-                    <img src="assets/images/IMG_4293.JPG" alt="Suíte Luxuosa">
-                    <div class="galeria-overlay">
-                        <p>Suítes Confortáveis</p>
-                    </div>
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/garagem.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Garagem Coberta</p></div>
                 </div>
 
-                <div class="galeria-item item-5">
-                    <img src="assets/images/IMG_8253.jpg" alt="Jardim">
-                    <div class="galeria-overlay">
-                        <p>Jardim Florido</p>
-                    </div>
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
-                <div class="galeria-item item-6">
-                    <img src="assets/images/12b7a9e2-ba4d-47d4-b492-13eff56428ba.JPG" alt="Áreas Comuns">
-                    <div class="galeria-overlay">
-                        <p>Áreas Comuns</p>
-                    </div>
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_3525.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Detalhes</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_3527.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Área Externa</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_3881.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_3891.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Interior</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_4293.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Suítes</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_4303.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Comodidades</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_4310.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Piscina</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_4319.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Espaço</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_4341.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Detalhes</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_4476.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Chácara</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8232.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Ambiente</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8237.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Espaço</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8241.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Detalhe</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8242.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Lazer</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8258.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Ambiente</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Espaço</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Ambiente</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_8266.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Detalhes</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/piscina.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Piscina</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Quadra de Areia</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria">
+                    <div class="galeria-overlay"><p>Salão de Jogos</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/varanda.jpg" alt="Galeria">
+                    <div class="galeria-overlay"><p>Varanda</p></div>
                 </div>
             </div>
         </div>
@@ -186,9 +286,9 @@
             <p class="section-subtitle">Descubra a beleza e os atrativos da região</p>
             
             <div class="cards-grid">
-                <div class="explore-card">
+                <div class="explore-card" id="cuscuzeiro-card">
                     <div class="card-image">
-                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="Cuscuzeiro">
+                        <img src="assets/images/cuscuzeiro.jpeg" alt="Cuscuzeiro">
                         <span class="card-badge">Natureza</span>
                     </div>
                     <div class="card-content">
@@ -197,9 +297,9 @@
                     </div>
                 </div>
 
-                <div class="explore-card">
+                <div class="explore-card" id="cachoeira-card">
                     <div class="card-image">
-                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="Cachoeiras">
+                        <img src="assets/images/cachoeira.jpg" alt="Cachoeiras">
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
@@ -208,9 +308,9 @@
                     </div>
                 </div>
 
-                <div class="explore-card">
+                <div class="explore-card" id="ecoturismo-card">
                     <div class="card-image">
-                        <img src="https://images.unsplash.com/photo-1469022563149-aa64dbd37dae?w=400&h=300&fit=crop" alt="Ecoturismo">
+                        <img src="assets/images/foto_ecoturismo.jpg" alt="Ecoturismo">
                         <span class="card-badge">Ecologia</span>
                     </div>
                     <div class="card-content">
@@ -219,14 +319,25 @@
                     </div>
                 </div>
 
-                <div class="explore-card">
+                <div class="explore-card" id="gastronomia-card">
                     <div class="card-image">
-                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="Gastronomia">
+                        <img src="assets/images/comida_Analandia.webp" alt="Gastronomia">
                         <span class="card-badge">Cultura</span>
                     </div>
                     <div class="card-content">
                         <h3>Gastronomia Local</h3>
                         <p>Prove os sabores da culinária caipira. Restaurantes e bares com comidas típicas e autênticas que refletem a cultura da região.</p>
+                    </div>
+                </div>
+
+                <div class="explore-card" id="ciclismo-card">
+                    <div class="card-image">
+                        <img src="assets/images/ciclismo.jpg" alt="Ciclismo">
+                        <span class="card-badge">Aventura</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ciclismo</h3>
+                        <p>Aventure-se em trilhas de bicicleta pela região. Paisagens incríveis e caminhos perfeitos para ciclistas de todos os níveis.</p>
                     </div>
                 </div>
             </div>
@@ -265,6 +376,20 @@
                         <p>refugiodocuscuzeiro@gmail.com</p>
                     </div>
                 </div>
+                <a href="https://www.instagram.com/refugiodocuscuzeiro/" target="_blank" rel="noopener noreferrer" class="info-item info-social">
+                    <i class="fab fa-instagram"></i>
+                    <div>
+                        <h4>Instagram</h4>
+                        <p>@refugiodocuscuzeiro</p>
+                    </div>
+                </a>
+                <a href="https://www.tiktok.com/@refugio_do_cuscuzeiro" target="_blank" rel="noopener noreferrer" class="info-item info-social">
+                    <i class="fab fa-tiktok"></i>
+                    <div>
+                        <h4>TikTok</h4>
+                        <p>@refugio_do_cuscuzeiro</p>
+                    </div>
+                </a>
             </div>
         </div>
     </section>
@@ -272,7 +397,7 @@
     <!-- FOOTER -->
     <footer class="footer">
         <div class="section-container">
-            <p>&copy; 2024 Refúgio do Cuscuzeiro. Todos os direitos reservados.</p>
+            <p>&copy; 2026 Refúgio do Cuscuzeiro. Todos os direitos reservados.</p>
             <p>Desenvolvido com <i class="fas fa-heart"></i> para sua comodidade</p>
         </div>
     </footer>
@@ -293,7 +418,7 @@
 
         <!-- Booking -->
         <div class="float-button-wrapper" data-tooltip="Reservar no Booking">
-            <a href="https://www.booking.com/" target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
+            <a href="https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html" target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
                 <span class="float-ping"></span>
                 <span class="float-glow"></span>
                 <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
@@ -305,7 +430,7 @@
 
         <!-- Airbnb -->
         <div class="float-button-wrapper" data-tooltip="Reservar no Airbnb">
-            <a href="https://www.airbnb.com/" target="_blank" rel="noopener noreferrer" class="float-btn float-airbnb" aria-label="Reservar no Airbnb">
+            <a href="https://www.airbnb.com/h/refugiodocuscuzeiro" target="_blank" rel="noopener noreferrer" class="float-btn float-airbnb" aria-label="Reservar no Airbnb">
                 <span class="float-ping"></span>
                 <span class="float-glow"></span>
                 <i class="fab fa-airbnb"></i>
@@ -347,16 +472,6 @@
         function scrollToComodidades() {
             document.getElementById('comodidades').scrollIntoView({ behavior: 'smooth' });
         }
-
-        // Header Background no Scroll
-        const header = document.querySelector('.header');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
 
         // Floating Buttons - Tooltip Hover
         document.querySelectorAll('.float-button-wrapper').forEach(wrapper => {
