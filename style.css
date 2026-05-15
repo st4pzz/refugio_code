@@ -83,20 +83,23 @@ body {
 }
 
 .logo-section picture {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 0;
 }
 
 .logo-img {
     display: block;
-    height: 80px;
+    height: 74px;
     width: auto;
     object-fit: contain;
-    margin: 0;
+    margin: auto 0;
     padding: 0;
+    vertical-align: middle;
 }
 .header.scrolled .logo-img {
-    height: 76px;
+    height: 74px;
     width: auto;
 }
 
@@ -425,7 +428,7 @@ section {
 }
 
 #quadra-card {
-    background-image: url('assets/images/quadra_de_areia.JPG');
+    background-image: url('assets/images/quadra_de_areia.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -454,7 +457,7 @@ section {
 }
 
 #piscina-card {
-    background-image: url('assets/images/piscina.jpg');
+    background-image: url('assets/images/piscina.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -483,13 +486,13 @@ section {
 }
 
 #cuscuzeiro-card .card-image {
-    background-image: url('assets/images/cuscuzeiro.jpeg');
+    background-image: url('assets/images/cuscuzeiro.webp');
     background-size: cover;
     background-position: center;
 }
 
 #cachoeira-card .card-image {
-    background-image: url('assets/images/cachoeira.jpg');
+    background-image: url('assets/images/cachoeira.webp');
     background-size: cover;
     background-position: center;
 }
@@ -501,19 +504,19 @@ section {
 }
 
 #ecoturismo-card .card-image {
-    background-image: url('assets/images/foto_ecoturismo.jpg');
+    background-image: url('assets/images/foto_ecoturismo.webp');
     background-size: cover;
     background-position: center;
 }
 
 #ciclismo-card .card-image {
-    background-image: url('assets/images/ciclismo.jpg');
+    background-image: url('assets/images/ciclismo.webp');
     background-size: cover;
     background-position: center;
 }
 
 #quartos-card {
-    background-image: url('assets/images/4_quartos.JPG');
+    background-image: url('assets/images/4_quartos.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -541,7 +544,7 @@ section {
 }
 
 #jogos-card {
-    background-image: url('assets/images/sala_de_jogos.JPG');
+    background-image: url('assets/images/sala_de_jogos.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -569,7 +572,7 @@ section {
 }
 
 #garagem-card {
-    background-image: url('assets/images/garagem.jpg');
+    background-image: url('assets/images/garagem.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -597,7 +600,7 @@ section {
 }
 
 #futebol-card {
-    background-image: url('assets/images/campo_futebol.JPG');
+    background-image: url('assets/images/campo_futebol.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -625,7 +628,7 @@ section {
 }
 
 #churrasqueira-card {
-    background-image: url('assets/images/churrasqueira.jpg');
+    background-image: url('assets/images/churrasqueira.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -653,7 +656,7 @@ section {
 }
 
 #varanda-card {
-    background-image: url('assets/images/varanda.jpg');
+    background-image: url('assets/images/varanda.webp');
     background-size: cover;
     background-position: center;
     position: relative;

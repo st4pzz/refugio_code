@@ -8,15 +8,23 @@
     <meta property="og:title" content="Refúgio do Cuscuzeiro - Chácara de Aluguel">
     <meta property="og:description" content="Seu refúgio perfeito em Analândia. Natureza, conforto e exclusividade.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/images/logo_refugio.png">
+    <meta property="og:image" content="assets/images/logo_refugio.webp">
     <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
     
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Preload hero image (above-the-fold) -->
+    <link rel="preload" as="image" href="assets/images/noturno.webp" type="image/webp">
+    <link rel="preload" as="image" href="assets/images/noturno.JPG" type="image/jpeg">
+    <style>
+       img[data-src] { opacity: 0; transition: opacity 0.3s ease-in-out; }
+       img.loaded { opacity: 1; }
+    </style>
 </head>
 <body>
     <!-- HEADER STICKY -->
@@ -26,7 +34,10 @@
             <div class="logo-section">
                 <picture>
                     <source media="(max-width: 768px)" srcset="assets/images/logo_crema.png">
-                    <img src="assets/images/logo_crema.png" alt="Refúgio do Cuscuzeiro Logo" class="logo-img">
+                    <picture>
+                    <source class="logo-img" data-srcset="assets/images/logo_crema.webp" type="image/webp">
+                    <img class="logo-img" data-src="assets/images/logo_crema.png" alt="Refúgio do Cuscuzeiro Logo" loading="lazy">
+                </picture>
                 </picture>
             </div>
             
@@ -50,7 +61,10 @@
     <!-- HERO SECTION -->
     <section class="hero" id="chacara">
         <div class="hero-background">
-            <img src="assets/images/noturno.JPG" alt="Refúgio do Cuscuzeiro" class="hero-img">
+            <picture>
+                    <source class="hero-img" data-srcset="assets/images/noturno.webp" type="image/webp">
+                    <img class="hero-img" data-src="assets/images/noturno.JPG" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="lazy">
+                </picture>
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">
@@ -142,137 +156,218 @@
             
             <div class="galeria-grid">
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/4_quartos.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/4_quartos.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/4_quartos.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>4 Quartos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/campo_futebol.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/campo_futebol.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/campo_futebol.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Campo de Futebol</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/churrasqueira.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/churrasqueira.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/churrasqueira.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Churrasqueira</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/garagem.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/garagem.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/garagem.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Garagem Coberta</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_3401 (1).webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3525.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_3525.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_3525.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3527.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_3527.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_3527.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Área Externa</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3881.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_3881.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_3881.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3891.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_3891.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_3891.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Interior</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4293.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_4293.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_4293.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Suítes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4303.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_4303.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_4303.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Comodidades</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4310.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_4310.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_4310.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4319.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_4319.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_4319.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4341.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_4341.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_4341.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4476.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_4476.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_4476.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Chácara</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8232.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8232.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8232.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8237.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8237.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8237.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8241.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8241.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8241.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Detalhe</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8242.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8242.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8242.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8258.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8258.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8258.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8260 2.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8262 2.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8266.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/IMG_8266.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/IMG_8266.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/piscina.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/piscina.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/piscina.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/quadra_de_areia.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Quadra de Areia</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/sala_de_jogos.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Salão de Jogos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/varanda.jpg" alt="Galeria">
+                    <picture>
+                    <source data-srcset="assets/images/galeria/varanda.webp" type="image/webp">
+                    <img data-src="assets/images/galeria/varanda.jpg" alt="Galeria" loading="lazy">
+                </picture>
                     <div class="galeria-overlay"><p>Varanda</p></div>
                 </div>
             </div>
@@ -288,7 +383,10 @@
             <div class="cards-grid">
                 <div class="explore-card" id="cuscuzeiro-card">
                     <div class="card-image">
-                        <img src="assets/images/cuscuzeiro.jpeg" alt="Cuscuzeiro">
+                        <picture>
+                    <source data-srcset="assets/images/cuscuzeiro.webp" type="image/webp">
+                    <img data-src="assets/images/cuscuzeiro.jpeg" alt="Cuscuzeiro" loading="lazy">
+                </picture>
                         <span class="card-badge">Natureza</span>
                     </div>
                     <div class="card-content">
@@ -299,7 +397,10 @@
 
                 <div class="explore-card" id="cachoeira-card">
                     <div class="card-image">
-                        <img src="assets/images/cachoeira.jpg" alt="Cachoeiras">
+                        <picture>
+                    <source data-srcset="assets/images/cachoeira.webp" type="image/webp">
+                    <img data-src="assets/images/cachoeira.jpg" alt="Cachoeiras" loading="lazy">
+                </picture>
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
@@ -310,7 +411,10 @@
 
                 <div class="explore-card" id="ecoturismo-card">
                     <div class="card-image">
-                        <img src="assets/images/foto_ecoturismo.jpg" alt="Ecoturismo">
+                        <picture>
+                    <source data-srcset="assets/images/foto_ecoturismo.webp" type="image/webp">
+                    <img data-src="assets/images/foto_ecoturismo.jpg" alt="Ecoturismo" loading="lazy">
+                </picture>
                         <span class="card-badge">Ecologia</span>
                     </div>
                     <div class="card-content">
@@ -332,7 +436,10 @@
 
                 <div class="explore-card" id="ciclismo-card">
                     <div class="card-image">
-                        <img src="assets/images/ciclismo.jpg" alt="Ciclismo">
+                        <picture>
+                    <source data-srcset="assets/images/ciclismo.webp" type="image/webp">
+                    <img data-src="assets/images/ciclismo.jpg" alt="Ciclismo" loading="lazy">
+                </picture>
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
@@ -506,5 +613,9 @@
             observer.observe(el);
         });
     </script>
+    <!-- Lazy Loading Script (defer para não bloquear renderização) -->
+    <script defer src="assets/js/lazy-load.js"></script>
+    <!-- Service Worker Registration (async pois é não-crítico) -->
+    <script async src="assets/js/register-sw.js"></script>
 </body>
 </html>
