@@ -33,10 +33,22 @@ html {
 
 body {
     font-family: 'Poppins', sans-serif;
-    color: var(--text-dark);
+      color: var(--text-dark);
     line-height: 1.6;
     overflow-x: hidden;
     background-color: var(--bg-white);
+
+    forced-color-adjust: none;
+   
+   
+  
+   
+}
+
+.hero-content,
+.hero-title,
+.hero-subtitle {
+    color: #fff !important;
 }
 
 /* ---- HEADER STICKY ---- */
