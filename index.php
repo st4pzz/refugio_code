@@ -11,6 +11,24 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="assets/images/logo_refugio.webp">
     <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1375499027959251');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1375499027959251&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18158463231"></script>
 <script>
@@ -101,6 +119,60 @@ function gtag_report_conversion(url) {
             <h2 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h2>
             <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
             <button class="cta-button" onclick="scrollToComodidades()">Conheça Nossas Comodidades</button>
+        </div>
+    </section>
+
+    <!-- PROVA SOCIAL / AVALIAÇÕES -->
+    <section class="reviews" id="reviews">
+        <div class="section-container">
+            <h2 class="section-title">O que nossos hóspedes dizem</h2>
+            <p class="section-subtitle">Avaliações reais de quem já desfrutou do Refúgio do Cuscuzeiro</p>
+
+            <div class="review-carousel" aria-roledescription="carousel">
+                <div class="review-slides">
+                    <article class="review-slide" data-index="0">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Foi uma estadia perfeita! A casa é muito confortável, a piscina estava limpa e as crianças adoraram o salão de jogos. Voltaremos com certeza.</p>
+                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Mariana S.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="1">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Local maravilhoso, anfitriões atenciosos e infraestrutura completa. Ideal para famílias grandes. Recomendo 100%.</p>
+                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Carlos M.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="2">
+                        <div class="review-rating">★★★★☆</div>
+                        <p class="review-text">Fomos em grupo de amigos e curtimos muito. Apenas um pequeno detalhe no check-in, mas o lugar compensa muito.</p>
+                        <div class="reviewer">🇵🇹 <span class="reviewer-name">Ana P.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="3">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Espaço incrível, limpeza nota 10 e muitas opções de lazer. A churrasqueira fez sucesso no final de semana!</p>
+                        <div class="reviewer">🇺🇸 <span class="reviewer-name">James L.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="4">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Ótima localização, silêncio e contato com a natureza. Perfeito para descansar e reunir a família.</p>
+                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Fernanda R.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="5">
+                        <div class="review-rating">★★★★☆</div>
+                        <p class="review-text">Casa ampla e bem equipada. Só sentimos falta de jogos de cartas extras, fora isso, nota 9/10.</p>
+                        <div class="reviewer">🇦🇷 <span class="reviewer-name">Santiago G.</span></div>
+                    </article>
+                </div>
+
+                <div class="review-controls" aria-hidden="false">
+                    <button class="review-prev" aria-label="Anterior">‹</button>
+                    <div class="review-dots" role="tablist" aria-label="Navegar avaliações"></div>
+                    <button class="review-next" aria-label="Próximo">›</button>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -650,6 +722,7 @@ function gtag_report_conversion(url) {
         });
     </script>
     <!-- Lazy Loading Script (defer para não bloquear renderização) -->
+    <script defer src="assets/js/reviews-carousel.js"></script>
     <script defer src="assets/js/lazy-load.js"></script>
     <!-- Service Worker Registration (async pois é não-crítico) -->
     <script async src="assets/js/register-sw.js"></script>
