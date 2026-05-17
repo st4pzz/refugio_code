@@ -368,7 +368,7 @@ section {
 .review-slides {
     position: relative;
     overflow: hidden;
-    min-height: 160px;
+    min-height: 200px; /* aumenta para evitar colapso em telas pequenas */
 }
 
 .review-slide {
@@ -386,6 +386,13 @@ section {
 }
 
 .review-slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+}
+
+/* Mostrar o primeiro slide por padrão, caso o JS demore ou não seja executado imediatamente (fix mobile FOUC/unstyled) */
+.review-slides > .review-slide:first-child {
     opacity: 1;
     transform: translateX(0);
     position: relative;

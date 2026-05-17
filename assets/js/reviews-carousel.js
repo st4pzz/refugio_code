@@ -12,11 +12,14 @@
     const delay = 4500; // tempo entre swaps
 
     function createDots() {
+        if (!dotsContainer) return;
+        dotsContainer.innerHTML = '';
         slides.forEach((s, i) => {
             const dot = document.createElement('button');
+            dot.type = 'button';
             dot.className = 'review-dot';
             dot.setAttribute('aria-label', `Ir para avaliação ${i+1}`);
-            dot.addEventListener('click', () => goTo(i));
+            dot.addEventListener('click', () => { goTo(i); start(); });
             dotsContainer.appendChild(dot);
         });
     }
@@ -25,8 +28,10 @@
         slides.forEach((s, i) => {
             s.classList.toggle('active', i === current);
         });
-        const dots = Array.from(dotsContainer.children);
-        dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        if (dotsContainer) {
+            const dots = Array.from(dotsContainer.children);
+            dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        }
     }
 
     function prev() { current = (current - 1 + slides.length) % slides.length; update(); }
@@ -44,13 +49,16 @@
     }
 
     // Inicializa
+    if (slides.length === 0) return;
+    // garantir que o primeiro slide fique visível imediatamente (redundância para mobile/FOUC)
+    slides[0].classList.add('active');
     createDots();
     update();
     start();
 
-    // Eventos de controles
-    prevBtn.addEventListener('click', () => { prev(); start(); });
-    nextBtn.addEventListener('click', () => { next(); start(); });
+    // Eventos de controles (só se existirem)
+    if (prevBtn) prevBtn.addEventListener('click', () => { prev(); start(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { next(); start(); });
 
     // Pausar ao hover/focus para acessibilidade
     carousel.addEventListener('mouseenter', stop);
