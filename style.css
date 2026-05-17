@@ -391,8 +391,8 @@ section {
     position: relative;
 }
 
-/* Mostrar o primeiro slide por padrão, caso o JS demore ou não seja executado imediatamente (fix mobile FOUC/unstyled) */
-.review-slides > .review-slide:first-child {
+/* Mostrar o primeiro slide por padrão apenas durante o estado de preload (evita overlap após JS inicializar) */
+.review-slides.preload > .review-slide:first-child {
     opacity: 1;
     transform: translateX(0);
     position: relative;

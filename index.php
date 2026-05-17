@@ -133,7 +133,7 @@ function gtag_report_conversion(url) {
             <p class="section-subtitle">Avaliações reais de quem já desfrutou do Refúgio do Cuscuzeiro</p>
 
             <div class="review-carousel" aria-roledescription="carousel">
-                <div class="review-slides">
+                <div class="review-slides preload">
                     <article class="review-slide" data-index="0">
                         <div class="review-rating">★★★★★</div>
                         <p class="review-text">Foi uma estadia perfeita! A casa é muito confortável, a piscina estava limpa e as crianças adoraram o salão de jogos. Voltaremos com certeza.</p>

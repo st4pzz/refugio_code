@@ -54,6 +54,11 @@
     slides[0].classList.add('active');
     createDots();
     update();
+    // remover estado de preload (se presente) para que o JS controle a visibilidade corretamente
+    const slidesContainer = carousel.querySelector('.review-slides');
+    if (slidesContainer && slidesContainer.classList.contains('preload')) {
+        slidesContainer.classList.remove('preload');
+    }
     start();
 
     // Eventos de controles (só se existirem)
