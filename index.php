@@ -78,6 +78,9 @@ function gtag_report_conversion(url) {
     </style>
 </head>
 <body>
+    <script>
+  fbq('track', 'ViewContent');
+</script>
     <!-- HEADER STICKY -->
     <header class="header scrolled">
          <div class="header-container">
