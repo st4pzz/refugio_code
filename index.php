@@ -618,7 +618,7 @@ function gtag_report_conversion(url) {
    <div class="floating-buttons-container">
     <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
         <a href="https://wa.me/message/VAHOR3ECX675N1" 
-           onclick="return gtag_report_conversion('https://wa.me/message/VAHOR3ECX675N1');"
+           onclick="fbq('track', 'Lead');return gtag_report_conversion('https://wa.me/message/VAHOR3ECX675N1');"
            target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
             <span class="float-ping"></span>
             <span class="float-glow"></span>
@@ -631,7 +631,7 @@ function gtag_report_conversion(url) {
 
     <div class="float-button-wrapper" data-tooltip="Reservar no Booking">
         <a href="https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html" 
-           onclick="return gtag_report_conversion('https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html');"
+           onclick="fbq('track', 'InitiateCheckout');return gtag_report_conversion('https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html');"
            target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
             <span class="float-ping"></span>
             <span class="float-glow"></span>
@@ -644,7 +644,7 @@ function gtag_report_conversion(url) {
 
     <div class="float-button-wrapper" data-tooltip="Reservar no Airbnb">
         <a href="https://www.airbnb.com/h/refugiodocuscuzeiro" 
-           onclick="return gtag_report_conversion('https://www.airbnb.com/h/refugiodocuscuzeiro');"
+           onclick="fbq('track', 'InitiateCheckout');return gtag_report_conversion('https://www.airbnb.com/h/refugiodocuscuzeiro');"
            target="_blank" rel="noopener noreferrer" class="float-btn float-airbnb" aria-label="Reservar no Airbnb">
             <span class="float-ping"></span>
             <span class="float-glow"></span>
