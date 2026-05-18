@@ -61,12 +61,23 @@ body {
     width: 100%;
     background: rgba(255, 255, 255, 0.95);
     padding: 0;
-    height: 64px;
+    height: 84px;
     box-shadow: none;
 }
 
 .header.scrolled {
-    height: 64px;
+    height: 84px !important;
+    padding: 0;
+}
+
+/* Garantir alturas consistentes quando o header estiver scrolled */
+.header.scrolled .header-container,
+.header.scrolled .header-inner {
+    height: 84px !important;
+}
+.header.scrolled .logo-img {
+    height: 74px !important;
+    width: auto;
 }
 
 .header-container {
@@ -1280,7 +1291,15 @@ section {
 
 
     .header-inner {
-        height: 80px;
+        height: 74px;
+    }
+
+    /* Forçar altura do header quando scrolled em desktop */
+    .header.scrolled {
+        height: 120px;
+    }
+    .header.scrolled .header-inner {
+        height: 120px;
     }
 
     .hero {
