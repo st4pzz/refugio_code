@@ -349,12 +349,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4303.webp" alt="Comodidades" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_4303.webp" alt="Comodidades" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Comodidades</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4310.webp" alt="Piscina" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_4310.webp" alt="Piscina" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
