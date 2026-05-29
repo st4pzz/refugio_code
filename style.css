@@ -1163,20 +1163,20 @@ section {
     box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
 }
 
-/* Booking Button */
-.float-booking {
-    background: linear-gradient(135deg, #003580 0%, #001a40 100%);
+/* Instagram Button */
+.float-instagram {
+    background: linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%);
     color: var(--bg-white);
-    box-shadow: 0 4px 15px rgba(0, 53, 128, 0.3);
+    box-shadow: 0 4px 15px rgba(221, 42, 123, 0.3);
 }
 
-.float-booking .float-ping {
-    background: #003580;
+.float-instagram .float-ping {
+    background: #dd2a7b;
 }
 
-.float-booking:hover {
+.float-instagram:hover {
     transform: scale(1.12);
-    box-shadow: 0 8px 25px rgba(0, 53, 128, 0.5);
+    box-shadow: 0 8px 25px rgba(221, 42, 123, 0.5);
 }
 
 /* Airbnb Button */

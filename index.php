@@ -574,17 +574,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="float-tooltip">Fale conosco no WhatsApp</div>
     </div>
 
-    <div class="float-button-wrapper" data-tooltip="Reservar no Booking">
-        <a href="https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html" 
-           onclick="trackOutboundClick('InitiateCheckout')"
-           target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
+    <div class="float-button-wrapper" data-tooltip="Instagram">
+        <a href="https://www.instagram.com/refugiodocuscuzeiro/" 
+           onclick="trackOutboundClick('Lead')"
+           target="_blank" rel="noopener noreferrer" class="float-btn float-instagram" aria-label="Instagram do Refúgio do Cuscuzeiro">
             <span class="float-ping"></span>
             <span class="float-glow"></span>
-            <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
-                <path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H6zm0 2h12v14H6V4zm2 2v2h2V6H8zm4 0v2h2V6h-2zm4 0v2h2V6h-2zm-8 4v2h2v-2H4zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2z"/>
-            </svg>
+            <i class="fab fa-instagram"></i>
         </a>
-        <div class="float-tooltip">Reservar no Booking</div>
+        <div class="float-tooltip">Instagram</div>
     </div>
 
     <div class="float-button-wrapper" data-tooltip="Reservar no Airbnb">
