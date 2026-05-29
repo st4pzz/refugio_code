@@ -100,7 +100,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         })(window, document);
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
-    <link rel="stylesheet" href="style.css?v=20260529">
+    <link rel="stylesheet" href="style.css?v=20260529-rotated">
     <!-- Font Awesome CSS (defer loading, não-crítico) -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -109,7 +109,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <!-- Preload hero image (above-the-fold) e logo -->
-    <link rel="preload" as="image" href="assets/images/Noturno.webp" type="image/webp">
+    <link rel="preload" as="image" href="assets/images/imagens_a_rotacionar/Noturno.webp" type="image/webp">
     <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
 </head>
 <body>
@@ -151,8 +151,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <section class="hero" id="chacara">
         <div class="hero-background">
             <picture>
-                    <source srcset="assets/images/Noturno.webp" type="image/webp">
-                    <img class="hero-img" src="assets/images/Noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
+                    <source srcset="assets/images/imagens_a_rotacionar/Noturno.webp" type="image/webp">
+                    <img class="hero-img" src="assets/images/imagens_a_rotacionar/Noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
                 </picture>
             <div class="hero-overlay"></div>
         </div>
@@ -299,12 +299,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
             <div class="galeria-grid">
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/4_quartos.webp" alt="4 Quartos" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/4_quartos.webp" alt="4 Quartos" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>4 Quartos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/campo_futebol.webp" alt="Campo de Futebol" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/campo_futebol.webp" alt="Campo de Futebol" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Campo de Futebol</p></div>
                 </div>
 
@@ -319,32 +319,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3401 (1).webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_3401 (1).webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3525.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_3525.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3527.webp" alt="Área Externa" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_3527.webp" alt="Área Externa" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Área Externa</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3881.webp" alt="Piscina & Lazer" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_3881.webp" alt="Piscina & Lazer" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3891.webp" alt="Interior" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_3891.webp" alt="Interior" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Interior</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4293.webp" alt="Suítes" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_4293.webp" alt="Suítes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Suítes</p></div>
                 </div>
 
@@ -359,17 +359,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4319.webp" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_4319.webp" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4341.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_4341.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4476.webp" alt="Chácara" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/IMG_4476.webp" alt="Chácara" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Chácara</p></div>
                 </div>
 
@@ -419,12 +419,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/quadra_de_areia.webp" alt="Quadra de Areia" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/quadra_de_areia.webp" alt="Quadra de Areia" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Quadra de Areia</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/sala_de_jogos.webp" alt="Salão de Jogos" loading="lazy" decoding="async" width="400" height="300">
+                    <img src="assets/images/imagens_a_rotacionar/sala_de_jogos.webp" alt="Salão de Jogos" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Salão de Jogos</p></div>
                 </div>
 

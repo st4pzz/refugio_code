@@ -562,7 +562,7 @@ section {
 }
 
 #quadra-card {
-    background-image: url('assets/images/quadra_de_areia.webp');
+    background-image: url('assets/images/imagens_a_rotacionar/quadra_de_areia.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -648,7 +648,7 @@ section {
 }
 
 #quartos-card {
-    background-image: url('assets/images/4_quartos.webp');
+    background-image: url('assets/images/imagens_a_rotacionar/4_quartos.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -676,7 +676,7 @@ section {
 }
 
 #jogos-card {
-    background-image: url('assets/images/sala_de_jogos.webp');
+    background-image: url('assets/images/imagens_a_rotacionar/sala_de_jogos.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -732,7 +732,7 @@ section {
 }
 
 #futebol-card {
-    background-image: url('assets/images/campo_futebol.webp');
+    background-image: url('assets/images/imagens_a_rotacionar/campo_futebol.webp');
     background-size: cover;
     background-position: center;
     position: relative;
