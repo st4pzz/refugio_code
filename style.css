@@ -5,6 +5,7 @@
 
 /* ---- RESET E VARIÁVEIS GLOBAIS ---- */
 :root {
+    color-scheme: light;
     --primary-color: #4B4A39;
     --secondary-color: #4B4A39;
     --accent-color: #4B4A39;
@@ -32,10 +33,22 @@ html {
 
 body {
     font-family: 'Poppins', sans-serif;
-    color: var(--text-dark);
+      color: var(--text-dark);
     line-height: 1.6;
     overflow-x: hidden;
     background-color: var(--bg-white);
+
+    forced-color-adjust: none;
+   
+   
+  
+   
+}
+
+.hero-content,
+.hero-title,
+.hero-subtitle {
+    color: #fff !important;
 }
 
 /* ---- HEADER STICKY ---- */
@@ -46,15 +59,25 @@ body {
     right: 0;
     z-index: 50;
     width: 100%;
-    background: rgba(255, 255, 255, 0.80);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.95);
     padding: 0;
-    height: 64px;
+    height: 84px;
     box-shadow: none;
 }
 
 .header.scrolled {
-    height: 64px;
+    height: 84px !important;
+    padding: 0;
+}
+
+/* Garantir alturas consistentes quando o header estiver scrolled */
+.header.scrolled .header-container,
+.header.scrolled .header-inner {
+    height: 84px !important;
+}
+.header.scrolled .logo-img {
+    height: 74px !important;
+    width: auto;
 }
 
 .header-container {
@@ -83,20 +106,22 @@ body {
 }
 
 .logo-section picture {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 0;
 }
 
 .logo-img {
     display: block;
-    height: 80px;
+    height: 74px;
     width: auto;
     object-fit: contain;
-    margin: 0;
+    margin: auto 0;
     padding: 0;
 }
 .header.scrolled .logo-img {
-    height: 76px;
+    height: 74px;
     width: auto;
 }
 
@@ -340,6 +365,118 @@ section {
     padding: 5rem 1rem;
 }
 
+/* ---- REVIEWS / PROVA SOCIAL ---- */
+.reviews {
+    background: linear-gradient(180deg, #F9F7F4 0%, #FFFFFF 100%);
+}
+
+.review-carousel {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.review-slides {
+    position: relative;
+    overflow: hidden;
+    min-height: 200px; /* aumenta para evitar colapso em telas pequenas */
+}
+
+.review-slide {
+    width: 100%;
+    padding: 2rem;
+    background: var(--bg-white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.6s var(--transition), transform 0.6s var(--transition);
+}
+
+.review-slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+}
+
+/* Mostrar o primeiro slide por padrão apenas durante o estado de preload (evita overlap após JS inicializar) */
+.review-slides.preload > .review-slide:first-child {
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+}
+
+.review-rating {
+    color: #FFB400;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+}
+
+.review-text {
+    font-size: 1rem;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.reviewer {
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.review-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.review-prev,
+.review-next {
+    background: var(--primary-color);
+    color: var(--bg-white);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(75,74,57,0.12);
+}
+
+.review-prev:hover,
+.review-next:hover {
+    transform: translateY(-3px);
+}
+
+.review-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.review-dot {
+    width: 10px;
+    height: 10px;
+    background: #E0DDD8;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.review-dot.active {
+    background: var(--primary-color);
+    transform: scale(1.25);
+}
+
+@media (max-width: 480px) {
+    .review-text { font-size: 0.95rem; }
+}
+
 .section-title {
     font-family: 'Playfair Display', serif;
     font-size: 2.5rem;
@@ -425,10 +562,9 @@ section {
 }
 
 #quadra-card {
-    background-image: url('assets/images/quadra_de_areia.JPG');
+    background-image: url('assets/images/quadra_de_areia.webp');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
     position: relative;
     border-color: var(--secondary-color);
 }
@@ -454,10 +590,9 @@ section {
 }
 
 #piscina-card {
-    background-image: url('assets/images/piscina.jpg');
+    background-image: url('assets/images/piscina.webp');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
     position: relative;
     border-color: var(--secondary-color);
 }
@@ -483,13 +618,13 @@ section {
 }
 
 #cuscuzeiro-card .card-image {
-    background-image: url('assets/images/cuscuzeiro.jpeg');
+    background-image: url('assets/images/cuscuzeiro.webp');
     background-size: cover;
     background-position: center;
 }
 
 #cachoeira-card .card-image {
-    background-image: url('assets/images/cachoeira.jpg');
+    background-image: url('assets/images/cachoeira.webp');
     background-size: cover;
     background-position: center;
 }
@@ -501,19 +636,19 @@ section {
 }
 
 #ecoturismo-card .card-image {
-    background-image: url('assets/images/foto_ecoturismo.jpg');
+    background-image: url('assets/images/foto_ecoturismo.webp');
     background-size: cover;
     background-position: center;
 }
 
 #ciclismo-card .card-image {
-    background-image: url('assets/images/ciclismo.jpg');
+    background-image: url('assets/images/ciclismo.webp');
     background-size: cover;
     background-position: center;
 }
 
 #quartos-card {
-    background-image: url('assets/images/4_quartos.JPG');
+    background-image: url('assets/images/4_quartos.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -541,7 +676,7 @@ section {
 }
 
 #jogos-card {
-    background-image: url('assets/images/sala_de_jogos.JPG');
+    background-image: url('assets/images/sala_de_jogos.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -569,7 +704,7 @@ section {
 }
 
 #garagem-card {
-    background-image: url('assets/images/garagem.jpg');
+    background-image: url('assets/images/garagem.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -597,7 +732,7 @@ section {
 }
 
 #futebol-card {
-    background-image: url('assets/images/campo_futebol.JPG');
+    background-image: url('assets/images/campo_futebol.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -625,7 +760,7 @@ section {
 }
 
 #churrasqueira-card {
-    background-image: url('assets/images/churrasqueira.jpg');
+    background-image: url('assets/images/churrasqueira.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -653,7 +788,7 @@ section {
 }
 
 #varanda-card {
-    background-image: url('assets/images/varanda.jpg');
+    background-image: url('assets/images/varanda.webp');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -1154,7 +1289,15 @@ section {
 
 
     .header-inner {
-        height: 80px;
+        height: 74px;
+    }
+
+    /* Forçar altura do header quando scrolled em desktop */
+    .header.scrolled {
+        height: 120px;
+    }
+    .header.scrolled .header-inner {
+        height: 120px;
     }
 
     .hero {
@@ -1355,28 +1498,6 @@ section {
     }
 }
 
-/* Tratamento para Dark Mode (opcional) */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-white: #1a1a1a;
-        --bg-light: #2a2a2a;
-        --text-dark: #E8DED5;
-        --text-light: #9D9C8F;
-    }
-
-    .nav-menu {
-        background: #1a1a1a;
-    }
-
-    .comodidade-card,
-    .explore-card {
-        background: #2a2a2a;
-    }
-
-    .info-item {
-        background: #2a2a2a;
-    }
-}
 
 /* Acessibilidade - Focus visible */
 button:focus-visible,

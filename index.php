@@ -1,32 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5D4WKTM7');</script>
+<!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <meta name="description" content="Refúgio do Cuscuzeiro - Chácara de aluguel por temporada em Analândia, São Paulo. Piscina, suítes, churrasqueira e muito mais.">
     <meta name="keywords" content="chácara, aluguel, temporada, Analândia, piscina, refúgio">
     <meta property="og:title" content="Refúgio do Cuscuzeiro - Chácara de Aluguel">
     <meta property="og:description" content="Seu refúgio perfeito em Analândia. Natureza, conforto e exclusividade.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/images/logo_refugio.png">
+    <meta property="og:image" content="assets/images/logo_refugio.webp">
     <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
-    
+    <meta name="facebook-domain-verification" content="sm11y3l28i1v2s2g36avcu3z3vejtg" />
+    <script>
+        (function (window, document) {
+            var googleAdsId = 'AW-18158463231';
+            var googleConversionId = 'AW-18158463231/1kiHCPjr7q0cEP_R0NJD';
+            var metaPixelId = '1375499027959251';
+
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = window.gtag || function () {
+                window.dataLayer.push(arguments);
+            };
+
+            if (!window.fbq) {
+                var fbq = window.fbq = function () {
+                    fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments);
+                };
+                if (!window._fbq) window._fbq = fbq;
+                fbq.push = fbq;
+                fbq.loaded = true;
+                fbq.version = '2.0';
+                fbq.queue = [];
+            }
+
+            function loadScript(src) {
+                var script = document.createElement('script');
+                script.async = true;
+                script.src = src;
+                document.head.appendChild(script);
+            }
+
+            function loadMarketingTags() {
+                if (window.__marketingTagsLoaded) return;
+                window.__marketingTagsLoaded = true;
+
+                loadScript('https://www.googletagmanager.com/gtag/js?id=' + googleAdsId);
+                window.gtag('js', new Date());
+                window.gtag('config', googleAdsId);
+
+                loadScript('https://connect.facebook.net/en_US/fbevents.js');
+                window.fbq('init', metaPixelId);
+                window.fbq('track', 'PageView');
+                window.fbq('track', 'ViewContent');
+            }
+
+            function scheduleMarketingTags() {
+                var run = function () {
+                    if ('requestIdleCallback' in window) {
+                        window.requestIdleCallback(loadMarketingTags, { timeout: 2500 });
+                    } else {
+                        window.setTimeout(loadMarketingTags, 1200);
+                    }
+                };
+
+                if (document.readyState === 'complete') {
+                    run();
+                } else {
+                    window.addEventListener('load', run, { once: true });
+                }
+            }
+
+            window.gtag_report_conversion = function () {
+                window.gtag('event', 'conversion', {
+                    send_to: googleConversionId,
+                    value: 1.0,
+                    currency: 'BRL'
+                });
+                return true;
+            };
+
+            window.trackOutboundClick = function (metaEvent) {
+                loadMarketingTags();
+                if (metaEvent && typeof window.fbq === 'function') {
+                    window.fbq('track', metaEvent);
+                }
+                window.gtag_report_conversion();
+                return true;
+            };
+
+            scheduleMarketingTags();
+        })(window, document);
+    </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="style.css?v=20260529">
+    <!-- Font Awesome CSS (defer loading, não-crítico) -->
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Preload hero image (above-the-fold) e logo -->
+    <link rel="preload" as="image" href="assets/images/Noturno.webp" type="image/webp">
+    <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5D4WKTM7"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1375499027959251&ev=PageView&noscript=1" alt=""></noscript>
     <!-- HEADER STICKY -->
     <header class="header scrolled">
          <div class="header-container">
         <div class="header-inner">
             <div class="logo-section">
                 <picture>
-                    <source media="(max-width: 768px)" srcset="assets/images/logo_crema.png">
-                    <img src="assets/images/logo_crema.png" alt="Refúgio do Cuscuzeiro Logo" class="logo-img">
+                    <source media="(max-width: 768px)" srcset="assets/images/logo_crema.webp" type="image/webp">
+                    <source media="(min-width: 769px)" srcset="assets/images/logo_crema.webp" type="image/webp">
+                    <img class="logo-img" src="assets/images/logo_crema.webp" alt="Refúgio do Cuscuzeiro Logo" loading="eager" fetchpriority="low" decoding="async" width="50" height="50">
                 </picture>
             </div>
             
@@ -50,13 +150,70 @@
     <!-- HERO SECTION -->
     <section class="hero" id="chacara">
         <div class="hero-background">
-            <img src="assets/images/noturno.JPG" alt="Refúgio do Cuscuzeiro" class="hero-img">
+            <picture>
+                    <source srcset="assets/images/Noturno.webp" type="image/webp">
+                    <img class="hero-img" src="assets/images/Noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
+                </picture>
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">
             <h2 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h2>
             <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
             <button class="cta-button" onclick="scrollToComodidades()">Conheça Nossas Comodidades</button>
+        </div>
+    </section>
+
+    <!-- PROVA SOCIAL / AVALIAÇÕES -->
+    <section class="reviews" id="reviews">
+        <div class="section-container">
+            <h2 class="section-title">O que nossos hóspedes dizem</h2>
+            <p class="section-subtitle">Avaliações reais de quem já desfrutou do Refúgio do Cuscuzeiro</p>
+
+            <div class="review-carousel" aria-roledescription="carousel">
+                <div class="review-slides preload">
+                    <article class="review-slide" data-index="0">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Foi uma estadia perfeita! A casa é muito confortável, a piscina estava limpa e as crianças adoraram o salão de jogos. Voltaremos com certeza.</p>
+                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Mariana S.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="1">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Local maravilhoso, anfitriões atenciosos e infraestrutura completa. Ideal para famílias grandes. Recomendo 100%.</p>
+                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Carlos M.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="2">
+                        <div class="review-rating">★★★★☆</div>
+                        <p class="review-text">Fomos em grupo de amigos e curtimos muito. Apenas um pequeno detalhe no check-in, mas o lugar compensa muito.</p>
+                        <div class="reviewer">🇵🇹 <span class="reviewer-name">Ana P.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="3">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Espaço incrível, limpeza nota 10 e muitas opções de lazer. A churrasqueira fez sucesso no final de semana!</p>
+                        <div class="reviewer">🇺🇸 <span class="reviewer-name">James L.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="4">
+                        <div class="review-rating">★★★★★</div>
+                        <p class="review-text">Ótima localização, silêncio e contato com a natureza. Perfeito para descansar e reunir a família.</p>
+                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Fernanda R.</span></div>
+                    </article>
+
+                    <article class="review-slide" data-index="5">
+                        <div class="review-rating">★★★★☆</div>
+                        <p class="review-text">Casa ampla e bem equipada. Só sentimos falta de jogos de cartas extras, fora isso, nota 9/10.</p>
+                        <div class="reviewer">🇦🇷 <span class="reviewer-name">Santiago G.</span></div>
+                    </article>
+                </div>
+
+                <div class="review-controls" aria-hidden="false">
+                    <button class="review-prev" aria-label="Anterior">‹</button>
+                    <div class="review-dots" role="tablist" aria-label="Navegar avaliações"></div>
+                    <button class="review-next" aria-label="Próximo">›</button>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -139,140 +296,140 @@
         <div class="section-container">
             <h2 class="section-title">Galeria de Fotos</h2>
             <p class="section-subtitle">Conheça cada detalhe da nossa chácara</p>
-            
+
             <div class="galeria-grid">
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/4_quartos.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/4_quartos.webp" alt="4 Quartos" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>4 Quartos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/campo_futebol.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/campo_futebol.webp" alt="Campo de Futebol" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Campo de Futebol</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/churrasqueira.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/churrasqueira.webp" alt="Churrasqueira" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Churrasqueira</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/garagem.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/garagem.webp" alt="Garagem Coberta" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Garagem Coberta</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3401 (1).JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_3401 (1).webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3525.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_3525.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3527.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_3527.webp" alt="Área Externa" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Área Externa</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3881.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_3881.webp" alt="Piscina & Lazer" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_3891.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_3891.webp" alt="Interior" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Interior</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4293.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_4293.webp" alt="Suítes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Suítes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4303.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_4303.webp" alt="Comodidades" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Comodidades</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4310.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_4310.webp" alt="Piscina" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4319.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_4319.webp" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4341.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_4341.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_4476.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_4476.webp" alt="Chácara" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Chácara</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8232.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8232.webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8237.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8237.webp" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8241.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8241.webp" alt="Detalhe" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhe</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8242.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8242.webp" alt="Lazer" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Lazer</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8258.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8258.webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8260 2.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8260 2.webp" alt="Espaço" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Espaço</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8262 2.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8262 2.webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Ambiente</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8266.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/IMG_8266.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/piscina.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/piscina.webp" alt="Piscina" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Piscina</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/quadra_de_areia.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/quadra_de_areia.webp" alt="Quadra de Areia" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Quadra de Areia</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/sala_de_jogos.JPG" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/sala_de_jogos.webp" alt="Salão de Jogos" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Salão de Jogos</p></div>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/varanda.jpg" alt="Galeria" loading="lazy">
+                    <img src="assets/images/galeria/varanda.webp" alt="Varanda" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Varanda</p></div>
                 </div>
             </div>
@@ -288,7 +445,7 @@
             <div class="cards-grid">
                 <div class="explore-card" id="cuscuzeiro-card">
                     <div class="card-image">
-                        <img src="assets/images/cuscuzeiro.jpeg" alt="Cuscuzeiro" loading="lazy">
+                        <img src="assets/images/cuscuzeiro.webp" alt="Cuscuzeiro" loading="lazy" decoding="async" width="400" height="300">
                         <span class="card-badge">Natureza</span>
                     </div>
                     <div class="card-content">
@@ -299,7 +456,7 @@
 
                 <div class="explore-card" id="cachoeira-card">
                     <div class="card-image">
-                        <img src="assets/images/cachoeira.jpg" alt="Cachoeiras" loading="lazy">
+                        <img src="assets/images/cachoeira.webp" alt="Cachoeiras" loading="lazy" decoding="async" width="400" height="300">
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
@@ -310,7 +467,7 @@
 
                 <div class="explore-card" id="ecoturismo-card">
                     <div class="card-image">
-                        <img src="assets/images/foto_ecoturismo.jpg" alt="Ecoturismo" loading="lazy">
+                        <img src="assets/images/foto_ecoturismo.webp" alt="Ecoturismo" loading="lazy" decoding="async" width="400" height="300">
                         <span class="card-badge">Ecologia</span>
                     </div>
                     <div class="card-content">
@@ -321,7 +478,7 @@
 
                 <div class="explore-card" id="gastronomia-card">
                     <div class="card-image">
-                        <img src="assets/images/comida_Analandia.webp" alt="Gastronomia" loading="lazy">
+                        <img src="assets/images/comida_Analandia.webp" alt="Gastronomia Local" loading="lazy" decoding="async" width="400" height="300">
                         <span class="card-badge">Cultura</span>
                     </div>
                     <div class="card-content">
@@ -332,7 +489,7 @@
 
                 <div class="explore-card" id="ciclismo-card">
                     <div class="card-image">
-                        <img src="assets/images/ciclismo.jpg" alt="Ciclismo" loading="lazy">
+                        <img src="assets/images/ciclismo.webp" alt="Ciclismo" loading="lazy" decoding="async" width="400" height="300">
                         <span class="card-badge">Aventura</span>
                     </div>
                     <div class="card-content">
@@ -403,41 +560,44 @@
     </footer>
 
     <!-- BOTÕES FLUTUANTES (CALL TO ACTION) -->
-    <div class="floating-buttons-container">
-        <!-- WhatsApp -->
-        <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
-            <a href="https://wa.me/message/VAHOR3ECX675N1" target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
-                <span class="float-ping"></span>
-                <span class="float-glow"></span>
-                <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-            </a>
-            <div class="float-tooltip">Fale conosco no WhatsApp</div>
-        </div>
-
-        <!-- Booking -->
-        <div class="float-button-wrapper" data-tooltip="Reservar no Booking">
-            <a href="https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html" target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
-                <span class="float-ping"></span>
-                <span class="float-glow"></span>
-                <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
-                    <path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H6zm0 2h12v14H6V4zm2 2v2h2V6H8zm4 0v2h2V6h-2zm4 0v2h2V6h-2zm-8 4v2h2v-2H4zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2z"/>
-                </svg>
-            </a>
-            <div class="float-tooltip">Reservar no Booking</div>
-        </div>
-
-        <!-- Airbnb -->
-        <div class="float-button-wrapper" data-tooltip="Reservar no Airbnb">
-            <a href="https://www.airbnb.com/h/refugiodocuscuzeiro" target="_blank" rel="noopener noreferrer" class="float-btn float-airbnb" aria-label="Reservar no Airbnb">
-                <span class="float-ping"></span>
-                <span class="float-glow"></span>
-                <i class="fab fa-airbnb"></i>
-            </a>
-            <div class="float-tooltip">Reservar no Airbnb</div>
-        </div>
+   <div class="floating-buttons-container">
+    <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
+        <a href="https://wa.me/message/VAHOR3ECX675N1" 
+           onclick="trackOutboundClick('Lead')"
+           target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
+            <span class="float-ping"></span>
+            <span class="float-glow"></span>
+            <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+        </a>
+        <div class="float-tooltip">Fale conosco no WhatsApp</div>
     </div>
+
+    <div class="float-button-wrapper" data-tooltip="Reservar no Booking">
+        <a href="https://www.booking.com/hotel/br/refugio-do-cuscuzeiro-em-analandia.pt-br.html" 
+           onclick="trackOutboundClick('InitiateCheckout')"
+           target="_blank" rel="noopener noreferrer" class="float-btn float-booking" aria-label="Reservar no Booking">
+            <span class="float-ping"></span>
+            <span class="float-glow"></span>
+            <svg viewBox="0 0 24 24" fill="currentColor" class="float-icon">
+                <path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H6zm0 2h12v14H6V4zm2 2v2h2V6H8zm4 0v2h2V6h-2zm4 0v2h2V6h-2zm-8 4v2h2v-2H4zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2z"/>
+            </svg>
+        </a>
+        <div class="float-tooltip">Reservar no Booking</div>
+    </div>
+
+    <div class="float-button-wrapper" data-tooltip="Reservar no Airbnb">
+        <a href="https://www.airbnb.com/h/refugiodocuscuzeiro" 
+           onclick="trackOutboundClick('InitiateCheckout')"
+           target="_blank" rel="noopener noreferrer" class="float-btn float-airbnb" aria-label="Reservar no Airbnb">
+            <span class="float-ping"></span>
+            <span class="float-glow"></span>
+            <i class="fab fa-airbnb"></i>
+        </a>
+        <div class="float-tooltip">Reservar no Airbnb</div>
+    </div>
+</div>
 
     <script>
         // Menu Mobile Toggle
@@ -506,5 +666,9 @@
             observer.observe(el);
         });
     </script>
+    <!-- Lazy Loading Script (defer para não bloquear renderização) -->
+    <script defer src="assets/js/reviews-carousel.js"></script>
+    <!-- Service Worker Registration (async pois é não-crítico) -->
+    <script async src="assets/js/register-sw.js"></script>
 </body>
 </html>
