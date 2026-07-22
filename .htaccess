@@ -4,7 +4,7 @@ Options -Indexes
 RewriteEngine On
 
 # Pastas internas nunca sao servidas diretamente.
-RewriteRule ^(?:app|config|database|docs|scripts|storage|tests)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:app|config|database|docs|scripts|storage|tests|resources|tmp|output|\.git)(?:/|$) - [F,L,NC]
 RewriteRule ^\.env(?:\.|$) - [F,L,NC]
 
 RewriteRule ^reserva/solicitar/?$ reserva/solicitar.php [L,QSA]
@@ -12,14 +12,58 @@ RewriteRule ^reserva/sucesso/?$ reserva/sucesso.php [L,QSA]
 RewriteRule ^reserva/(?:pagamento/)?([A-Za-z0-9_-]{40,80})/?$ reserva/index.php?token=$1 [L,QSA]
 RewriteRule ^api/reservas/solicitar/?$ api/reservas/solicitar.php [L,QSA]
 RewriteRule ^api/reservas/([A-Za-z0-9_-]{40,80})/comprovante/?$ api/reservas/comprovante.php?token=$1 [L,QSA]
+RewriteRule ^api/orcamentos/calcular/?$ api/orcamentos/calcular.php [L,QSA]
+RewriteRule ^minha-reserva/([a-f0-9]{64})/pre-checkin/?$ minha-reserva/index.php?token=$1&action=precheckin [L,QSA]
+RewriteRule ^minha-reserva/([a-f0-9]{64})/contrato/codigo/?$ minha-reserva/index.php?token=$1&action=signature-code [L,QSA]
+RewriteRule ^minha-reserva/([a-f0-9]{64})/contrato/assinar/?$ minha-reserva/index.php?token=$1&action=sign [L,QSA]
+RewriteRule ^minha-reserva/([a-f0-9]{64})/contrato\.pdf/?$ minha-reserva/index.php?token=$1&action=contract-pdf [L,QSA]
+RewriteRule ^minha-reserva/([a-f0-9]{64})/?$ minha-reserva/index.php?token=$1 [L,QSA]
+RewriteRule ^avaliar/obrigado/?$ avaliar/index.php?page=obrigado [L,QSA]
+RewriteRule ^avaliar/([a-f0-9]{64})/?$ avaliar/index.php?token=$1 [L,QSA]
+RewriteRule ^api/avaliacoes/publicas/?$ api/avaliacoes/publicas.php [L,QSA]
+RewriteRule ^api/avaliacoes/([a-f0-9]{64})/?$ api/avaliacoes/index.php?token=$1 [L,QSA]
+RewriteRule ^api/whatsapp/webhook/?$ api/whatsapp/webhook.php [L,QSA]
+RewriteRule ^contato/whatsapp/?$ contato/whatsapp.php [L,QSA]
 
 RewriteRule ^admin/?$ admin/index.php?route=dashboard [L,QSA]
 RewriteRule ^admin/login/?$ admin/index.php?route=login [L,QSA]
 RewriteRule ^admin/logout/?$ admin/index.php?route=logout [L,QSA]
 RewriteRule ^admin/reservas/?$ admin/index.php?route=reservas [L,QSA]
+RewriteRule ^admin/clientes/?$ admin/index.php?route=clientes [L,QSA]
+RewriteRule ^admin/clientes/([0-9]+)/exportar/?$ admin/index.php?route=cliente-exportar&id=$1 [L,QSA]
+RewriteRule ^admin/clientes/([0-9]+)/(mesclar|anonimizar)/?$ admin/index.php?route=cliente-acao&id=$1&action=$2 [L,QSA]
+RewriteRule ^admin/clientes/([0-9]+)/?$ admin/index.php?route=cliente-detalhe&id=$1 [L,QSA]
+RewriteRule ^admin/conversas/?$ admin/index.php?route=conversas [L,QSA]
+RewriteRule ^admin/conversas/templates/sincronizar/?$ admin/index.php?route=conversa-templates [L,QSA]
+RewriteRule ^admin/conversas/([0-9]+)/poll/?$ admin/index.php?route=conversa-poll&id=$1 [L,QSA]
+RewriteRule ^admin/conversas/midia/([0-9]+)/?$ admin/index.php?route=conversa-midia&mensagem=$1 [L,QSA]
+RewriteRule ^admin/conversas/([0-9]+)/(enviar|template|midia|atualizar|nota|criar-reserva|reenviar)/?$ admin/index.php?route=conversa-acao&id=$1&action=$2 [L,QSA]
+RewriteRule ^admin/marketing/?$ admin/index.php?route=marketing [L,QSA]
+RewriteRule ^admin/marketing/conectar/(meta|google|tiktok)/?$ admin/index.php?route=marketing-conectar&provider=$1 [L,QSA]
+RewriteRule ^admin/marketing/contas/?$ admin/index.php?route=marketing-contas [L,QSA]
+RewriteRule ^admin/marketing/integracoes/([0-9]+)/selecionar-conta/?$ admin/index.php?route=marketing-conta&id=$1 [L,QSA]
+RewriteRule ^admin/marketing/integracoes/([0-9]+)/(sincronizar|testar|desconectar)/?$ admin/index.php?route=marketing-acao&id=$1&action=$2 [L,QSA]
+RewriteRule ^admin/configuracoes/integracoes/(meta|google|tiktok)/callback/?$ admin/index.php?route=marketing-callback&provider=$1 [L,QSA]
+RewriteRule ^admin/financeiro/?$ admin/index.php?route=financeiro [L,QSA]
+RewriteRule ^admin/financeiro/exportar/?$ admin/index.php?route=financeiro-exportar [L,QSA]
+RewriteRule ^admin/financeiro/(conta-criar|categoria-criar|fornecedor-criar|recebivel-criar|receber|recebivel-cancelar|recebimento-estornar|despesa-criar|despesa-pagar|despesa-cancelar|despesa-estornar|recorrencia-criar|recorrencias-gerar|conciliar|caucao-criar|caucao-atualizar)/?$ admin/index.php?route=financeiro-acao&action=$1 [L,QSA]
+RewriteRule ^admin/configuracoes/integracoes/?$ admin/index.php?route=configuracoes [L,QSA]
+RewriteRule ^admin/configuracoes/perfil/?$ admin/index.php?route=configuracao-perfil [L,QSA]
+RewriteRule ^admin/reservas/([0-9]+)/(enviar-convite-avaliacao|reenviar-convite-avaliacao|revogar-convite-avaliacao)/?$ admin/index.php?route=review-invite&id=$1&action=$2 [L,QSA]
 RewriteRule ^admin/reservas/([0-9]+)/([a-z-]+)/?$ admin/index.php?route=acao&id=$1&action=$2 [L,QSA]
 RewriteRule ^admin/reservas/([0-9]+)/?$ admin/index.php?route=detalhe&id=$1 [L,QSA]
+RewriteRule ^admin/avaliacoes/?$ admin/index.php?route=avaliacoes [L,QSA]
+RewriteRule ^admin/avaliacoes/([0-9]+)/(aprovar|rejeitar|ocultar|republicar|responder)/?$ admin/index.php?route=review-action&id=$1&action=$2 [L,QSA]
+RewriteRule ^admin/avaliacoes/([0-9]+)/?$ admin/index.php?route=avaliacao-detalhe&id=$1 [L,QSA]
 RewriteRule ^admin/calendario/?$ admin/index.php?route=calendario [L,QSA]
+RewriteRule ^admin/precos/?$ admin/index.php?route=precos [L,QSA]
+RewriteRule ^admin/orcamentos/?$ admin/index.php?route=orcamentos [L,QSA]
+RewriteRule ^admin/contratos/?$ admin/index.php?route=contratos [L,QSA]
+RewriteRule ^admin/pre-checkins/?$ admin/index.php?route=precheckins [L,QSA]
+RewriteRule ^admin/automacoes/?$ admin/index.php?route=automacoes [L,QSA]
+RewriteRule ^admin/configuracoes/propriedade/?$ admin/index.php?route=propriedade [L,QSA]
+RewriteRule ^admin/operacoes/([a-z-]+)/?$ admin/index.php?route=operacao&action=$1 [L,QSA]
+RewriteRule ^calendario/([a-f0-9]{64})\.ics$ calendario/index.php?token=$1 [L,QSA]
 RewriteRule ^admin/comprovantes/([0-9]+)/?$ admin/index.php?route=comprovante&pagamento=$1 [L,QSA]
 RewriteRule ^admin/bloqueios/?$ admin/index.php?route=bloqueio-criar [L,QSA]
 RewriteRule ^admin/bloqueios/([0-9]+)/excluir/?$ admin/index.php?route=bloqueio-excluir&id=$1 [L,QSA]
@@ -74,7 +118,7 @@ RewriteRule ^politicas/(privacidade|termos|cancelamento|regras)/?$ politicas/ind
         Header set Cache-Control "public, max-age=0, must-revalidate"
     </FilesMatch>
 
-    SetEnvIf Request_URI "^/(admin|api|reserva)/" private_route
+    SetEnvIf Request_URI "^/(admin|api|reserva|minha-reserva|avaliar|contato)/" private_route
     Header set Cache-Control "private, no-store, max-age=0" env=private_route
     Header set X-Robots-Tag "noindex, nofollow" env=private_route
 </IfModule>

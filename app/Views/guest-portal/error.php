@@ -1,0 +1,1 @@
+<?php $title='Link indisponível';require BASE_PATH.'/app/Views/public/_top.php';?><section class="reservation-card"><h1>Link indisponível</h1><p><?= e($message) ?></p><p>Entre em contato com o atendimento para receber um novo link.</p></section><?php require BASE_PATH.'/app/Views/public/_bottom.php';?>

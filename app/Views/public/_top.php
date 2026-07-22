@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= e(base_url('assets/css/reservas.css?v=1')) ?>">
+    <link rel="stylesheet" href="<?= e(base_url('assets/css/reviews.css?v=1')) ?>">
+    <link rel="stylesheet" href="<?= e(base_url('assets/css/guest-portal.css?v=1')) ?>">
 </head>
 <body class="reservation-app">
 <header class="reservation-header"><a href="<?= e(base_url()) ?>" aria-label="Voltar ao inicio"><img src="<?= e(base_url('assets/images/logo_crema.webp')) ?>" alt="Refugio do Cuscuzeiro" width="58" height="58"><span>Refugio do Cuscuzeiro</span></a></header>

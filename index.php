@@ -114,6 +114,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
     <link rel="stylesheet" href="style.css?v=20260529-rotated">
+    <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
     <!-- Font Awesome CSS (defer loading, não-crítico) -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -186,49 +187,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <h2 class="section-title">O que nossos hóspedes dizem</h2>
             <p class="section-subtitle">Avaliações reais de quem já desfrutou do Refúgio do Cuscuzeiro</p>
 
-            <div class="review-carousel" aria-roledescription="carousel">
-                <div class="review-slides preload">
-                    <article class="review-slide" data-index="0">
-                        <div class="review-rating">★★★★★</div>
-                        <p class="review-text">Foi uma estadia perfeita! A casa é muito confortável, a piscina estava limpa e as crianças adoraram o salão de jogos. Voltaremos com certeza.</p>
-                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Mariana S.</span></div>
-                    </article>
+            <div class="review-summary" data-review-summary hidden aria-live="polite">
+                <strong><span data-review-average></span> de 5</strong>
+                <span data-review-count></span>
+            </div>
+            <p class="review-empty" data-review-empty>As avaliações verificadas aparecerão aqui em breve.</p>
 
-                    <article class="review-slide" data-index="1">
-                        <div class="review-rating">★★★★★</div>
-                        <p class="review-text">Local maravilhoso, anfitriões atenciosos e infraestrutura completa. Ideal para famílias grandes. Recomendo 100%.</p>
-                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Carlos M.</span></div>
-                    </article>
-
-                    <article class="review-slide" data-index="2">
-                        <div class="review-rating">★★★★☆</div>
-                        <p class="review-text">Fomos em grupo de amigos e curtimos muito. Apenas um pequeno detalhe no check-in, mas o lugar compensa muito.</p>
-                        <div class="reviewer">🇵🇹 <span class="reviewer-name">Ana P.</span></div>
-                    </article>
-
-                    <article class="review-slide" data-index="3">
-                        <div class="review-rating">★★★★★</div>
-                        <p class="review-text">Espaço incrível, limpeza nota 10 e muitas opções de lazer. A churrasqueira fez sucesso no final de semana!</p>
-                        <div class="reviewer">🇺🇸 <span class="reviewer-name">James L.</span></div>
-                    </article>
-
-                    <article class="review-slide" data-index="4">
-                        <div class="review-rating">★★★★★</div>
-                        <p class="review-text">Ótima localização, silêncio e contato com a natureza. Perfeito para descansar e reunir a família.</p>
-                        <div class="reviewer">🇧🇷 <span class="reviewer-name">Fernanda R.</span></div>
-                    </article>
-
-                    <article class="review-slide" data-index="5">
-                        <div class="review-rating">★★★★☆</div>
-                        <p class="review-text">Casa ampla e bem equipada. Só sentimos falta de jogos de cartas extras, fora isso, nota 9/10.</p>
-                        <div class="reviewer">🇦🇷 <span class="reviewer-name">Santiago G.</span></div>
-                    </article>
-                </div>
-
-                <div class="review-controls" aria-hidden="false">
-                    <button class="review-prev" aria-label="Anterior">‹</button>
-                    <div class="review-dots" role="tablist" aria-label="Navegar avaliações"></div>
-                    <button class="review-next" aria-label="Próximo">›</button>
+            <div class="review-carousel" data-source="api/avaliacoes/publicas" aria-roledescription="carousel" aria-label="Avaliações verificadas" hidden>
+                <div class="review-slides preload" aria-live="polite"></div>
+                <div class="review-controls">
+                    <button class="review-prev" type="button" aria-label="Avaliação anterior">‹</button>
+                    <div class="review-dots" role="tablist" aria-label="Navegar pelas avaliações"></div>
+                    <button class="review-next" type="button" aria-label="Próxima avaliação">›</button>
                 </div>
             </div>
         </div>
@@ -592,7 +562,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- BOTÕES FLUTUANTES (CALL TO ACTION) -->
    <div class="floating-buttons-container">
     <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
-        <a href="https://wa.me/message/VAHOR3ECX675N1" 
+        <a href="<?= e(base_url('contato/whatsapp')) ?>"
            onclick="trackOutboundClick('Lead')"
            target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
             <span class="float-ping"></span>
@@ -695,7 +665,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         });
     </script>
     <!-- Lazy Loading Script (defer para não bloquear renderização) -->
-    <script defer src="assets/js/reviews-carousel.js"></script>
+    <script defer src="assets/js/reviews-carousel.js?v=2"></script>
     <!-- Service Worker Registration (async pois é não-crítico) -->
     <script async src="assets/js/register-sw.js"></script>
 </body>

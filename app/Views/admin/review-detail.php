@@ -1,0 +1,25 @@
+<?php
+$title = 'Avaliação ' . $review['codigo'];
+$status = \Refugio\Models\ReviewStatus::from($review['status']);
+require __DIR__ . '/_top.php';
+$ratings = [
+    'Geral' => 'nota_geral', 'Limpeza' => 'nota_limpeza', 'Localização' => 'nota_localizacao',
+    'Conforto' => 'nota_conforto', 'Comunicação' => 'nota_comunicacao', 'Custo-benefício' => 'nota_custo_beneficio',
+];
+?>
+<div class="page-heading"><div><a class="back-link" href="<?= e(base_url('admin/avaliacoes')) ?>">← Avaliações</a><p class="eyebrow">Estadia verificada · <?= e($review['codigo']) ?></p><h1><?= e($review['nome_exibicao']) ?></h1><span class="admin-status status-<?= strtolower($status->value) ?>"><?= e($status->label()) ?></span></div><a class="admin-secondary inline" href="<?= e(base_url('admin/reservas/' . $review['reserva_id'])) ?>">Abrir reserva</a></div>
+<div class="detail-grid">
+    <section class="admin-panel"><div class="panel-heading"><h2>Avaliação original</h2><span class="verified-badge">✓ Avaliação verificada</span></div><blockquote class="review-comment"><?= nl2br(e($review['comentario'])) ?></blockquote><p><small>Enviada em <?= date('d/m/Y H:i', strtotime($review['enviada_em'])) ?> · publicação autorizada: <?= $review['autoriza_publicacao'] ? 'sim' : 'não' ?> · anônima: <?= $review['anonima'] ? 'sim' : 'não' ?></small></p></section>
+    <section class="admin-panel"><div class="panel-heading"><h2>Notas</h2></div><dl class="rating-list"><?php foreach ($ratings as $label => $field): ?><div><dt><?= e($label) ?></dt><dd><span class="review-stars"><?= str_repeat('★', (int) $review[$field]) . str_repeat('☆', 5 - (int) $review[$field]) ?></span> <?= (int) $review[$field] ?>/5</dd></div><?php endforeach; ?></dl></section>
+</div>
+<div class="detail-grid">
+    <section class="admin-panel"><div class="panel-heading"><h2>Hospedagem vinculada</h2></div><dl class="data-list"><div><dt>Cliente interno</dt><dd><?= e($review['nome_cliente']) ?></dd></div><div><dt>Origem</dt><dd><?= e($review['origem']) ?></dd></div><div><dt>Check-in</dt><dd><?= date('d/m/Y', strtotime($review['checkin'])) ?></dd></div><div><dt>Check-out</dt><dd><?= date('d/m/Y', strtotime($review['checkout'])) ?></dd></div></dl><p class="privacy-notice">Contato e demais dados privados permanecem apenas no cadastro da reserva e nunca são enviados à vitrine pública.</p></section>
+    <section class="admin-panel"><div class="panel-heading"><h2>Resposta do Refúgio</h2></div><form class="admin-form" action="<?= e(base_url('admin/avaliacoes/' . $review['id'] . '/responder')) ?>" method="post"><?= csrf_field() ?><label>Resposta pública<textarea name="resposta_administrador" rows="6" maxlength="1000" placeholder="Deixe vazio para remover a resposta."><?= e($review['resposta_administrador'] ?? '') ?></textarea></label><button class="admin-secondary" type="submit">Salvar resposta</button></form></section>
+</div>
+<section class="admin-panel"><div class="panel-heading"><h2>Moderação</h2></div><?php if ($review['motivo_moderacao']): ?><p><strong>Último motivo interno:</strong> <?= e($review['motivo_moderacao']) ?></p><?php endif; ?><div class="moderation-actions">
+    <?php if ($status === \Refugio\Models\ReviewStatus::PENDENTE): ?><form action="<?= e(base_url('admin/avaliacoes/' . $review['id'] . '/aprovar')) ?>" method="post" data-confirm="Aprovar e publicar esta avaliação?"><?= csrf_field() ?><button class="admin-primary">Aprovar e publicar</button></form><form action="<?= e(base_url('admin/avaliacoes/' . $review['id'] . '/rejeitar')) ?>" method="post" data-confirm="Rejeitar esta avaliação?"><?= csrf_field() ?><input name="motivo" placeholder="Motivo interno obrigatório" required><button class="admin-danger">Rejeitar</button></form><?php endif; ?>
+    <?php if ($status === \Refugio\Models\ReviewStatus::APROVADA): ?><form action="<?= e(base_url('admin/avaliacoes/' . $review['id'] . '/ocultar')) ?>" method="post" data-confirm="Ocultar esta avaliação da página pública?"><?= csrf_field() ?><input name="motivo" placeholder="Motivo interno obrigatório" required><button class="admin-danger">Ocultar</button></form><?php endif; ?>
+    <?php if (in_array($status, [\Refugio\Models\ReviewStatus::REJEITADA, \Refugio\Models\ReviewStatus::OCULTA], true)): ?><form action="<?= e(base_url('admin/avaliacoes/' . $review['id'] . '/republicar')) ?>" method="post" data-confirm="Aprovar e republicar esta avaliação?"><?= csrf_field() ?><button class="admin-primary">Republicar original</button></form><?php endif; ?>
+</div><p><small>O comentário original é imutável: a moderação altera apenas status, motivo interno e resposta administrativa.</small></p></section>
+<section class="admin-panel"><div class="panel-heading"><h2>Histórico da reserva</h2></div><ol class="timeline"><?php foreach ($history as $item): ?><li><strong><?= e($item['acao']) ?></strong><span><?= date('d/m/Y H:i', strtotime($item['created_at'])) ?><?= $item['usuario_nome'] ? ' · ' . e($item['usuario_nome']) : '' ?></span></li><?php endforeach; ?></ol></section>
+<?php require __DIR__ . '/_bottom.php'; ?>

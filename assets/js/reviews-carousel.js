@@ -1,74 +1,139 @@
-// Carrossel de avaliações - troca automática com pausa no hover
-(function(){
-    const carousel = document.querySelector('.review-carousel');
-    if (!carousel) return;
+// Vitrine pública: somente avaliações aprovadas retornadas pela API.
+(function () {
+    'use strict';
 
-    const slides = Array.from(carousel.querySelectorAll('.review-slide'));
-    const prevBtn = carousel.querySelector('.review-prev');
-    const nextBtn = carousel.querySelector('.review-next');
+    const section = document.querySelector('#reviews');
+    const carousel = section?.querySelector('.review-carousel');
+    const slidesContainer = carousel?.querySelector('.review-slides');
+    const empty = section?.querySelector('[data-review-empty]');
+    const summary = section?.querySelector('[data-review-summary]');
+    if (!section || !carousel || !slidesContainer || !empty || !summary) return;
+
+    const source = carousel.dataset.source;
+    const prevButton = carousel.querySelector('.review-prev');
+    const nextButton = carousel.querySelector('.review-next');
     const dotsContainer = carousel.querySelector('.review-dots');
+    const controls = carousel.querySelector('.review-controls');
+    let slides = [];
     let current = 0;
-    let interval = null;
-    const delay = 4500; // tempo entre swaps
+    let timer = null;
 
-    function createDots() {
-        if (!dotsContainer) return;
-        dotsContainer.innerHTML = '';
-        slides.forEach((s, i) => {
-            const dot = document.createElement('button');
-            dot.type = 'button';
-            dot.className = 'review-dot';
-            dot.setAttribute('aria-label', `Ir para avaliação ${i+1}`);
-            dot.addEventListener('click', () => { goTo(i); start(); });
-            dotsContainer.appendChild(dot);
-        });
+    function stayLabel(checkout) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(checkout || ''))) return '';
+        const date = new Date(`${checkout}T12:00:00Z`);
+        if (Number.isNaN(date.getTime())) return '';
+        return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);
+    }
+
+    function element(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (typeof text === 'string') node.textContent = text;
+        return node;
+    }
+
+    function createSlide(item, index) {
+        const note = Math.max(1, Math.min(5, Number.parseInt(item.nota_geral, 10) || 1));
+        const slide = element('article', 'review-slide');
+        slide.dataset.index = String(index);
+
+        const rating = element('div', 'review-rating', '★'.repeat(note) + '☆'.repeat(5 - note));
+        rating.setAttribute('aria-label', `${note} de 5 estrelas`);
+        slide.appendChild(rating);
+        slide.appendChild(element('p', 'review-text', String(item.comentario || '')));
+
+        const identity = element('div', 'reviewer');
+        identity.appendChild(element('span', 'reviewer-name', String(item.nome_exibicao || 'Hóspede')));
+        identity.appendChild(element('span', 'review-verified', '✓ Avaliação verificada'));
+        slide.appendChild(identity);
+
+        const period = stayLabel(item.checkout);
+        if (period) slide.appendChild(element('p', 'review-stay', `Hospedagem em ${period}`));
+
+        if (typeof item.resposta_administrador === 'string' && item.resposta_administrador.trim()) {
+            const response = element('aside', 'review-response');
+            response.appendChild(element('strong', '', 'Resposta do Refúgio'));
+            response.appendChild(element('p', '', item.resposta_administrador.trim()));
+            slide.appendChild(response);
+        }
+        return slide;
     }
 
     function update() {
-        slides.forEach((s, i) => {
-            s.classList.toggle('active', i === current);
+        slides.forEach((slide, index) => slide.classList.toggle('active', index === current));
+        Array.from(dotsContainer?.children || []).forEach((dot, index) => {
+            dot.classList.toggle('active', index === current);
+            dot.setAttribute('aria-selected', index === current ? 'true' : 'false');
         });
-        if (dotsContainer) {
-            const dots = Array.from(dotsContainer.children);
-            dots.forEach((d, i) => d.classList.toggle('active', i === current));
-        }
-    }
-
-    function prev() { current = (current - 1 + slides.length) % slides.length; update(); }
-    function next() { current = (current + 1) % slides.length; update(); }
-    function goTo(i) { current = i % slides.length; update(); }
-
-    function start() {
-        stop();
-        interval = setInterval(() => { next(); }, delay);
     }
 
     function stop() {
-        if (interval) clearInterval(interval);
-        interval = null;
+        if (timer) window.clearInterval(timer);
+        timer = null;
     }
 
-    // Inicializa
-    if (slides.length === 0) return;
-    // garantir que o primeiro slide fique visível imediatamente (redundância para mobile/FOUC)
-    slides[0].classList.add('active');
-    createDots();
-    update();
-    // remover estado de preload (se presente) para que o JS controle a visibilidade corretamente
-    const slidesContainer = carousel.querySelector('.review-slides');
-    if (slidesContainer && slidesContainer.classList.contains('preload')) {
+    function start() {
+        stop();
+        if (slides.length > 1) timer = window.setInterval(() => { current = (current + 1) % slides.length; update(); }, 5500);
+    }
+
+    function move(delta) {
+        current = (current + delta + slides.length) % slides.length;
+        update();
+        start();
+    }
+
+    function render(data) {
+        const items = Array.isArray(data?.items) ? data.items.filter(item => item && item.comentario) : [];
+        if (!items.length) return;
+
+        const nodes = items.map(createSlide);
+        slidesContainer.replaceChildren(...nodes);
         slidesContainer.classList.remove('preload');
+        slides = nodes;
+
+        if (dotsContainer) {
+            const dots = slides.map((_, index) => {
+                const dot = element('button', 'review-dot');
+                dot.type = 'button';
+                dot.setAttribute('role', 'tab');
+                dot.setAttribute('aria-label', `Ir para avaliação ${index + 1}`);
+                dot.addEventListener('click', () => { current = index; update(); start(); });
+                return dot;
+            });
+            dotsContainer.replaceChildren(...dots);
+        }
+
+        const count = Number.parseInt(data.count, 10) || items.length;
+        const average = Number(data.average);
+        if (count > 0 && Number.isFinite(average)) {
+            summary.querySelector('[data-review-average]').textContent = average.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            summary.querySelector('[data-review-count]').textContent = `Baseado em ${count} ${count === 1 ? 'avaliação verificada' : 'avaliações verificadas'}`;
+            summary.hidden = false;
+        }
+        empty.hidden = true;
+        carousel.hidden = false;
+        if (controls) controls.hidden = slides.length < 2;
+        update();
+        start();
     }
-    start();
 
-    // Eventos de controles (só se existirem)
-    if (prevBtn) prevBtn.addEventListener('click', () => { prev(); start(); });
-    if (nextBtn) nextBtn.addEventListener('click', () => { next(); start(); });
-
-    // Pausar ao hover/focus para acessibilidade
+    prevButton?.addEventListener('click', () => move(-1));
+    nextButton?.addEventListener('click', () => move(1));
     carousel.addEventListener('mouseenter', stop);
     carousel.addEventListener('mouseleave', start);
     carousel.addEventListener('focusin', stop);
     carousel.addEventListener('focusout', start);
 
+    fetch(source, { headers: { Accept: 'application/json' }, credentials: 'same-origin', cache: 'no-store' })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        })
+        .then(render)
+        .catch(() => {
+            empty.hidden = false;
+            carousel.hidden = true;
+            summary.hidden = true;
+        });
 })();

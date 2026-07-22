@@ -22,6 +22,10 @@ date_default_timezone_set($config['timezone']);
 if (PHP_SAPI !== 'cli') {
     Refugio\Support\Security::startSession($config);
     Refugio\Support\Security::sendHeaders();
+    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
+    if (!str_starts_with($requestPath, '/admin') && !str_starts_with($requestPath, '/api')) {
+        Refugio\Services\AttributionService::captureRequest();
+    }
 }
 
 ini_set('display_errors', $config['debug'] ? '1' : '0');

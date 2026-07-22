@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 use Refugio\Support\Csrf;
+use Refugio\Services\AuthorizationService;
+use Refugio\Support\Money as MoneyValue;
 
 if (!function_exists('mb_strlen')) {
     function mb_strlen(string $value): int { return strlen($value); }
@@ -31,7 +33,21 @@ function redirect(string $url): never
 
 function money(null|int|float|string $value): string
 {
+    if (!is_float($value)) {
+        try {
+            $cents = MoneyValue::toCents((string) ($value ?? '0'));
+            $negative = $cents < 0;
+            $absolute = abs($cents);
+            return ($negative ? '-R$ ' : 'R$ ') . number_format(intdiv($absolute, 100), 0, ',', '.') . ',' . str_pad((string) ($absolute % 100), 2, '0', STR_PAD_LEFT);
+        } catch (\InvalidArgumentException) {
+        }
+    }
     return 'R$ ' . number_format((float) $value, 2, ',', '.');
+}
+
+function can(string $permission): bool
+{
+    return AuthorizationService::currentAllows($permission);
 }
 
 function base_url(string $path = ''): string

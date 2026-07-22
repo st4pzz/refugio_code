@@ -1,0 +1,17 @@
+.review-form-card{max-width:820px;margin-left:auto;margin-right:auto}
+.privacy-notice{padding:12px 15px;border-radius:9px;background:var(--cream);font-size:.88rem}
+.review-categories{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.star-field{display:grid;gap:6px}
+.star-field>span{font-weight:600}
+.star-input{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:2px}
+.star-input input{position:absolute;width:1px;height:1px;margin:0;opacity:0;pointer-events:none;clip-path:inset(50%)}
+.star-input label{display:block;color:#c7c3ba;font-size:2rem;line-height:1;cursor:pointer;transition:color .15s,transform .15s}
+.star-field-large .star-input label{font-size:2.8rem}
+.star-input label:hover,.star-input label:hover~label,.star-input input:checked~label{color:#ffb400}
+.star-input input:focus-visible+label{outline:3px solid rgba(75,74,57,.35);outline-offset:3px;border-radius:3px}
+.star-input label:hover{transform:scale(1.08)}
+.comment-meta{display:flex;justify-content:space-between;gap:15px;color:var(--muted)}
+.review-consent{display:grid;gap:12px}
+.review-consent label{display:grid;grid-template-columns:20px 1fr;align-items:start;font-weight:400}
+.review-consent input{width:auto;margin-top:4px}
+@media(max-width:640px){.review-categories{grid-template-columns:1fr}.star-field-large .star-input label{font-size:2.45rem}}

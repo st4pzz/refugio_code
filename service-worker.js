@@ -4,7 +4,7 @@
  * Network First para HTML
  */
 
-const CACHE_VERSION = 'v1-refugio-20260722-reservas';
+const CACHE_VERSION = 'v1-refugio-20260722-avaliacoes';
 const CACHE_IMAGES = CACHE_VERSION + '-images';
 const CACHE_STATIC = CACHE_VERSION + '-static';
 const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   '/',
   '/index.php',
   '/style.css',
+  '/assets/css/reviews-public.css',
   '/assets/js/reviews-carousel.js',
   '/assets/js/register-sw.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -69,7 +70,7 @@ self.addEventListener('fetch', event => {
   }
 
   // Dados de reservas, APIs e painel nunca entram no cache do navegador.
-  if (/^\/(admin|api|reserva)(\/|$)/.test(url.pathname)) {
+  if (/^\/(admin|api|reserva|avaliar)(\/|$)/.test(url.pathname)) {
     event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }

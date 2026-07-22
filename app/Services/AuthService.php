@@ -25,6 +25,11 @@ final class AuthService
         session_regenerate_id(true);
         $_SESSION['admin_id'] = (int) $user['id'];
         $_SESSION['admin_name'] = $user['nome'];
+        $authorization = new AuthorizationService($this->db, (int) $user['id']);
+        if ($authorization->permissions() === []) {
+            self::logout();
+            return false;
+        }
         $limiter->clear($identity);
         $this->db->prepare('UPDATE usuarios_admin SET ultimo_login_em=NOW() WHERE id=?')->execute([$user['id']]);
         return true;

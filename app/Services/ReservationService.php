@@ -10,6 +10,7 @@ use Refugio\Models\PaymentStatus;
 use Refugio\Models\ReservationStatus;
 use Refugio\Repositories\ReservationRepository;
 use Refugio\Support\ReservationValidator;
+use Refugio\Support\Money;
 use RuntimeException;
 use Throwable;
 
@@ -51,8 +52,8 @@ final class ReservationService
             throw $e;
         }
         $reservation = $this->reservations->find($id);
-        $this->notifications->customer($reservation, 'SOLICITACAO_RECEBIDA', ['link' => base_url('reserva/' . $token)]);
         $this->notifications->admin($reservation, 'NOVA_SOLICITACAO', 'Ha uma nova solicitacao aguardando analise.');
+        $this->emitAutomation('RESERVATION_REQUEST_CREATED',(int)$reservation['id']);
         return $reservation;
     }
 
@@ -66,7 +67,7 @@ final class ReservationService
             $reservation = $this->reservations->findForUpdate($id) ?? throw new RuntimeException('Solicitacao nao encontrada.');
             ReservationStatus::from($reservation['status'])->assertTransitionTo(ReservationStatus::AGUARDANDO_PAGAMENTO);
             $conflicts = $this->availability->conflicts($reservation['checkin'], $reservation['checkout'], $id, true);
-            if ($conflicts['reservas'] || $conflicts['bloqueios']) throw new ConflictException($conflicts);
+            if (AvailabilityService::hasConflicts($conflicts)) throw new ConflictException($conflicts);
             if ($qrFile && ($qrFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
                 $storedQr = (new UploadService($this->config['upload_max_bytes']))->qrCode($qrFile);
             }
@@ -91,14 +92,16 @@ final class ReservationService
             throw $e;
         }
         $reservation = $this->reservations->find($id);
-        $this->notifications->customer($reservation, 'RESERVA_APROVADA', ['valor' => $paymentValue, 'link' => base_url('reserva/' . $reservation['token_publico'])]);
+        $this->syncFinancials($id, $userId);
+        $this->emitAutomation('RESERVATION_APPROVED',$id,['payment_due'=>$billing['deadline']]);
+        $this->emitAutomation('PAYMENT_REQUEST_CREATED',$id,['payment_due'=>$billing['deadline']]);
         return $reservation;
     }
 
     public function refuse(int $id, string $reason, int $userId): void
     {
         $this->changeStatus($id, ReservationStatus::RECUSADA, 'SOLICITACAO_RECUSADA', ['motivo' => mb_substr(trim(strip_tags($reason)), 0, 1000)], $userId);
-        $this->notifications->customer($this->reservations->find($id), 'RESERVA_RECUSADA');
+        $this->emitAutomation('RESERVATION_REJECTED',$id);
     }
 
     public function uploadReceipt(array $reservation, int $paymentId, array $file): void
@@ -143,12 +146,14 @@ final class ReservationService
             $this->db->prepare("UPDATE pagamentos SET status='CONFIRMADO',data_confirmacao=NOW(),observacoes=CONCAT_WS('\n',observacoes,?) WHERE id=?")->execute([mb_substr(trim(strip_tags($notes)), 0, 1000), $paymentId]);
             $sum = $this->db->prepare("SELECT COALESCE(SUM(valor),0) FROM pagamentos WHERE reserva_id=? AND status='CONFIRMADO'");
             $sum->execute([$reservationId]);
-            $remaining = max(0, (float) $reservation['valor_total'] - (float) $sum->fetchColumn());
+            $remaining = Money::fromCents(max(0, Money::toCents((string) $reservation['valor_total']) - Money::toCents((string) $sum->fetchColumn())));
             $this->db->prepare('UPDATE reservas SET valor_restante=? WHERE id=?')->execute([$remaining, $reservationId]);
             if ($current === ReservationStatus::RESERVA_CONFIRMADA) {
                 $this->history->log($reservationId, 'SALDO_CONFIRMADO', $current->value, $current->value, ['pagamento_id' => $paymentId, 'valor' => $payment['valor']], $userId);
                 $this->db->commit();
-                $this->notifications->customer($this->reservations->find($reservationId), 'PAGAMENTO_CONFIRMADO');
+                $this->syncFinancials($reservationId, $userId);
+                $this->emitAutomation('PAYMENT_CONFIRMED',$reservationId,[],'payment:'.$paymentId);
+                $this->releasePostPaymentJourney($reservationId);
                 return;
             }
             $current->assertTransitionTo(ReservationStatus::PAGAMENTO_CONFIRMADO);
@@ -163,7 +168,10 @@ final class ReservationService
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
         }
-        $this->notifications->customer($this->reservations->find($reservationId), 'RESERVA_CONFIRMADA');
+        $this->syncFinancials($reservationId, $userId);
+        $this->emitAutomation('PAYMENT_CONFIRMED',$reservationId,[],'payment:'.$paymentId);
+        $this->releasePostPaymentJourney($reservationId);
+        $this->scheduleMilestones($reservationId);
     }
 
     public function rejectReceipt(int $reservationId, int $paymentId, string $reason, int $userId): void
@@ -191,6 +199,7 @@ final class ReservationService
     public function finish(int $id, int $userId): void
     {
         $this->changeStatus($id, ReservationStatus::FINALIZADA, 'RESERVA_FINALIZADA', [], $userId, true);
+        $this->emitAutomation('RESERVATION_COMPLETED',$id);
     }
 
     public function updateInternalNotes(int $id, string $notes, int $userId): void
@@ -222,6 +231,7 @@ final class ReservationService
             if ($stored) @unlink(BASE_PATH . '/' . $stored['path']);
             throw $e;
         }
+        $this->syncFinancials($reservationId, $userId);
     }
 
     public function updateReservation(int $id, array $input, int $userId): void
@@ -236,7 +246,7 @@ final class ReservationService
             $r = $this->reservations->findForUpdate($id) ?? throw new RuntimeException('Reserva nao encontrada.');
             if (in_array($r['status'], ReservationStatus::blocking(), true)) {
                 $conflicts = $this->availability->conflicts($checkin->format('Y-m-d'), $checkout->format('Y-m-d'), $id, true);
-                if ($conflicts['reservas'] || $conflicts['bloqueios']) throw new ConflictException($conflicts);
+                if (AvailabilityService::hasConflicts($conflicts)) throw new ConflictException($conflicts);
                 $this->db->prepare('UPDATE datas_bloqueadas SET data_inicio=?,data_fim=? WHERE reserva_id=?')->execute([$checkin->format('Y-m-d'), $checkout->format('Y-m-d'), $id]);
             }
             if ($r['status'] !== ReservationStatus::AGUARDANDO_APROVACAO->value && $total <= 0) throw new ValidationException(['valor_total' => 'O valor total deve ser positivo para uma reserva aprovada.']);
@@ -266,11 +276,48 @@ final class ReservationService
                 $this->db->prepare('DELETE FROM datas_bloqueadas WHERE reserva_id=?')->execute([$id]);
                 $this->history->log((int) $id, 'PAGAMENTO_EXPIRADO', $r['status'], ReservationStatus::EXPIRADA->value);
                 $this->db->commit();
-                $this->notifications->customer($this->reservations->find((int) $id), 'PAGAMENTO_EXPIRADO');
+                $this->emitAutomation('PAYMENT_EXPIRED',(int)$id);
                 $count++;
             } catch (Throwable $e) { if ($this->db->inTransaction()) $this->db->rollBack(); throw $e; }
         }
         return $count;
+    }
+
+    private function syncFinancials(int $reservationId, int $userId): void
+    {
+        try {
+            (new FinancialService($this->db))->syncReservationPayments($reservationId, $userId);
+        } catch (Throwable $error) {
+            error_log('[financeiro-reserva] ' . $error->getMessage());
+        }
+    }
+
+    private function emitAutomation(string $event,int $reservationId,array $context=[],?string $eventKey=null):void
+    {
+        try{(new ReservationAutomationService($this->db,$this->config))->emit($event,$reservationId,$context,$eventKey);}catch(Throwable $error){error_log('[automation-reservation] '.$event.' #'.$reservationId.': '.$error->getMessage());}
+    }
+
+    private function scheduleMilestones(int $reservationId):void
+    {
+        try{(new ReservationAutomationService($this->db,$this->config))->scheduleMilestones($reservationId);}catch(Throwable $error){error_log('[automation-milestones] #'.$reservationId.': '.$error->getMessage());}
+    }
+
+    private function releasePostPaymentJourney(int $reservationId):void
+    {
+        try{
+            (new PreCheckinService($this->db))->ensure($reservationId);
+            $this->emitAutomation('PRECHECKIN_AVAILABLE',$reservationId,[],'precheckin-available');
+
+            $contract=$this->db->prepare('SELECT id FROM contracts WHERE reservation_id=? LIMIT 1');
+            $contract->execute([$reservationId]);
+            if(!$contract->fetchColumn()&&($reservation=$this->reservations->find($reservationId))){
+                $missing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);
+                $details='Pagamento confirmado, mas o contrato ainda requer os dados jurídicos do locatário '
+                    .'(nacionalidade, estado civil, profissão, RG e endereço completo) e a validação do inventário/anexos.';
+                if($missing!==[])$details.=' Configurações pendentes: '.implode(', ',$missing).'.';
+                $this->notifications->admin($reservation,'CONTRACT_PREPARATION_REQUIRED',$details,'admin/contratos');
+            }
+        }catch(Throwable $error){error_log('[post-payment-journey] #'.$reservationId.': '.$error->getMessage());}
     }
 
     private function changeStatus(int $id, ReservationStatus $next, string $action, array $details, int $userId, bool $releaseBlock = false): void

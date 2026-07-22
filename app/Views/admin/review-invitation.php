@@ -1,0 +1,14 @@
+<section class="admin-panel">
+    <div class="panel-heading"><h2>Avaliação verificada</h2><?php if ($reviewInvitation): ?><span class="admin-status status-<?= strtolower($reviewInvitation['status']) ?>"><?= e($reviewInvitation['status']) ?></span><?php endif; ?></div>
+    <?php if ($reviewExisting): ?>
+        <p>Esta hospedagem já recebeu uma avaliação. O convite foi encerrado e não pode ser reutilizado.</p>
+        <a class="admin-secondary inline" href="<?= e(base_url('admin/avaliacoes/' . $reviewExisting['id'])) ?>">Abrir avaliação</a>
+    <?php else: ?>
+        <?php if (!$reviewEligibility['eligible']): ?><p>Convite indisponível: <?= e(implode(' ', $reviewEligibility['errors'])) ?></p><?php elseif (!$reviewWindow['available']): ?><p>A janela de envio não está aberta. Disponível de <?= $reviewWindow['available_at']->format('d/m/Y H:i') ?> até <?= $reviewWindow['expires_at']->format('d/m/Y H:i') ?>.</p><?php else: ?><p>Esta reserva está apta a receber um convite único, com link secreto e prazo até <?= $reviewWindow['expires_at']->format('d/m/Y H:i') ?>.</p><?php endif; ?>
+        <?php if ($reviewInvitation): ?><dl class="data-list"><div><dt>Último envio</dt><dd><?= $reviewInvitation['ultimo_envio_em'] ? date('d/m/Y H:i', strtotime($reviewInvitation['ultimo_envio_em'])) : 'Ainda não enviado' ?></dd></div><div><dt>Expiração</dt><dd><?= date('d/m/Y H:i', strtotime($reviewInvitation['expira_em'])) ?></dd></div><div><dt>Tentativas</dt><dd><?= (int) $reviewInvitation['quantidade_envios'] ?></dd></div><div><dt>Lembrete</dt><dd><?= $reviewInvitation['lembrete_enviado_em'] ? date('d/m/Y H:i', strtotime($reviewInvitation['lembrete_enviado_em'])) : 'Não enviado' ?></dd></div></dl><?php endif; ?>
+        <?php if ($reviewEligibility['eligible'] && $reviewWindow['available']): ?><div class="action-row">
+            <?php if (!$reviewInvitation || in_array($reviewInvitation['status'], ['EXPIRADO','REVOGADO'], true)): ?><form action="<?= e(base_url('admin/reservas/' . $reservation['id'] . '/enviar-convite-avaliacao')) ?>" method="post" data-confirm="Enviar o convite de avaliação agora?"><?= csrf_field() ?><button class="admin-primary">Enviar convite</button></form><?php endif; ?>
+            <?php if ($reviewInvitation && in_array($reviewInvitation['status'], ['PENDENTE','ENVIADO'], true)): ?><form action="<?= e(base_url('admin/reservas/' . $reservation['id'] . '/reenviar-convite-avaliacao')) ?>" method="post" data-confirm="Rotacionar o link anterior e reenviar o convite?"><?= csrf_field() ?><button class="admin-secondary">Reenviar com novo link</button></form><form action="<?= e(base_url('admin/reservas/' . $reservation['id'] . '/revogar-convite-avaliacao')) ?>" method="post" data-confirm="Revogar imediatamente este convite?"><?= csrf_field() ?><button class="admin-danger">Revogar convite</button></form><?php endif; ?>
+        </div><?php endif; ?>
+    <?php endif; ?>
+</section>

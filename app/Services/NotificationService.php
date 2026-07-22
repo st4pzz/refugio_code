@@ -15,6 +15,36 @@ final class NotificationService
         $this->whatsApp ??= new WhatsAppService();
     }
 
+    public static function redactReviewToken(string $content): string
+    {
+        return preg_replace('#(avaliar/)[a-f0-9]{64}#i', '$1[token-redacted]', $content) ?? '[conteudo protegido]';
+    }
+
+    public static function redactSensitiveTokens(string $content): string
+    {
+        $content=self::redactReviewToken($content);
+        return preg_replace('#((?:minha-reserva|reserva)/)[A-Za-z0-9_-]{40,}#i','$1[token-redacted]',$content)??'[conteudo protegido]';
+    }
+
+    public function automation(array $reservation,string $type,string $subject,string $body,array $channels,?string $whatsAppTemplate=null,array $parameters=[]):void
+    {
+        $html=$this->layout('<h2>'.e($subject).'</h2><p>'.nl2br(e($body)).'</p>');
+        if(in_array('EMAIL',$channels,true))$this->email((int)$reservation['reservation_id'],$type,(string)$reservation['email'],$subject,$html);
+        if(in_array('WHATSAPP',$channels,true)&&!empty($reservation['whatsapp_autorizado'])&&$whatsAppTemplate!==null){
+            $this->whatsApp((int)$reservation['reservation_id'],$type,(string)$reservation['telefone'],$whatsAppTemplate,array_slice(array_map('strval',$parameters),0,10),$body);
+        }
+    }
+
+    public function signatureCode(array $reservation,string $code,string $expiresAt,string $role):void
+    {
+        $subject='Código para assinatura do contrato '.$reservation['codigo'];
+        $body=$this->layout('<h2>'.e($subject).'</h2><p>Seu código de uso único é:</p><p style="font-size:28px;letter-spacing:6px"><strong>'.e($code).'</strong></p><p>Expira às '.e(date('H:i',strtotime($expiresAt))).'. Não compartilhe este código.</p>');
+        $emailSent=$this->email((int)$reservation['id'],'CONTRACT_SIGNATURE_CODE',(string)$reservation['email'],$subject,$body,'[código de assinatura redigido; validade '.$expiresAt.']');
+        $template=Env::get('WHATSAPP_TEMPLATE_CONTRACT_SIGNATURE_CODE');
+        $whatsAppSent=false;if(!empty($reservation['whatsapp_autorizado'])&&$template!=='')$whatsAppSent=$this->whatsApp((int)$reservation['id'],'CONTRACT_SIGNATURE_CODE',(string)$reservation['telefone'],$template,[$code,date('H:i',strtotime($expiresAt))],'Código de assinatura enviado.');
+        if(!$emailSent&&!$whatsAppSent)throw new \RuntimeException('Não foi possível entregar o código. Tente novamente ou contate o atendimento.');
+    }
+
     public function customer(array $reservation, string $type, array $extra = []): void
     {
         $data = array_merge($reservation, $extra);
@@ -31,39 +61,62 @@ final class NotificationService
         }
     }
 
-    public function admin(array $reservation, string $type, string $details): void
+    public function reviewInvitation(array $reservation, string $link, string $expiresAt, bool $reminder = false): array
+    {
+        $type = $reminder ? 'LEMBRETE_AVALIACAO' : 'CONVITE_AVALIACAO';
+        $firstName = explode(' ', trim((string) $reservation['nome_cliente']))[0];
+        $subject = $reminder ? 'Lembrete: conte como foi sua estadia' : 'Como foi sua estadia no Refugio do Cuscuzeiro?';
+        $intro = $reminder ? 'Este e um lembrete gentil: seu convite para avaliar a estadia ainda esta disponivel.' : 'Esperamos que tenha aproveitado sua estadia no Refugio do Cuscuzeiro. Sua opiniao e muito importante para nos.';
+        $html = $this->layout('<h2>' . e($subject) . '</h2><p>Ola, ' . e($firstName) . '!</p><p>' . e($intro) . '</p><p><a class="button" href="' . e($link) . '">Avaliar minha estadia</a></p><p>Nao e necessario criar conta ou fazer login.</p><p>Este link e exclusivo e ficara disponivel ate <strong>' . e(date('d/m/Y', strtotime($expiresAt))) . '</strong>.</p>');
+        $email = $this->email((int) $reservation['id'], $type, (string) $reservation['email'], $subject, $html);
+        $whatsApp = false;
+        $template = Env::get('WHATSAPP_TEMPLATE_' . $type);
+        if (!empty($reservation['whatsapp_autorizado']) && $template !== '') {
+            $params = [$firstName, 'Refugio do Cuscuzeiro', $link, date('d/m/Y', strtotime($expiresAt))];
+            $whatsApp = $this->whatsApp((int) $reservation['id'], $type, (string) $reservation['telefone'], $template, $params, strip_tags($html));
+        }
+        return ['email' => $email, 'whatsapp' => $whatsApp];
+    }
+
+    public function admin(array $reservation, string $type, string $details, ?string $path = null): void
     {
         $email = Env::get('ADMIN_EMAIL');
         if ($email === '') return;
-        $subject = '[Refugio] ' . ($type === 'NOVA_SOLICITACAO' ? 'Nova solicitacao ' : 'Novo comprovante ') . $reservation['codigo'];
-        $html = $this->layout('<h2>' . e($subject) . '</h2><p>' . e($details) . '</p><p><a class="button" href="' . e(base_url('admin/reservas/' . $reservation['id'])) . '">Abrir no painel</a></p>');
+        $label = match ($type) { 'NOVA_SOLICITACAO' => 'Nova solicitacao ', 'NOVO_COMPROVANTE' => 'Novo comprovante ', 'NOVA_AVALIACAO' => 'Nova avaliacao ', default => 'Atualizacao ' };
+        $subject = '[Refugio] ' . $label . $reservation['codigo'];
+        $html = $this->layout('<h2>' . e($subject) . '</h2><p>' . e($details) . '</p><p><a class="button" href="' . e(base_url($path ?? ('admin/reservas/' . $reservation['id']))) . '">Abrir no painel</a></p>');
         $this->email((int) $reservation['id'], $type, $email, $subject, $html);
     }
 
-    private function email(int $reservationId, string $type, string $to, string $subject, string $html): void
+    private function email(int $reservationId, string $type, string $to, string $subject, string $html, ?string $storedContent = null): bool
     {
-        $id = $this->create($reservationId, 'EMAIL', $type, $to, $html);
+        $id = $this->create($reservationId, 'EMAIL', $type, $to, $storedContent ?? $html);
         try {
             $external = $this->mailer->send($to, $subject, $html);
             $this->success($id, $external);
+            return true;
         } catch (Throwable $e) {
             $this->failure($id, $e->getMessage());
+            return false;
         }
     }
 
-    private function whatsApp(int $reservationId, string $type, string $to, string $template, array $params, string $content): void
+    private function whatsApp(int $reservationId, string $type, string $to, string $template, array $params, string $content): bool
     {
         $id = $this->create($reservationId, 'WHATSAPP', $type, $to, $content);
         try {
             $external = $this->whatsApp->sendTemplate($to, $template, $params);
             $this->success($id, $external);
+            return true;
         } catch (Throwable $e) {
             $this->failure($id, $e->getMessage());
+            return false;
         }
     }
 
     private function create(int $reservationId, string $channel, string $type, string $to, string $content): int
     {
+        $content = self::redactSensitiveTokens($content);
         $stmt = $this->db->prepare("INSERT INTO notificacoes (reserva_id,canal,tipo,destinatario,conteudo,status,tentativas) VALUES (?,?,?,?,?,'PENDENTE',1)");
         $stmt->execute([$reservationId, $channel, $type, $to, $content]);
         return (int) $this->db->lastInsertId();

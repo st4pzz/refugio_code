@@ -5,6 +5,8 @@ namespace Refugio\Controllers;
 
 use Refugio\Config\Database;
 use Refugio\Repositories\ReservationRepository;
+use Refugio\Repositories\CustomerRepository;
+use Refugio\Services\AttributionService;
 use Refugio\Services\RateLimiter;
 use Refugio\Services\ReservationService;
 use Refugio\Services\ValidationException;
@@ -40,6 +42,9 @@ final class PublicReservationController
             $key = (string) ($_POST['_idempotency'] ?? '');
             if ($key === '' || !hash_equals($_SESSION['_request_idempotency'] ?? '', $key)) throw new RuntimeException('Formulario expirado. Atualize a pagina e tente novamente.');
             $reservation = $this->service->request($_POST, $key);
+            $db = Database::connection();
+            $clientId = (new CustomerRepository($db))->syncFromReservation($reservation);
+            (new AttributionService($db))->linkReservation((int) $reservation['id'], $clientId);
             $_SESSION['_success_reservation'] = ['codigo' => $reservation['codigo'], 'token' => $reservation['token_publico']];
             redirect(base_url('reserva/sucesso'));
         } catch (ValidationException $e) {

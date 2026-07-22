@@ -1,123 +1,203 @@
-# Refugio do Cuscuzeiro
+# Refúgio do Cuscuzeiro
 
-Site institucional e sistema de solicitacao e gerenciamento de reservas diretas em PHP puro. O fluxo e manual: o cliente solicita datas, o administrador verifica disponibilidade, cadastra uma cobranca Pix criada no aplicativo do banco, confere o pagamento e confirma a reserva.
+Site institucional e central administrativa em PHP puro para reservas diretas, avaliações verificadas, clientes, conversas via WhatsApp, marketing e controle financeiro. O painel preserva o fluxo público existente e adiciona permissões granulares, auditoria e processamento assíncrono.
 
 ## Requisitos
 
-- Apache 2.4 com `mod_rewrite`, `mod_headers`, PHP 8.2+ e HTTPS;
-- MySQL 8+ ou MariaDB 10.5+ com InnoDB;
-- extensoes PHP PDO MySQL, OpenSSL e JSON; Fileinfo e cURL sao recomendadas;
-- acesso a cron para expiracao automatica;
-- conta SMTP e, opcionalmente, WhatsApp Cloud API com templates aprovados.
+- Apache 2.4 com `mod_rewrite` e `mod_headers`, PHP 8.2+ e HTTPS;
+- MySQL 8+ ou MariaDB 10.5+ com InnoDB e `utf8mb4`;
+- extensões PHP PDO MySQL, JSON, mbstring, cURL, OpenSSL e Fileinfo;
+- acesso a cron ou scheduler para reservas, avaliações, fila, financeiro, retenção e sincronizações;
+- SMTP e, conforme os módulos habilitados, credenciais oficiais de WhatsApp Cloud API, Meta Ads, Google Ads e TikTok Ads.
 
-O projeto nao introduz framework ou dependencias Composer. O cliente SMTP usa conexao TLS nativa e todas as consultas usam PDO preparado.
+O projeto não introduz framework nem dependências Composer. Valores financeiros são manipulados como centavos/decimais exatos; consultas da aplicação usam PDO preparado.
 
-## Instalacao
+## Implantação segura
 
-1. Faca backup dos arquivos e do banco antes de implantar:
+1. Pare os workers e faça backup dos arquivos e do banco:
 
    ```bash
-   mysqldump --single-transaction -u USUARIO -p BANCO > backup-antes-reservas.sql
+   mysqldump --single-transaction --routines --triggers -u USUARIO -p BANCO > backup-antes-central.sql
    ```
 
-2. Copie `.env.example` para `.env`, gere `APP_KEY` com pelo menos 32 bytes aleatorios e preencha banco, URL, SMTP e demais opcoes. Nunca versione `.env`.
-3. Crie o banco vazio com `utf8mb4` e execute:
+2. Copie `.env.example` para `.env`. Gere chaves diferentes e aleatórias para `APP_KEY` e `MARKETING_ENCRYPTION_KEY`, cada uma com ao menos 32 bytes. Nunca versione `.env`.
+
+3. Em homologação, execute as migrations incrementais e os backfills:
 
    ```bash
    php scripts/migrate.php
-   php scripts/create_admin.php admin@dominio.com "Nome do administrador"
+   php scripts/sync_contacts.php
+   php scripts/sync_financial_reservations.php
+   php scripts/create_admin.php admin@dominio.com "Administrador" SUPER_ADMIN
+   php tests/run.php
    ```
 
-4. Garanta escrita para o usuario do PHP apenas em `storage/comprovantes` e `storage/qrcodes`. A raiz `storage` possui regra Apache que nega acesso direto.
-5. Confirme que o DocumentRoot permite `.htaccess`. As rotas amigaveis dependem de `mod_rewrite`.
+4. Garanta escrita somente nos diretórios privados necessários:
 
-## Variaveis de ambiente
+   - `storage/comprovantes`;
+   - `storage/qrcodes`;
+   - `storage/conversas`.
 
-As opcoes estao documentadas em `.env.example`:
+   A raiz `storage` contém regra Apache que nega acesso direto. Mídias de conversa são entregues apenas por rota autenticada e autorizada.
 
-- aplicacao: `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_TIMEZONE`, `APP_KEY`, `SESSION_SECURE`;
+5. Valide em homologação os fluxos manuais, configure webhooks/redirect URIs com HTTPS e só então repita as migrations em produção. O executor registra nome e checksum em `schema_migrations` e não reaplica migrations concluídas.
+
+## Módulos administrativos
+
+O menu lateral responsivo possui oito áreas:
+
+- Visão geral;
+- Reservas;
+- Avaliações;
+- Clientes;
+- Conversas;
+- Marketing;
+- Financeiro;
+- Configurações.
+
+As permissões são atribuídas por perfil. A migration mantém administradores existentes como `SUPER_ADMIN`. Consulte [docs/PERMISSOES.md](docs/PERMISSOES.md) antes de criar perfis operacionais.
+
+## Variáveis de ambiente
+
+Todas as opções e exemplos estão em `.env.example`:
+
+- aplicação: `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_TIMEZONE`, `APP_CURRENCY`, `APP_KEY`, `MARKETING_ENCRYPTION_KEY`, `SESSION_SECURE`;
 - banco: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_CHARSET`;
-- negocio: `MAX_GUESTS`, `CPF_REQUIRED`, `UPLOAD_MAX_MB`, `KEEP_RECEIPT_AFTER_EXPIRY`, `CONTACT_WHATSAPP`;
-- e-mail: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_ENCRYPTION`, `SMTP_FROM_EMAIL`, `SMTP_FROM_NAME`, `ADMIN_EMAIL`;
-- WhatsApp: `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_API_VERSION`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, idioma e nomes dos templates.
+- reserva: `MAX_GUESTS`, `CPF_REQUIRED`, `UPLOAD_MAX_MB`, `KEEP_RECEIPT_AFTER_EXPIRY`, `CONTACT_WHATSAPP`;
+- e-mail: `SMTP_*` e `ADMIN_EMAIL`;
+- avaliações: `REVIEW_INVITATION_*` e `REVIEW_REMINDER_*`;
+- conversas: `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_API_VERSION`, templates, limite de mídia e retenção;
+- marketing: `META_*`, `GOOGLE_ADS_*` e `TIKTOK_ADS_*`;
+- financeiro: `FINANCIAL_DEFAULT_ACCOUNT_ID`.
 
-Em producao use `APP_DEBUG=false`, `SESSION_SECURE=true` e HTTPS. O access token da Meta e a senha SMTP nunca sao impressos em logs.
+Em produção use `APP_DEBUG=false`, `SESSION_SECURE=true` e HTTPS. `MARKETING_ENCRYPTION_KEY` protege tokens OAuth com AES-256-GCM e exige OpenSSL. Segredos e dados pessoais são saneados antes de auditoria.
 
-## SMTP
+## Cadastro das integrações
 
-Configure um servidor com TLS (`SMTP_ENCRYPTION=tls`, geralmente porta 587) ou SSL implicito (`ssl`, geralmente 465). Teste uma solicitacao e confira `notificacoes`: falhas ficam com status `FALHOU` sem reverter a operacao principal e podem ser reenviadas no painel.
+| Integração | Onde criar e acesso mínimo | URL cadastrada | Teste, renovação e desconexão |
+|---|---|---|---|
+| Meta Ads | [Meta for Developers](https://developers.facebook.com/), app Business com `ads_read` e `business_management` | `META_REDIRECT_URI` | “Testar conexão” no painel; reconecte quando o token expirar. “Desconectar” apaga os tokens e preserva o histórico. |
+| Google Ads | Google Cloud OAuth Web, Google Ads API/developer token e escopo `https://www.googleapis.com/auth/adwords` | `GOOGLE_ADS_REDIRECT_URI` | O refresh token renova o acesso automaticamente; ausência/revogação exige reconexão. A desconexão remove ambos os tokens locais. |
+| TikTok Ads | [TikTok for Business](https://business-api.tiktok.com/portal/docs), app autorizado para leitura das advertisers | `TIKTOK_ADS_REDIRECT_URI` | O refresh é usado quando fornecido; caso contrário, reconecte. A desconexão preserva apenas dados sincronizados. |
+| WhatsApp | Meta for Developers/WhatsApp Cloud API, WABA, Phone Number ID, token e assinatura do campo `messages` | webhook `https://SEU_DOMINIO/api/whatsapp/webhook` | Valide challenge, assinatura e envio para número de teste. Rotacione o token no cofre/.env; não há token editável no painel. |
 
-## WhatsApp Cloud API
+Callbacks devem coincidir exatamente com HTTPS, host e caminho do `.env`. Contas, revisões de aplicativo, métricas e permissões disponíveis dependem de cada provedor. A configuração detalhada e os links oficiais ficam em [docs/MARKETING.md](docs/MARKETING.md) e [docs/CONVERSAS_WHATSAPP.md](docs/CONVERSAS_WHATSAPP.md).
 
-Cadastre os seguintes templates em `pt_BR`; os nomes reais sao configuraveis:
+## WhatsApp Cloud API e Conversas
 
-- `WHATSAPP_TEMPLATE_SOLICITACAO_RECEBIDA`;
-- `WHATSAPP_TEMPLATE_RESERVA_APROVADA`;
-- `WHATSAPP_TEMPLATE_RESERVA_RECUSADA`;
-- `WHATSAPP_TEMPLATE_PAGAMENTO_CONFIRMADO`;
-- `WHATSAPP_TEMPLATE_RESERVA_CONFIRMADA`;
-- `WHATSAPP_TEMPLATE_PAGAMENTO_EXPIRADO`;
-- `WHATSAPP_TEMPLATE_RESERVA_CANCELADA`.
+Configure no aplicativo Meta:
 
-Os templates devem aceitar, conforme o evento, nome, codigo, check-in, check-out, valor e link publico. A cobranca sempre permanece acessivel pela pagina publica; o sistema nao depende da imagem do QR no WhatsApp.
+- callback: `https://SEU_DOMINIO/api/whatsapp/webhook`;
+- verify token igual a `WHATSAPP_VERIFY_TOKEN`;
+- app secret igual a `WHATSAPP_APP_SECRET`;
+- assinatura dos eventos `X-Hub-Signature-256` habilitada;
+- assinatura do campo `messages` para a conta empresarial.
 
-## Cron
+O `GET` confirma o challenge e o `POST` valida HMAC antes de persistir o evento. O endpoint responde rapidamente e a fila processa mensagens/status de forma idempotente. Texto livre só é oferecido dentro da janela de 24 horas; fora dela o operador deve usar template aprovado.
 
-Execute a cada 5 ou 10 minutos, conforme a hospedagem permitir:
+O link público `/contato/whatsapp` captura UTMs/clids, cria uma referência `REF-*` e redireciona para `wa.me`. A resposta que contém a referência liga lead, conversa e atribuição.
+
+Detalhes de templates, tipos de mensagem, mídias, retenção, webhook e testes estão em [docs/CONVERSAS_WHATSAPP.md](docs/CONVERSAS_WHATSAPP.md).
+
+## Marketing
+
+Integrações são conectadas por OAuth no painel, com `state` assinado/temporário e tokens criptografados. A seleção de conta é explícita. A sincronização é somente leitura, paginada, idempotente e protegida por lock; falhas transitórias usam retentativa com backoff.
+
+O dashboard consolida investimento, impressões, alcance, cliques, CTR, CPC, CPM, conversões, receita atribuída e ROAS. Valores do Google Ads em micros são convertidos de forma explícita. A atribuição first/last touch combina UTMs e identificadores `gclid`, `gbraid`, `wbraid`, `fbclid` e `ttclid`; conversões continuam sendo indicativas, não causalidade provada.
+
+Configuração de cada provedor, redirect URIs, escopos, versões e validação estão em [docs/MARKETING.md](docs/MARKETING.md) e [docs/INTEGRACOES.md](docs/INTEGRACOES.md).
+
+## Financeiro
+
+O módulo inclui contas, categorias, fornecedores, contas a receber/pagar, recebimentos/pagamentos parciais, estornos, cancelamentos, recorrências, fluxo de caixa, conciliação manual, cauções e exportação CSV protegida contra formula injection.
+
+Pagamentos confirmados de reservas são sincronizados de forma idempotente. Uma caução deve ser recebida integralmente; devolução gera movimento de saída e retenção parcial/total exige justificativa. Não há integração bancária nem confirmação automática de Pix.
+
+Regras contábeis operacionais, fórmulas, backfill e roteiro de conferência estão em [docs/FINANCEIRO.md](docs/FINANCEIRO.md).
+
+## Cron e workers
+
+Exemplo para uma instalação em `/var/www/refugio`:
 
 ```cron
-*/5 * * * * /usr/bin/php /caminho/do/projeto/scripts/expirar_reservas.php >> /caminho/seguro/cron-reservas.log 2>&1
+*/5 * * * * /usr/bin/php /var/www/refugio/scripts/process_jobs.php --limit=50 >> /var/log/refugio-jobs.log 2>&1
+*/5 * * * * /usr/bin/php /var/www/refugio/scripts/expirar_reservas.php >> /var/log/refugio-reservas.log 2>&1
+20 2 * * * /usr/bin/php /var/www/refugio/scripts/gerar_recorrencias_financeiras.php >> /var/log/refugio-financeiro.log 2>&1
+15 * * * * /usr/bin/php /var/www/refugio/scripts/enviar_convites_avaliacao.php >> /var/log/refugio-avaliacoes.log 2>&1
+10 3 * * * /usr/bin/php /var/www/refugio/scripts/aplicar_retencao.php >> /var/log/refugio-retencao.log 2>&1
+0 */6 * * * /usr/bin/php /var/www/refugio/scripts/sync_marketing.php >> /var/log/refugio-marketing.log 2>&1
 ```
 
-Com `KEEP_RECEIPT_AFTER_EXPIRY=true`, reservas com comprovante enviado permanecem para analise; as demais vencidas sao expiradas e liberam as datas. O processamento e idempotente.
+Use um gerenciador de processo para worker contínuo ou cron curto. Nunca execute dois workers de marketing para a mesma integração; o serviço também usa lock no banco como segunda proteção.
 
-## Testes e roteiro funcional
+## Testes e aceite manual
 
-Execute os testes de regras e seguranca:
+Execute a suíte local:
 
 ```bash
 php tests/run.php
 ```
 
-Teste manual completo:
+Roteiro mínimo de homologação:
 
-1. abra `/reserva/solicitar`, envie uma solicitacao e confirme e-mail/WhatsApp e registro no painel;
-2. em `/admin`, aprove com valor, prazo, Pix e QR Code;
-3. abra o link publico, copie o Pix e envie PDF/JPG/PNG;
-4. baixe o comprovante somente no painel e confirme manualmente o pagamento;
-5. verifique confirmacao, bloqueio no calendario, historico e notificacoes;
-6. crie uma segunda solicitacao sobreposta e confirme que a aprovacao e impedida;
-7. crie uma cobranca vencida, execute o cron e confira expiracao e liberacao.
+1. solicite, aprove, pague, confirme, finalize e cancele reservas sem regressão no calendário;
+2. convide, envie, modere, publique e oculte uma avaliação;
+3. verifique perfis com acesso permitido e negado em cada módulo;
+4. abra `/contato/whatsapp`, responda com a referência e valide inbox, janela de 24h, template, mídia, status e idempotência;
+5. conecte uma conta de teste de cada provedor, selecione a conta, sincronize duas vezes e compare os totais com a interface oficial;
+6. registre recebimento/pagamento parcial, estorne, cancele saldo zerado e confira movimentos e conciliação;
+7. receba, retenha parcialmente e devolva uma caução, conferindo a saída gerada;
+8. una clientes duplicados, exporte os dados de um cliente e anonimize um registro de teste;
+9. teste larguras de 360 px, 768 px e desktop, teclado, foco visível e contraste;
+10. confira `auditoria`, `jobs` e logs sem tokens, conteúdo integral de mensagens ou dados pessoais desnecessários.
+
+Chamadas reais aos provedores e a aplicação das migrations devem ser validadas em banco/contas de homologação. A suíte unitária não substitui esse aceite.
 
 ## Estrutura
 
-- `app/Controllers`, `Models`, `Repositories`, `Services`, `Support` e `Views`: aplicacao;
-- `database/migrations`: migration e rollback SQL;
-- `reserva` e `api`: endpoints publicos;
+- `app/Controllers`, `Repositories`, `Services`, `Support` e `Views`: aplicação;
+- `database/migrations`: migrations incrementais e rollbacks manuais;
 - `admin`: front controller administrativo;
-- `scripts`: migration, criacao segura de administrador e cron;
-- `storage`: arquivos privados com nomes aleatorios;
-- `docs/FLUXO_RESERVAS.md`: estados, transicoes e concorrencia.
+- `api/whatsapp`: webhook da Cloud API;
+- `contato`: entrada pública para WhatsApp e captura de atribuição;
+- `scripts`: migrations, backfills, workers e rotinas agendadas;
+- `storage`: comprovantes, QR Codes e mídias privadas;
+- `docs`: fluxos, integrações, segurança, permissões e operação.
 
-## Rollback
+## Backup e rollback
 
-O arquivo `database/migrations/001_drop_reservas.sql` remove todas as tabelas novas e e deliberadamente manual/destrutivo. Antes de usa-lo, retire o site de operacao, confirme backup restauravel e preserve os comprovantes. Para rollback de codigo, restaure a versao anterior dos arquivos; nao execute o SQL de remocao se quiser manter dados.
+Os arquivos `*_drop_*.sql` são manuais e destrutivos. Em uma reversão:
 
-## Limitacoes e proxima etapa Pix
+1. coloque a aplicação em manutenção e pare crons/workers;
+2. faça novo dump do banco e preserve `storage`;
+3. reverta o código para a versão compatível;
+4. se for indispensável remover tabelas, execute os drops na ordem `006`, `005`, `004`, `003`; só use `002`/`001` se também quiser remover avaliações/reservas;
+5. restaure o dump se qualquer validação falhar.
 
-- A disponibilidade e gerenciada localmente; nao ha sincronizacao iCal com Airbnb/Booking nesta etapa.
-- O pagamento e conferido manualmente e nao existe consulta bancaria, estorno automatico ou conciliacao.
-- Os textos legais em `politicas/index.php` sao modelos iniciais e precisam de revisao do responsavel/juridico.
-- Para automatizar Pix no futuro, use uma instituicao com API oficial, crie uma camada `PixProvider`, armazene IDs externos e implemente webhook autenticado, idempotente e auditado. Nunca considere apenas o retorno do navegador como confirmacao.
+Prefira roll-forward: corrija a migration/aplicação com uma nova migration em vez de apagar dados. Nunca edite uma migration já registrada; o checksum detecta divergência.
 
-## Comandos de implantacao
+## Limitações conhecidas
 
-```bash
-cp .env.example .env
-# editar .env fora do controle de versao
-php scripts/migrate.php
-php scripts/create_admin.php admin@dominio.com "Administrador"
-php tests/run.php
-```
+- disponibilidade não sincroniza iCal com Airbnb/Booking;
+- integrações de anúncios são somente leitura e dependem de permissões/aprovação de cada plataforma;
+- atribuição entre clique e reserva é indicativa e pode divergir dos modelos dos provedores;
+- conciliação é manual por saldo/período; não há Open Finance, importação OFX ou liquidação bancária automática;
+- o inbox usa polling curto no navegador, não WebSocket;
+- textos legais em `politicas/index.php` são modelos iniciais e precisam de revisão jurídica.
 
-Depois, configure permissoes de `storage`, HTTPS e cron, e valide SMTP/WhatsApp em producao controlada.
+## Documentação complementar
+
+- [Fluxo de reservas](docs/FLUXO_RESERVAS.md)
+- [Sistema de avaliações](docs/SISTEMA_AVALIACOES.md)
+- [Conversas e WhatsApp](docs/CONVERSAS_WHATSAPP.md)
+- [Marketing](docs/MARKETING.md)
+- [Financeiro](docs/FINANCEIRO.md)
+- [Perfis e permissões](docs/PERMISSOES.md)
+- [Integrações, segurança e operação](docs/INTEGRACOES.md)
+# Operação integrada de reservas
+
+O painel inclui calendário unificado/iCal, retenções e conflitos, configurações da propriedade, motor de preços, snapshots de orçamento, portal seguro, contrato versionado com PDF e assinatura auditável, pré-check-in e 17 automações de jornada.
+
+Comece por [Configuração inicial](docs/CONFIGURACAO_INICIAL.md). Documentação por domínio: [calendário](docs/CALENDARIO_UNIFICADO.md), [preços](docs/MOTOR_DE_PRECOS.md), [orçamentos](docs/ORCAMENTOS.md), [portal](docs/PORTAL_HOSPEDE.md), [contratos](docs/CONTRATOS.md), [pré-check-in](docs/PRE_CHECKIN.md) e [automações](docs/AUTOMACOES_RESERVA.md).
+
+As migrações novas são `007_create_calendar_pricing_quotes.sql` e `008_create_guest_journey.sql`. O preço público nasce desativado e o contrato sugerido nasce pendente de aprovação.

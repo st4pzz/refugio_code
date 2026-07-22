@@ -8,11 +8,14 @@ use PDO;
 use Refugio\Config\Database;
 use Refugio\Models\ReservationStatus;
 use Refugio\Repositories\ReservationRepository;
+use Refugio\Repositories\ReviewRepository;
 use Refugio\Services\AuthService;
+use Refugio\Services\AuthorizationService;
 use Refugio\Services\AvailabilityService;
 use Refugio\Services\ConflictException;
 use Refugio\Services\NotificationService;
 use Refugio\Services\ReservationService;
+use Refugio\Services\ReviewEligibilityService;
 use Refugio\Support\Csrf;
 use RuntimeException;
 use Throwable;
@@ -55,7 +58,7 @@ final class AdminController
 
     public function dashboard(): void
     {
-        AuthService::requireAdmin();
+        AuthorizationService::requirePermission('dashboard.view');
         $this->boot();
         $metrics = [
             'pendentes' => $this->scalar("SELECT COUNT(*) FROM reservas WHERE status='AGUARDANDO_APROVACAO'"),
@@ -72,7 +75,7 @@ final class AdminController
 
     public function reservations(): void
     {
-        AuthService::requireAdmin();
+        AuthorizationService::requirePermission('reservas.view');
         $this->boot();
         $filters = array_intersect_key($_GET, array_flip(['q','status','origem','inicio','fim','ordem']));
         $page = max(1, (int) ($_GET['pagina'] ?? 1));
@@ -82,7 +85,7 @@ final class AdminController
 
     public function detail(int $id): void
     {
-        AuthService::requireAdmin();
+        AuthorizationService::requirePermission('reservas.view');
         $this->boot();
         $reservation = $this->repository->find($id);
         if (!$reservation) { http_response_code(404); throw new RuntimeException('Reserva nao encontrada.'); }
@@ -92,12 +95,17 @@ final class AdminController
         $availability = new AvailabilityService($this->db);
         $conflicts = $availability->conflicts($reservation['checkin'], $reservation['checkout'], $id);
         $pendingConflicts = $availability->pendingConflicts($reservation['checkin'], $reservation['checkout'], $id);
+        $reviewRepository = new ReviewRepository($this->db);
+        $reviewInvitation = $reviewRepository->invitationByReservation($id);
+        $reviewExisting = $reviewRepository->reviewByReservation($id);
+        $reviewEligibility = (new ReviewEligibilityService($this->db, $this->config))->check($reservation, $reviewExisting);
+        $reviewWindow = (new ReviewEligibilityService($this->db, $this->config))->invitationWindow($reservation);
         require BASE_PATH . '/app/Views/admin/detail.php';
     }
 
     public function action(int $id, string $action): never
     {
-        AuthService::requireAdmin();
+        AuthorizationService::requirePermission(in_array($action, ['confirmar-pagamento','recusar-comprovante'], true) ? 'financeiro.manage' : 'reservas.manage');
         $this->boot();
         try {
             Csrf::verify($_POST['_csrf'] ?? null);
@@ -126,7 +134,7 @@ final class AdminController
 
     public function calendar(): void
     {
-        AuthService::requireAdmin();
+        AuthorizationService::requirePermission('calendar.view');
         $this->boot();
         $month = preg_match('/^\d{4}-\d{2}$/', (string) ($_GET['mes'] ?? '')) ? $_GET['mes'] : date('Y-m');
         $start = new DateTimeImmutable($month . '-01'); $end = $start->modify('first day of next month');
@@ -134,12 +142,15 @@ final class AdminController
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $events = $stmt->fetchAll();
         $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? ORDER BY data_inicio');
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();
+        $unifiedEvents=(new \Refugio\Services\UnifiedCalendarService($this->db))->events($start->format('Y-m-d'),$end->format('Y-m-d'));
+        $calendarSources=$this->db->query('SELECT * FROM calendar_sources ORDER BY ativo DESC,nome')->fetchAll();
+        $syncLogs=$this->db->query('SELECT l.*,s.nome source_name FROM calendar_sync_logs l JOIN calendar_sources s ON s.id=l.source_id ORDER BY l.created_at DESC LIMIT 20')->fetchAll();
         require BASE_PATH . '/app/Views/admin/calendar.php';
     }
 
     public function blockAction(string $action): never
     {
-        AuthService::requireAdmin(); $this->boot(); Csrf::verify($_POST['_csrf'] ?? null);
+        AuthorizationService::requirePermission('reservas.manage'); $this->boot(); Csrf::verify($_POST['_csrf'] ?? null);
         try {
             if ($action === 'criar') {
                 $start = DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($_POST['data_inicio'] ?? ''));
@@ -150,7 +161,7 @@ final class AdminController
                 $this->db->beginTransaction();
                 (new AvailabilityService($this->db))->lockApprovalMutex();
                 $conflicts = (new AvailabilityService($this->db))->conflicts($start->format('Y-m-d'), $end->format('Y-m-d'), null, true);
-                if ($conflicts['reservas'] || $conflicts['bloqueios']) throw new ConflictException($conflicts);
+                if (AvailabilityService::hasConflicts($conflicts)) throw new ConflictException($conflicts);
                 $this->db->prepare('INSERT INTO datas_bloqueadas (data_inicio,data_fim,motivo,origem) VALUES (?,?,?,?)')->execute([$start->format('Y-m-d'), $end->format('Y-m-d'), $reason, $origin]);
                 $this->db->commit();
             } elseif ($action === 'excluir') {
@@ -166,7 +177,7 @@ final class AdminController
 
     public function receipt(int $paymentId): never
     {
-        AuthService::requireAdmin();
+        AuthorizationService::requirePermission('reservas.view');
         $this->boot();
         $stmt = $this->db->prepare('SELECT p.*,r.codigo FROM pagamentos p JOIN reservas r ON r.id=p.reserva_id WHERE p.id=?');
         $stmt->execute([$paymentId]); $payment = $stmt->fetch();
