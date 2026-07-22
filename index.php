@@ -154,6 +154,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     <li><a href="#galeria" class="nav-link">Fotos</a></li>
                     <li><a href="#anlandia" class="nav-link">Analândia</a></li>
                     <li><a href="#localizacao" class="nav-link">Localização</a></li>
+                    <li><a href="reserva/solicitar" class="nav-link nav-reserva">Reserva direta</a></li>
                 </ul>
             </nav>
         </div>
@@ -172,7 +173,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="hero-content">
             <h2 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h2>
             <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
-            <button class="cta-button" onclick="scrollToComodidades()">Conheça Nossas Comodidades</button>
+            <div class="hero-actions">
+                <a class="cta-button cta-reserva" href="reserva/solicitar">Solicitar reserva direta</a>
+                <button class="cta-button cta-secondary" onclick="scrollToComodidades()">Conheça Nossas Comodidades</button>
+            </div>
         </div>
     </section>
 
@@ -514,6 +518,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
     </section>
 
+    <section class="reservation-promo" id="reserva-direta">
+        <div class="section-container reservation-promo-inner">
+            <div>
+                <span class="reservation-kicker">Atendimento direto</span>
+                <h2 class="section-title">Solicite sua reserva pelo nosso site</h2>
+                <p>Envie as datas desejadas sem compromisso. Confirmamos a disponibilidade manualmente e, se aprovado, voce recebe uma pagina segura com a cobranca Pix.</p>
+                <p class="reservation-disclaimer">Esta e uma solicitacao de reserva e esta sujeita a confirmacao de disponibilidade.</p>
+            </div>
+            <a class="reservation-button" href="reserva/solicitar">Solicitar reserva direta</a>
+        </div>
+    </section>
+
     <!-- LOCALIZAÇÃO - GOOGLE MAPS -->
     <section class="localizacao" id="localizacao">
         <div class="section-container">
@@ -569,6 +585,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="section-container">
             <p>&copy; 2026 Refúgio do Cuscuzeiro. Todos os direitos reservados.</p>
             <p>Desenvolvido com <i class="fas fa-heart"></i> para sua comodidade</p>
+            <p class="footer-legal"><a href="politicas/privacidade">Privacidade</a> · <a href="politicas/termos">Termos da reserva</a> · <a href="politicas/cancelamento">Cancelamento</a> · <a href="politicas/regras">Regras</a></p>
         </div>
     </footer>
 

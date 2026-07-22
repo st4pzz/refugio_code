@@ -1,4 +1,29 @@
-# Refugio do Cuscuzeiro - cache e compressao
+# Refugio do Cuscuzeiro - rotas, seguranca, cache e compressao
+
+Options -Indexes
+RewriteEngine On
+
+# Pastas internas nunca sao servidas diretamente.
+RewriteRule ^(?:app|config|database|docs|scripts|storage|tests)(?:/|$) - [F,L,NC]
+RewriteRule ^\.env(?:\.|$) - [F,L,NC]
+
+RewriteRule ^reserva/solicitar/?$ reserva/solicitar.php [L,QSA]
+RewriteRule ^reserva/sucesso/?$ reserva/sucesso.php [L,QSA]
+RewriteRule ^reserva/(?:pagamento/)?([A-Za-z0-9_-]{40,80})/?$ reserva/index.php?token=$1 [L,QSA]
+RewriteRule ^api/reservas/solicitar/?$ api/reservas/solicitar.php [L,QSA]
+RewriteRule ^api/reservas/([A-Za-z0-9_-]{40,80})/comprovante/?$ api/reservas/comprovante.php?token=$1 [L,QSA]
+
+RewriteRule ^admin/?$ admin/index.php?route=dashboard [L,QSA]
+RewriteRule ^admin/login/?$ admin/index.php?route=login [L,QSA]
+RewriteRule ^admin/logout/?$ admin/index.php?route=logout [L,QSA]
+RewriteRule ^admin/reservas/?$ admin/index.php?route=reservas [L,QSA]
+RewriteRule ^admin/reservas/([0-9]+)/([a-z-]+)/?$ admin/index.php?route=acao&id=$1&action=$2 [L,QSA]
+RewriteRule ^admin/reservas/([0-9]+)/?$ admin/index.php?route=detalhe&id=$1 [L,QSA]
+RewriteRule ^admin/calendario/?$ admin/index.php?route=calendario [L,QSA]
+RewriteRule ^admin/comprovantes/([0-9]+)/?$ admin/index.php?route=comprovante&pagamento=$1 [L,QSA]
+RewriteRule ^admin/bloqueios/?$ admin/index.php?route=bloqueio-criar [L,QSA]
+RewriteRule ^admin/bloqueios/([0-9]+)/excluir/?$ admin/index.php?route=bloqueio-excluir&id=$1 [L,QSA]
+RewriteRule ^politicas/(privacidade|termos|cancelamento|regras)/?$ politicas/index.php?tipo=$1 [L,QSA]
 
 <IfModule mod_mime.c>
     AddType image/webp .webp
@@ -48,6 +73,10 @@
     <FilesMatch "service-worker\.js$">
         Header set Cache-Control "public, max-age=0, must-revalidate"
     </FilesMatch>
+
+    SetEnvIf Request_URI "^/(admin|api|reserva)/" private_route
+    Header set Cache-Control "private, no-store, max-age=0" env=private_route
+    Header set X-Robots-Tag "noindex, nofollow" env=private_route
 </IfModule>
 
 <IfModule mod_deflate.c>

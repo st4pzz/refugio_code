@@ -4,7 +4,7 @@
  * Network First para HTML
  */
 
-const CACHE_VERSION = 'v1-refugio-20260529-rotated';
+const CACHE_VERSION = 'v1-refugio-20260722-reservas';
 const CACHE_IMAGES = CACHE_VERSION + '-images';
 const CACHE_STATIC = CACHE_VERSION + '-static';
 const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';
@@ -65,6 +65,12 @@ self.addEventListener('fetch', event => {
 
   // Ignorar requisições não-GET
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Dados de reservas, APIs e painel nunca entram no cache do navegador.
+  if (/^\/(admin|api|reserva)(\/|$)/.test(url.pathname)) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }
 

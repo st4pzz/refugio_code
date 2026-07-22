@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+storage/comprovantes/*
+!storage/comprovantes/.gitkeep
+storage/qrcodes/*
+!storage/qrcodes/.gitkeep
+storage/rate-limits/*
+!storage/rate-limits/.gitkeep
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+vendor/
