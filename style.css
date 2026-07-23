@@ -515,7 +515,7 @@ section {
     transition: var(--transition-slow);
     border: 2px solid transparent;
     cursor: pointer;
-    opacity: 0;
+    opacity: 1;
 }
 
 .comodidade-card.fade-in {
@@ -918,7 +918,7 @@ section {
     box-shadow: var(--shadow-md);
     transition: var(--transition-slow);
     cursor: pointer;
-    opacity: 0;
+    opacity: 1;
     display: flex;
     flex-direction: column;
 }

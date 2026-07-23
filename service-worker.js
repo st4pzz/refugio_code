@@ -4,7 +4,7 @@
  * Network First para HTML
  */
 
-const CACHE_VERSION = 'v1-refugio-20260722-avaliacoes';
+const CACHE_VERSION = 'v1-refugio-20260722-visual-fix';
 const CACHE_IMAGES = CACHE_VERSION + '-images';
 const CACHE_STATIC = CACHE_VERSION + '-static';
 const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';

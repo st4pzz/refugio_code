@@ -53,7 +53,18 @@ function can(string $permission): bool
 function base_url(string $path = ''): string
 {
     global $config;
-    return rtrim((string) ($config['url'] ?? ''), '/') . '/' . ltrim($path, '/');
+    $base = rtrim((string) ($config['url'] ?? ''), '/');
+    $normalizedPath = ltrim($path, '/');
+
+    // Em testes locais usamos URL same-origin para preservar host e porta e
+    // impedir que um APP_URL de produção redirecione assets/formulários locais.
+    $requestHost = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    $isLocalRequest = preg_match('/^(?:localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/i', $requestHost) === 1;
+    if (PHP_SAPI !== 'cli' && ($base === 'http://localhost' || $isLocalRequest)) {
+        return '/' . $normalizedPath;
+    }
+
+    return $base . '/' . $normalizedPath;
 }
 
 function flash(string $key, ?string $value = null): ?string

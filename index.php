@@ -113,7 +113,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         })(window, document);
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
-    <link rel="stylesheet" href="style.css?v=20260529-rotated">
+    <link rel="stylesheet" href="style.css?v=20260722-visibility-fix">
     <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
     <!-- Font Awesome CSS (defer loading, não-crítico) -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
@@ -562,7 +562,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- BOTÕES FLUTUANTES (CALL TO ACTION) -->
    <div class="floating-buttons-container">
     <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
-        <a href="<?= e(base_url('contato/whatsapp')) ?>"
+        <a href="/contato/whatsapp"
            onclick="trackOutboundClick('Lead')"
            target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
             <span class="float-ping"></span>
@@ -651,18 +651,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             rootMargin: '0px 0px -100px 0px'
         };
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('fade-in');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
+        const revealElements = document.querySelectorAll('.comodidade-card, .explore-card, .galeria-item');
 
-        document.querySelectorAll('.comodidade-card, .explore-card, .galeria-item').forEach(el => {
-            observer.observe(el);
-        });
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            revealElements.forEach(el => observer.observe(el));
+        }
     </script>
     <!-- Lazy Loading Script (defer para não bloquear renderização) -->
     <script defer src="assets/js/reviews-carousel.js?v=2"></script>
