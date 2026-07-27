@@ -16,6 +16,23 @@ final class ReservationRepository
         return (int) $this->db->lastInsertId();
     }
 
+    public function createManualProposal(array $data): int
+    {
+        $sql = "INSERT INTO reservas (
+                    codigo,token_publico,idempotency_key,nome_cliente,cpf_cliente,email,telefone,
+                    checkin,checkout,adultos,criancas,quantidade_hospedes,valor_total,valor_restante,
+                    status,observacoes_cliente,observacoes_cobranca,politica_cancelamento,origem,
+                    termos_aceitos_em,regras_aceitas,cancelamento_aceito,whatsapp_autorizado,finalidade_coleta
+                ) VALUES (
+                    :codigo,:token_publico,:idempotency_key,:nome_cliente,:cpf_cliente,:email,:telefone,
+                    :checkin,:checkout,:adultos,:criancas,:quantidade_hospedes,:valor_total,:valor_restante,
+                    :status,:observacoes_cliente,:observacoes_cobranca,:politica_cancelamento,'MANUAL',
+                    NOW(),:regras_aceitas,:cancelamento_aceito,:whatsapp_autorizado,:finalidade_coleta
+                )";
+        $this->db->prepare($sql)->execute($data);
+        return (int) $this->db->lastInsertId();
+    }
+
     public function find(int $id): ?array
     {
         $stmt = $this->db->prepare('SELECT * FROM reservas WHERE id = ?');

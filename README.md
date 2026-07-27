@@ -188,6 +188,7 @@ Prefira roll-forward: corrija a migration/aplicação com uma nova migration em 
 ## Documentação complementar
 
 - [Fluxo de reservas](docs/FLUXO_RESERVAS.md)
+- [Pedidos de reserva via WhatsApp](docs/PEDIDOS_WHATSAPP.md)
 - [Sistema de avaliações](docs/SISTEMA_AVALIACOES.md)
 - [Conversas e WhatsApp](docs/CONVERSAS_WHATSAPP.md)
 - [Marketing](docs/MARKETING.md)

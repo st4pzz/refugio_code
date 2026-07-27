@@ -10,6 +10,7 @@ $marketing = new Refugio\Controllers\MarketingController($config);
 $customers = new Refugio\Controllers\CustomerController();
 $settings = new Refugio\Controllers\SettingsController($config);
 $operations = new Refugio\Controllers\OperationsController($config);
+$whatsAppReservations = new Refugio\Controllers\WhatsAppReservationController($config);
 $route = (string) ($_GET['route'] ?? 'dashboard');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -27,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($route === 'cliente-acao') $customers->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'configuracao-perfil') $settings->assignProfile();
     if ($route === 'operacao') $operations->action((string) ($_GET['action'] ?? ''));
+    if ($route === 'pedido-whatsapp-acao') $whatsAppReservations->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     $admin->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
 }
 
@@ -34,6 +36,9 @@ match ($route) {
     'dashboard' => $admin->dashboard(),
     'reservas' => $admin->reservations(),
     'detalhe' => $admin->detail((int) ($_GET['id'] ?? 0)),
+    'pedidos-whatsapp' => $whatsAppReservations->index(),
+    'pedido-whatsapp-detalhe' => $whatsAppReservations->detail((int) ($_GET['id'] ?? 0)),
+    'pedido-whatsapp-documento' => $whatsAppReservations->document((int) ($_GET['documento'] ?? 0)),
     'calendario' => $admin->calendar(),
     'avaliacoes' => $reviews->index(),
     'avaliacao-detalhe' => $reviews->detail((int) ($_GET['id'] ?? 0)),

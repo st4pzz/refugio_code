@@ -5,6 +5,8 @@ storage/comprovantes/*
 !storage/comprovantes/.gitkeep
 storage/qrcodes/*
 !storage/qrcodes/.gitkeep
+storage/reservation-documents/*
+!storage/reservation-documents/.gitkeep
 storage/rate-limits/*
 !storage/rate-limits/.gitkeep
 *.log

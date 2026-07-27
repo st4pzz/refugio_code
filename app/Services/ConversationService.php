@@ -85,6 +85,64 @@ final class ConversationService
         }
     }
 
+    public function sendStoredDocument(int $conversationId, string $path, string $filename, string $caption, int $userId): int
+    {
+        $conversation = $this->conversation($conversationId);
+        if (!self::freeTextAllowed($conversation['janela_atendimento_ate'])) {
+            throw new RuntimeException('A janela de 24 horas encerrou. Baixe o PDF e envie-o manualmente ou use um template aprovado.');
+        }
+        $absolute = realpath($path);
+        $storageRoot = realpath(BASE_PATH . '/storage/reservation-documents');
+        if (!$absolute || !$storageRoot || !str_starts_with($absolute, $storageRoot . DIRECTORY_SEPARATOR) || !is_file($absolute)) {
+            throw new RuntimeException('Documento de reserva indisponível para envio.');
+        }
+        $size = filesize($absolute);
+        $max = max(1, (int) ($this->config['whatsapp_media_max_bytes'] ?? 20 * 1024 * 1024));
+        if ($size === false || $size < 1 || $size > $max || file_get_contents($absolute, false, null, 0, 5) !== '%PDF-') {
+            throw new RuntimeException('O PDF é inválido ou excede o limite de mídia do WhatsApp.');
+        }
+        $safeName = mb_substr(preg_replace('/[^A-Za-z0-9._-]/', '-', basename($filename)) ?: 'pedido-reserva.pdf', 0, 200);
+        $caption = mb_substr(trim(strip_tags($caption)), 0, 1024);
+        try {
+            $whatsapp = new WhatsAppService();
+            $mediaId = $whatsapp->uploadMedia($absolute, 'application/pdf', $safeName);
+            $externalId = $whatsapp->sendMedia(
+                (string) $conversation['telefone_normalizado'],
+                'document',
+                $mediaId,
+                $caption ?: null,
+                $safeName
+            );
+            $messageId = $this->persistOutgoing(
+                $conversationId,
+                $externalId,
+                'DOCUMENTO',
+                $caption ?: '[' . $safeName . ']',
+                'ENVIADA',
+                $userId,
+                null,
+                ['type' => 'document', 'media_id' => $mediaId, 'filename' => $safeName]
+            );
+            $mediaPath = $this->storeOutgoingMedia($absolute, 'application/pdf');
+            $this->db->prepare('UPDATE mensagens SET media_id=?,media_path=?,media_mime=?,media_nome=? WHERE id=?')
+                ->execute([$mediaId, $mediaPath, 'application/pdf', $safeName, $messageId]);
+            return $messageId;
+        } catch (Throwable $error) {
+            $this->persistOutgoing(
+                $conversationId,
+                'local-' . bin2hex(random_bytes(16)),
+                'DOCUMENTO',
+                $caption ?: '[' . $safeName . ']',
+                'FALHA',
+                $userId,
+                null,
+                ['type' => 'document', 'filename' => $safeName],
+                $error->getMessage()
+            );
+            throw $error;
+        }
+    }
+
     public function update(int $id, array $input, int $userId): void
     {
         $before = $this->conversation($id);

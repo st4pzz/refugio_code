@@ -8,6 +8,7 @@ use DomainException;
 use PDO;
 use Refugio\Models\PaymentStatus;
 use Refugio\Models\ReservationStatus;
+use Refugio\Repositories\CustomerRepository;
 use Refugio\Repositories\ReservationRepository;
 use Refugio\Support\ReservationValidator;
 use Refugio\Support\Money;
@@ -55,6 +56,93 @@ final class ReservationService
         $this->notifications->admin($reservation, 'NOVA_SOLICITACAO', 'Ha uma nova solicitacao aguardando analise.');
         $this->emitAutomation('RESERVATION_REQUEST_CREATED',(int)$reservation['id']);
         return $reservation;
+    }
+
+    public function createManualProposal(array $input, string $idempotency, int $userId): array
+    {
+        $validated = ReservationValidator::validate($input + [
+            'regras_aceitas' => '1',
+            'cancelamento_aceito' => '1',
+            'contato_autorizado' => '1',
+        ], $this->config);
+        if ($validated['errors']) throw new ValidationException($validated['errors']);
+
+        try {
+            $lodging = Money::toCents((string) ($input['valor_hospedagem'] ?? ''));
+            $cleaning = Money::toCents((string) ($input['taxa_limpeza'] ?? '0'));
+            $extras = Money::toCents((string) ($input['outros_valores'] ?? '0'));
+            $discount = Money::toCents((string) ($input['desconto'] ?? '0'));
+        } catch (\InvalidArgumentException) {
+            throw new ValidationException(['valores' => 'Informe os valores no formato 0,00.']);
+        }
+        if ($lodging <= 0 || $cleaning < 0 || $extras < 0 || $discount < 0 || $discount > ($lodging + $cleaning + $extras)) {
+            throw new ValidationException(['valores' => 'A hospedagem deve ter valor positivo e o desconto não pode superar o subtotal.']);
+        }
+        $total = $lodging + $cleaning + $extras - $discount;
+        if ($total <= 0) throw new ValidationException(['valores' => 'O valor total do pedido deve ser positivo.']);
+
+        $validUntil = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', (string) ($input['validade_proposta'] ?? ''));
+        if (!$validUntil || $validUntil <= new DateTimeImmutable()) {
+            throw new ValidationException(['validade_proposta' => 'Informe uma validade futura para a proposta.']);
+        }
+        $commercialNotes = mb_substr(trim(strip_tags((string) ($input['observacoes_comerciais'] ?? ''))), 0, 3000);
+        $cancellationPolicy = mb_substr(trim(strip_tags((string) ($input['politica_cancelamento'] ?? ''))), 0, 5000);
+        if ($cancellationPolicy === '') {
+            throw new ValidationException(['politica_cancelamento' => 'Informe a política de cancelamento aplicável.']);
+        }
+
+        $idempotency = hash('sha256', $idempotency);
+        if ($existing = $this->reservations->findByIdempotency($idempotency)) {
+            return $existing + ['_proposal' => $this->proposalContext($lodging, $cleaning, $extras, $discount, $validUntil)];
+        }
+
+        $data = array_merge($validated['data'], [
+            'codigo' => $this->code(),
+            'token_publico' => self::token(),
+            'idempotency_key' => $idempotency,
+            'valor_total' => Money::fromCents($total),
+            'valor_restante' => Money::fromCents($total),
+            'status' => ReservationStatus::AGUARDANDO_APROVACAO->value,
+            'observacoes_cobranca' => $commercialNotes ?: null,
+            'politica_cancelamento' => $cancellationPolicy,
+            'finalidade_coleta' => 'Emitir e acompanhar pedido de reserva solicitado no atendimento via WhatsApp.',
+        ]);
+        $data['regras_aceitas'] = 0;
+        $data['cancelamento_aceito'] = 0;
+        $data['whatsapp_autorizado'] = 0;
+
+        $this->db->beginTransaction();
+        try {
+            $this->availability->lockApprovalMutex();
+            $conflicts = $this->availability->conflicts($data['checkin'], $data['checkout'], null, true);
+            if (AvailabilityService::hasConflicts($conflicts)) throw new ConflictException($conflicts);
+            $id = $this->reservations->createManualProposal($data);
+            $this->history->log($id, 'PEDIDO_WHATSAPP_CRIADO', null, $data['status'], [
+                'origem' => 'MANUAL',
+                'valor_total' => $data['valor_total'],
+                'validade_proposta' => $validUntil->format('Y-m-d H:i:s'),
+            ], $userId);
+            $this->db->commit();
+        } catch (Throwable $error) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            if ($existing = $this->reservations->findByIdempotency($idempotency)) {
+                return $existing + ['_proposal' => $this->proposalContext($lodging, $cleaning, $extras, $discount, $validUntil)];
+            }
+            throw $error;
+        }
+
+        $reservation = $this->reservations->find($id) ?? throw new RuntimeException('Pedido de reserva não encontrado após a criação.');
+        try {
+            (new CustomerRepository($this->db))->syncFromReservation($reservation);
+            (new AuditService($this->db))->record('RESERVAS', 'CRIAR_PEDIDO_WHATSAPP', 'reservas', $id, null, [
+                'codigo' => $reservation['codigo'],
+                'status' => $reservation['status'],
+                'valor_total' => $reservation['valor_total'],
+            ], [], $userId);
+        } catch (Throwable $error) {
+            error_log('[pedido-whatsapp-cliente] #' . $id . ': ' . $error->getMessage());
+        }
+        return $reservation + ['_proposal' => $this->proposalContext($lodging, $cleaning, $extras, $discount, $validUntil)];
     }
 
     public function approve(int $id, array $input, ?array $qrFile, int $userId): array
@@ -360,6 +448,17 @@ final class ReservationService
         $normalized = str_replace(['.', ','], ['', '.'], trim((string) $value));
         if (substr_count((string) $value, '.') === 1 && !str_contains((string) $value, ',')) $normalized = (string) $value;
         return round((float) $normalized, 2);
+    }
+
+    private function proposalContext(int $lodging, int $cleaning, int $extras, int $discount, DateTimeImmutable $validUntil): array
+    {
+        $items = [
+            ['description' => 'Hospedagem', 'amount' => Money::fromCents($lodging)],
+        ];
+        if ($cleaning > 0) $items[] = ['description' => 'Taxa de limpeza', 'amount' => Money::fromCents($cleaning)];
+        if ($extras > 0) $items[] = ['description' => 'Outros serviços', 'amount' => Money::fromCents($extras)];
+        if ($discount > 0) $items[] = ['description' => 'Desconto', 'amount' => Money::fromCents(-$discount)];
+        return ['items' => $items, 'valid_until' => $validUntil->format('Y-m-d H:i:s')];
     }
 
     private function code(): string

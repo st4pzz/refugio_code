@@ -149,15 +149,59 @@ final class CustomerRepository
     {
         $this->db->beginTransaction();
         try {
-            $conversations=$this->db->prepare('SELECT id FROM conversas WHERE cliente_id=? FOR UPDATE');$conversations->execute([$id]);$conversationIds=array_map('intval',$conversations->fetchAll(PDO::FETCH_COLUMN));$media=[];
-            if($conversationIds){$placeholders=implode(',',array_fill(0,count($conversationIds),'?'));$m=$this->db->prepare("SELECT media_path FROM mensagens WHERE conversa_id IN ({$placeholders}) AND media_path IS NOT NULL");$m->execute($conversationIds);$media=$m->fetchAll(PDO::FETCH_COLUMN);$this->db->prepare("UPDATE mensagens SET texto=NULL,media_id=NULL,media_path=NULL,media_nome=NULL,payload_json=JSON_OBJECT() WHERE conversa_id IN ({$placeholders})")->execute($conversationIds);$this->db->prepare("UPDATE conversas SET telefone=CONCAT('anon-',id),telefone_normalizado=CONCAT('anon-',id),wa_id=NULL,nome_contato='Contato anonimizado',ultima_mensagem_preview='Conteudo removido por solicitacao de privacidade' WHERE id IN ({$placeholders})")->execute($conversationIds);}
-            $reservations=$this->db->prepare('SELECT reserva_id FROM reserva_contatos WHERE cliente_id=?');$reservations->execute([$id]);$reservationIds=array_map('intval',$reservations->fetchAll(PDO::FETCH_COLUMN));if($reservationIds){$updateReservation=$this->db->prepare("UPDATE reservas SET nome_cliente=?,cpf_cliente=NULL,email=?,telefone=?,observacoes_cliente=NULL WHERE id=?");foreach($reservationIds as$reservationId)$updateReservation->execute(['Cliente anonimizado #'.$id,'anonimizado-'.$id.'-'.$reservationId.'@invalid.local','anon-'.$reservationId,$reservationId]);}
+            $conversations = $this->db->prepare('SELECT id FROM conversas WHERE cliente_id=? FOR UPDATE');
+            $conversations->execute([$id]);
+            $conversationIds = array_map('intval', $conversations->fetchAll(PDO::FETCH_COLUMN));
+            $media = [];
+            if ($conversationIds) {
+                $placeholders = implode(',', array_fill(0, count($conversationIds), '?'));
+                $messages = $this->db->prepare("SELECT media_path FROM mensagens WHERE conversa_id IN ({$placeholders}) AND media_path IS NOT NULL");
+                $messages->execute($conversationIds);
+                $media = $messages->fetchAll(PDO::FETCH_COLUMN);
+                $this->db->prepare("UPDATE mensagens SET texto=NULL,media_id=NULL,media_path=NULL,media_nome=NULL,payload_json=JSON_OBJECT() WHERE conversa_id IN ({$placeholders})")->execute($conversationIds);
+                $this->db->prepare("UPDATE conversas SET telefone=CONCAT('anon-',id),telefone_normalizado=CONCAT('anon-',id),wa_id=NULL,nome_contato='Contato anonimizado',ultima_mensagem_preview='Conteudo removido por solicitacao de privacidade' WHERE id IN ({$placeholders})")->execute($conversationIds);
+            }
+
+            $reservations = $this->db->prepare('SELECT reserva_id FROM reserva_contatos WHERE cliente_id=?');
+            $reservations->execute([$id]);
+            $reservationIds = array_map('intval', $reservations->fetchAll(PDO::FETCH_COLUMN));
+            $reservationDocuments = [];
+            if ($reservationIds) {
+                $placeholders = implode(',', array_fill(0, count($reservationIds), '?'));
+                $documents = $this->db->prepare("SELECT storage_path FROM reservation_documents WHERE reservation_id IN ({$placeholders})");
+                $documents->execute($reservationIds);
+                $reservationDocuments = $documents->fetchAll(PDO::FETCH_COLUMN);
+                $this->db->prepare("DELETE FROM reservation_documents WHERE reservation_id IN ({$placeholders})")->execute($reservationIds);
+
+                $updateReservation = $this->db->prepare("UPDATE reservas SET nome_cliente=?,cpf_cliente=NULL,email=?,telefone=?,observacoes_cliente=NULL WHERE id=?");
+                foreach ($reservationIds as $reservationId) {
+                    $updateReservation->execute(['Cliente anonimizado #' . $id, 'anonimizado-' . $id . '-' . $reservationId . '@invalid.local', 'anon-' . $reservationId, $reservationId]);
+                }
+            }
             $this->db->prepare("UPDATE leads SET nome='Lead anonimizado',email=NULL,telefone=NULL,telefone_normalizado=NULL,dados_json=JSON_OBJECT() WHERE cliente_id=?")->execute([$id]);
             $this->db->prepare("UPDATE marketing_atribuicoes SET cliente_id=NULL,gclid=NULL,gbraid=NULL,wbraid=NULL,fbclid=NULL,ttclid=NULL,landing_page=NULL,referrer=NULL,first_touch_json=JSON_OBJECT(),last_touch_json=JSON_OBJECT() WHERE cliente_id=?")->execute([$id]);
-            $stmt=$this->db->prepare("UPDATE clientes SET nome=CONCAT('Cliente anonimizado #',id),cpf=NULL,email=NULL,telefone=NULL,telefone_normalizado=NULL,observacoes=NULL,status='ANONIMIZADO',anonimizado_em=NOW() WHERE id=?");$stmt->execute([$id]);
+            $stmt = $this->db->prepare("UPDATE clientes SET nome=CONCAT('Cliente anonimizado #',id),cpf=NULL,email=NULL,telefone=NULL,telefone_normalizado=NULL,observacoes=NULL,status='ANONIMIZADO',anonimizado_em=NOW() WHERE id=?");
+            $stmt->execute([$id]);
             $this->db->commit();
-            $storage=realpath(BASE_PATH.'/storage/conversas');if($storage)foreach($media as$relative){$path=realpath(BASE_PATH.'/'.ltrim((string)$relative,'/'));if($path&&str_starts_with($path,$storage.DIRECTORY_SEPARATOR)&&is_file($path))@unlink($path);}
-        }catch(Throwable$error){if($this->db->inTransaction())$this->db->rollBack();throw$error;}
+
+            $conversationStorage = realpath(BASE_PATH . '/storage/conversas');
+            if ($conversationStorage) {
+                foreach ($media as $relative) {
+                    $path = realpath(BASE_PATH . '/' . ltrim((string) $relative, '/'));
+                    if ($path && str_starts_with($path, $conversationStorage . DIRECTORY_SEPARATOR) && is_file($path)) @unlink($path);
+                }
+            }
+            $documentStorage = realpath(BASE_PATH . '/storage/reservation-documents');
+            if ($documentStorage) {
+                foreach ($reservationDocuments as $relative) {
+                    $path = realpath(BASE_PATH . '/' . ltrim((string) $relative, '/'));
+                    if ($path && str_starts_with($path, $documentStorage . DIRECTORY_SEPARATOR) && is_file($path)) @unlink($path);
+                }
+            }
+        } catch (Throwable $error) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            throw $error;
+        }
     }
 
     private static function json(array $data): string

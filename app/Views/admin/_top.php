@@ -8,7 +8,7 @@ $active = static fn(string $path): string => ($path === '/admin' ? rtrim($reques
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
     <title><?= e($title ?? 'Painel') ?> | Refúgio</title>
-    <link rel="stylesheet" href="<?= e(base_url('assets/css/admin.css?v=4')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/admin-operations.css?v=1')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/reviews-admin.css?v=1')) ?>">
+    <link rel="stylesheet" href="<?= e(base_url('assets/css/admin.css?v=4')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/admin-operations.css?v=2')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/reviews-admin.css?v=1')) ?>">
 </head>
 <body class="admin-app">
 <div class="admin-shell">
@@ -17,6 +17,7 @@ $active = static fn(string $path): string => ($path === '/admin' ? rtrim($reques
         <nav aria-label="Navegação principal">
             <?php if(can('dashboard.view')): ?><a class="<?= $active('/admin') ?>" href="<?= e(base_url('admin')) ?>"><span aria-hidden="true">⌂</span>Dashboard</a><?php endif; ?>
             <?php if(can('reservas.view')): ?><a class="<?= $active('/admin/reservas') ?>" href="<?= e(base_url('admin/reservas')) ?>"><span aria-hidden="true">▣</span>Reservas</a><?php endif; ?>
+            <?php if(can('reservas.view')): ?><a class="<?= $active('/admin/pedidos-whatsapp') ?>" href="<?= e(base_url('admin/pedidos-whatsapp')) ?>"><span aria-hidden="true">WA</span>Pedidos WhatsApp</a><?php endif; ?>
             <?php if(can('calendar.view')): ?><a class="<?= $active('/admin/calendario') ?>" href="<?= e(base_url('admin/calendario')) ?>"><span aria-hidden="true">▦</span>Calendário</a><?php endif; ?>
             <?php if(can('pricing.view')): ?><a class="<?= $active('/admin/precos') ?>" href="<?= e(base_url('admin/precos')) ?>"><span aria-hidden="true">R$</span>Preços</a><?php endif; ?>
             <?php if(can('quotes.view')): ?><a class="<?= $active('/admin/orcamentos') ?>" href="<?= e(base_url('admin/orcamentos')) ?>"><span aria-hidden="true">◇</span>Orçamentos</a><?php endif; ?>
