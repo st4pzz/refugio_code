@@ -113,7 +113,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         })(window, document);
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
-    <link rel="stylesheet" href="style.css?v=20260722-visibility-fix">
+    <link rel="stylesheet" href="style.css?v=20260727-hero-video">
     <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
     <!-- Font Awesome CSS (defer loading, não-crítico) -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
@@ -122,8 +122,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <!-- Preload hero image (above-the-fold) e logo -->
-    <link rel="preload" as="image" href="assets/images/imagens_a_rotacionar/Noturno.webp" type="image/webp">
+    <!-- Preload do logo; o vídeo da hero carrega apenas os metadados inicialmente -->
     <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
 </head>
 <body>
@@ -165,10 +164,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- HERO SECTION -->
     <section class="hero" id="chacara">
         <div class="hero-background">
-            <picture>
-                    <source srcset="assets/images/imagens_a_rotacionar/Noturno.webp" type="image/webp">
-                    <img class="hero-img" src="assets/images/imagens_a_rotacionar/Noturno.webp" alt="Refúgio do Cuscuzeiro" width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async">
-                </picture>
+            <video
+                class="hero-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                poster="assets/images/imagens_a_rotacionar/Noturno.webp"
+                aria-hidden="true"
+                tabindex="-1"
+            >
+                <source src="assets/videos/IMG_0277.mp4" type="video/mp4">
+            </video>
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">

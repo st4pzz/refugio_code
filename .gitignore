@@ -14,3 +14,4 @@ storage/rate-limits/*
 __pycache__/
 *.pyc
 vendor/
+assets/videos/

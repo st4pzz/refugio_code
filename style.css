@@ -236,12 +236,17 @@ body {
     width: 100%;
     height: 100%;
     z-index: -2;
+    background: #4b4a39 url('assets/images/imagens_a_rotacionar/Noturno.webp') center / cover no-repeat;
 }
 
-.hero-img {
+.hero-video {
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     animation: zoomIn 0.8s ease-out;
 }
 
@@ -252,7 +257,7 @@ body {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, rgba(75, 74, 57, 0.85), rgba(75, 74, 57, 0.75));
-    z-index: -1;
+    z-index: 1;
 }
 
 .hero-content {
@@ -1515,6 +1520,12 @@ section {
 @media (prefers-reduced-motion: no-preference) {
     html {
         scroll-behavior: smooth;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-video {
+        display: none;
     }
 }
 
