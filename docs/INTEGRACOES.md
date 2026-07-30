@@ -44,13 +44,18 @@ OpenSSL é obrigatório para AES-256-GCM. A aplicação recusa conectar APIs se 
 ## URLs públicas cadastráveis
 
 ```text
-Meta OAuth:   https://SEU_DOMINIO/admin/configuracoes/integracoes/meta/callback
-Google OAuth: https://SEU_DOMINIO/admin/configuracoes/integracoes/google/callback
-TikTok OAuth: https://SEU_DOMINIO/admin/configuracoes/integracoes/tiktok/callback
-WhatsApp:     https://SEU_DOMINIO/api/whatsapp/webhook
+Política de privacidade: https://www.refugiodocuscuzeiro.com.br/politicas/privacidade
+Termos de serviço:       https://www.refugiodocuscuzeiro.com.br/politicas/termos
+Exclusão de dados:       https://www.refugiodocuscuzeiro.com.br/politicas/exclusao-de-dados
+Meta OAuth:              https://www.refugiodocuscuzeiro.com.br/admin/configuracoes/integracoes/meta/callback
+WhatsApp webhook:        https://www.refugiodocuscuzeiro.com.br/api/whatsapp/webhook
+Google OAuth:            https://www.refugiodocuscuzeiro.com.br/admin/configuracoes/integracoes/google/callback
+TikTok OAuth:            https://www.refugiodocuscuzeiro.com.br/admin/configuracoes/integracoes/tiktok/callback
 ```
 
 Configure `APP_URL=https://SEU_DOMINIO` sem barra final. Callbacks exigem sessão administrativa e state OAuth válido.
+
+O preenchimento detalhado do App Meta está em `docs/META_APP_URLS.md`.
 
 ## Crons recomendados
 

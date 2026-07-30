@@ -181,9 +181,15 @@ final class ReservationService
         }
         $reservation = $this->reservations->find($id);
         $this->syncFinancials($id, $userId);
-        $this->emitAutomation('RESERVATION_APPROVED',$id,['payment_due'=>$billing['deadline']]);
-        $this->emitAutomation('PAYMENT_REQUEST_CREATED',$id,['payment_due'=>$billing['deadline']]);
-        return $reservation;
+        $delivery = $this->notifications->customer($reservation, 'RESERVA_APROVADA', [
+            'valor' => $paymentValue,
+            'link' => base_url('reserva/' . $reservation['token_publico']),
+        ]);
+        $this->emitAutomationRule('PAYMENT_REMINDER','PAYMENT_REQUEST_CREATED',$id,['payment_due'=>$billing['deadline']]);
+        if (!$delivery['email']) {
+            $this->emitAutomationRule('PIX_CHARGE','PAYMENT_REQUEST_CREATED',$id,['payment_due'=>$billing['deadline']],'payment-email-retry');
+        }
+        return $reservation + ['_delivery' => $delivery];
     }
 
     public function refuse(int $id, string $reason, int $userId): void
@@ -383,6 +389,11 @@ final class ReservationService
     private function emitAutomation(string $event,int $reservationId,array $context=[],?string $eventKey=null):void
     {
         try{(new ReservationAutomationService($this->db,$this->config))->emit($event,$reservationId,$context,$eventKey);}catch(Throwable $error){error_log('[automation-reservation] '.$event.' #'.$reservationId.': '.$error->getMessage());}
+    }
+
+    private function emitAutomationRule(string $ruleCode,string $event,int $reservationId,array $context=[],?string $eventKey=null):void
+    {
+        try{(new ReservationAutomationService($this->db,$this->config))->emitRule($ruleCode,$event,$reservationId,$context,$eventKey);}catch(Throwable $error){error_log('[automation-reservation-rule] '.$ruleCode.' #'.$reservationId.': '.$error->getMessage());}
     }
 
     private function scheduleMilestones(int $reservationId):void

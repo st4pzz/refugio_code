@@ -563,7 +563,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="section-container">
             <p>&copy; 2026 Refúgio do Cuscuzeiro. Todos os direitos reservados.</p>
             <p>Desenvolvido com <i class="fas fa-heart"></i> para sua comodidade</p>
-            <p class="footer-legal"><a href="politicas/privacidade">Privacidade</a> · <a href="politicas/termos">Termos da reserva</a> · <a href="politicas/cancelamento">Cancelamento</a> · <a href="politicas/regras">Regras</a></p>
+            <p class="footer-legal"><a href="politicas/privacidade">Privacidade</a> · <a href="politicas/termos">Termos de serviço</a> · <a href="politicas/exclusao-de-dados">Exclusão de dados</a> · <a href="politicas/cancelamento">Cancelamento</a> · <a href="politicas/regras">Regras</a></p>
         </div>
     </footer>
 

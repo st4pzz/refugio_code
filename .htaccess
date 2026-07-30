@@ -72,7 +72,7 @@ RewriteRule ^calendario/([a-f0-9]{64})\.ics$ calendario/index.php?token=$1 [L,QS
 RewriteRule ^admin/comprovantes/([0-9]+)/?$ admin/index.php?route=comprovante&pagamento=$1 [L,QSA]
 RewriteRule ^admin/bloqueios/?$ admin/index.php?route=bloqueio-criar [L,QSA]
 RewriteRule ^admin/bloqueios/([0-9]+)/excluir/?$ admin/index.php?route=bloqueio-excluir&id=$1 [L,QSA]
-RewriteRule ^politicas/(privacidade|termos|cancelamento|regras)/?$ politicas/index.php?tipo=$1 [L,QSA]
+RewriteRule ^politicas/(privacidade|termos|exclusao-de-dados|cancelamento|regras)/?$ politicas/index.php?tipo=$1 [L,QSA]
 
 <IfModule mod_mime.c>
     AddType image/webp .webp

@@ -29,7 +29,7 @@ final class NotificationService
     public function automation(array $reservation,string $type,string $subject,string $body,array $channels,?string $whatsAppTemplate=null,array $parameters=[]):void
     {
         $html=$this->layout('<h2>'.e($subject).'</h2><p>'.nl2br(e($body)).'</p>');
-        if(in_array('EMAIL',$channels,true))$this->email((int)$reservation['reservation_id'],$type,(string)$reservation['email'],$subject,$html);
+        if(in_array('EMAIL',$channels,true))$this->email((int)$reservation['reservation_id'],$type,(string)$reservation['email'],$subject,$html,null,true);
         if(in_array('WHATSAPP',$channels,true)&&!empty($reservation['whatsapp_autorizado'])&&$whatsAppTemplate!==null){
             $this->whatsApp((int)$reservation['reservation_id'],$type,(string)$reservation['telefone'],$whatsAppTemplate,array_slice(array_map('strval',$parameters),0,10),$body);
         }
@@ -45,20 +45,23 @@ final class NotificationService
         if(!$emailSent&&!$whatsAppSent)throw new \RuntimeException('Não foi possível entregar o código. Tente novamente ou contate o atendimento.');
     }
 
-    public function customer(array $reservation, string $type, array $extra = []): void
+    public function customer(array $reservation, string $type, array $extra = []): array
     {
         $data = array_merge($reservation, $extra);
         [$subject, $message] = $this->message($type, $data);
-        $this->email((int) $reservation['id'], $type, (string) $reservation['email'], $subject, $message);
+        $email = $this->email((int) $reservation['id'], $type, (string) $reservation['email'], $subject, $message);
+        $whatsApp = false;
         if (!empty($reservation['whatsapp_autorizado'])) {
             $templateKey = 'WHATSAPP_TEMPLATE_' . $type;
             $template = Env::get($templateKey);
-            if ($template === '') return;
-            $params = [$reservation['nome_cliente'], $reservation['codigo'], date('d/m/Y', strtotime($reservation['checkin'])), date('d/m/Y', strtotime($reservation['checkout']))];
-            if (!empty($extra['valor'])) $params[] = money($extra['valor']);
-            if (!empty($extra['link'])) $params[] = $extra['link'];
-            $this->whatsApp((int) $reservation['id'], $type, (string) $reservation['telefone'], $template, $params, $message);
+            if ($template !== '') {
+                $params = [$reservation['nome_cliente'], $reservation['codigo'], date('d/m/Y', strtotime($reservation['checkin'])), date('d/m/Y', strtotime($reservation['checkout']))];
+                if (!empty($extra['valor'])) $params[] = money($extra['valor']);
+                if (!empty($extra['link'])) $params[] = $extra['link'];
+                $whatsApp = $this->whatsApp((int) $reservation['id'], $type, (string) $reservation['telefone'], $template, $params, $message);
+            }
         }
+        return ['email' => $email, 'whatsapp' => $whatsApp];
     }
 
     public function reviewInvitation(array $reservation, string $link, string $expiresAt, bool $reminder = false): array
@@ -88,7 +91,7 @@ final class NotificationService
         $this->email((int) $reservation['id'], $type, $email, $subject, $html);
     }
 
-    private function email(int $reservationId, string $type, string $to, string $subject, string $html, ?string $storedContent = null): bool
+    private function email(int $reservationId, string $type, string $to, string $subject, string $html, ?string $storedContent = null, bool $throwOnFailure = false): bool
     {
         $id = $this->create($reservationId, 'EMAIL', $type, $to, $storedContent ?? $html);
         try {
@@ -97,6 +100,7 @@ final class NotificationService
             return true;
         } catch (Throwable $e) {
             $this->failure($id, $e->getMessage());
+            if ($throwOnFailure) throw new \RuntimeException('Falha ao enviar e-mail: ' . $e->getMessage(), 0, $e);
             return false;
         }
     }

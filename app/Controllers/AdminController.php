@@ -110,20 +110,28 @@ final class AdminController
         try {
             Csrf::verify($_POST['_csrf'] ?? null);
             $userId = (int) $_SESSION['admin_id'];
-            match ($action) {
-                'aprovar' => $this->service->approve($id, $_POST, $_FILES['qr_code'] ?? null, $userId),
-                'recusar' => $this->service->refuse($id, (string) ($_POST['motivo'] ?? ''), $userId),
-                'confirmar-pagamento' => $this->service->confirmPayment($id, (int) ($_POST['pagamento_id'] ?? 0), (string) ($_POST['observacoes'] ?? ''), $userId),
-                'recusar-comprovante' => $this->service->rejectReceipt($id, (int) ($_POST['pagamento_id'] ?? 0), (string) ($_POST['motivo'] ?? ''), $userId),
-                'cancelar' => $this->service->cancel($id, (string) ($_POST['motivo'] ?? ''), $userId),
-                'finalizar' => $this->service->finish($id, $userId),
-                'observacoes' => $this->service->updateInternalNotes($id, (string) ($_POST['observacoes_internas'] ?? ''), $userId),
-                'alterar' => $this->service->updateReservation($id, $_POST, $userId),
-                'pagamentos' => $this->service->addPayment($id, $_POST, $_FILES['qr_code'] ?? null, $userId),
-                'reenviar-notificacao' => $this->resend($id),
-                default => throw new RuntimeException('Acao administrativa invalida.'),
-            };
-            flash('success', 'Operacao concluida com sucesso.');
+            if ($action === 'aprovar') {
+                $result = $this->service->approve($id, $_POST, $_FILES['qr_code'] ?? null, $userId);
+                if (($result['_delivery']['email'] ?? false) === true) {
+                    flash('success', 'Reserva aprovada, cobrança criada e e-mail enviado ao cliente.');
+                } else {
+                    flash('error', 'A reserva foi aprovada e a cobrança foi criada, mas o e-mail não pôde ser enviado. A falha foi registrada e uma nova tentativa ficou na fila; você também pode usar “Reenviar e-mail”.');
+                }
+            } else {
+                match ($action) {
+                    'recusar' => $this->service->refuse($id, (string) ($_POST['motivo'] ?? ''), $userId),
+                    'confirmar-pagamento' => $this->service->confirmPayment($id, (int) ($_POST['pagamento_id'] ?? 0), (string) ($_POST['observacoes'] ?? ''), $userId),
+                    'recusar-comprovante' => $this->service->rejectReceipt($id, (int) ($_POST['pagamento_id'] ?? 0), (string) ($_POST['motivo'] ?? ''), $userId),
+                    'cancelar' => $this->service->cancel($id, (string) ($_POST['motivo'] ?? ''), $userId),
+                    'finalizar' => $this->service->finish($id, $userId),
+                    'observacoes' => $this->service->updateInternalNotes($id, (string) ($_POST['observacoes_internas'] ?? ''), $userId),
+                    'alterar' => $this->service->updateReservation($id, $_POST, $userId),
+                    'pagamentos' => $this->service->addPayment($id, $_POST, $_FILES['qr_code'] ?? null, $userId),
+                    'reenviar-notificacao' => $this->resend($id),
+                    default => throw new RuntimeException('Acao administrativa invalida.'),
+                };
+                flash('success', 'Operacao concluida com sucesso.');
+            }
         } catch (ConflictException $e) {
             flash('error', 'A operacao foi impedida por conflito de datas. Consulte os conflitos nesta pagina.');
         } catch (Throwable $e) {
@@ -204,7 +212,8 @@ final class AdminController
             'EXPIRADA' => 'PAGAMENTO_EXPIRADO', 'CANCELADA' => 'RESERVA_CANCELADA', default => throw new RuntimeException('Nao ha notificacao para este status.'),
         };
         $payment = $this->repository->payments($id)[0] ?? [];
-        (new NotificationService($this->db))->customer($r, $event, ['valor' => $payment['valor'] ?? 0, 'link' => base_url('reserva/' . $r['token_publico'])]);
+        $delivery=(new NotificationService($this->db))->customer($r, $event, ['valor' => $payment['valor'] ?? 0, 'link' => base_url('reserva/' . $r['token_publico'])]);
+        if (!$delivery['email']) throw new RuntimeException('O e-mail não pôde ser enviado. Consulte o erro registrado em Notificações e verifique a configuração SMTP.');
     }
 
     private function scalar(string $sql): float|int

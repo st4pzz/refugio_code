@@ -18,9 +18,23 @@ final class ReservationAutomationService
 
     public function emit(string $event,int $reservationId,array $context=[],?string $eventKey=null):int
     {
+        return $this->enqueueRules($event,$reservationId,$context,$eventKey,null);
+    }
+
+    public function emitRule(string $ruleCode,string $event,int $reservationId,array $context=[],?string $eventKey=null):int
+    {
+        if(trim($ruleCode)==='')throw new RuntimeException('Regra de automação inválida.');
+        return $this->enqueueRules($event,$reservationId,$context,$eventKey,$ruleCode);
+    }
+
+    private function enqueueRules(string $event,int $reservationId,array $context,?string $eventKey,?string $ruleCode):int
+    {
         if(!in_array($event,self::EVENTS,true))throw new RuntimeException('Evento de automação desconhecido.');
         $stmt=$this->db->prepare('SELECT * FROM reservas WHERE id=?');$stmt->execute([$reservationId]);$reservation=$stmt->fetch()?:throw new RuntimeException('Reserva não encontrada para automação.');
-        $rules=$this->db->prepare('SELECT * FROM automation_rules WHERE trigger_event=? AND ativo=1 ORDER BY id');$rules->execute([$event]);
+        $sql='SELECT * FROM automation_rules WHERE trigger_event=? AND ativo=1';
+        $params=[$event];
+        if($ruleCode!==null){$sql.=' AND code=?';$params[]=$ruleCode;}
+        $rules=$this->db->prepare($sql.' ORDER BY id');$rules->execute($params);
         $queue=new JobQueueService($this->db);$count=0;
         foreach($rules->fetchAll() as $rule){
             $scheduled=$this->scheduleAt($rule,$reservation,$context);$key=$eventKey??hash('sha256',$event.'|'.$reservationId.'|'.$scheduled->format('Y-m-d H:i:s'));

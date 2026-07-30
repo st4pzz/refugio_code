@@ -1,0 +1,35 @@
+.policy-page {
+    line-height: 1.75;
+}
+
+.policy-page h2 {
+    margin-top: 2rem;
+    margin-bottom: .65rem;
+}
+
+.policy-page li + li {
+    margin-top: .5rem;
+}
+
+.policy-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0 30px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--sand);
+}
+
+.policy-nav a {
+    display: inline-flex;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: var(--cream);
+    font-size: .84rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.policy-nav a:hover {
+    background: var(--sand);
+}
