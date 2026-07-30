@@ -44,6 +44,7 @@ final class OperationsController
                 'calendar-source-create'=>$this->calendarSourceCreate($userId),
                 'calendar-source-sync'=>$this->calendarSourceSync(),
                 'calendar-export-create'=>$this->calendarExportCreate($userId),
+                'calendar-export-revoke'=>$this->calendarExportRevoke(),
                 'contract-bootstrap'=>$this->contractBootstrap($userId),
                 'contract-approve'=>$this->contractApprove($userId),
                 'contract-generate'=>$this->contractGenerate($userId),
@@ -72,7 +73,24 @@ final class OperationsController
     private function quoteCreate(int $userId):void{AuthorizationService::requirePermission('quotes.manage');$service=new QuoteService($this->db);$calculation=$service->calculate(['checkin'=>$_POST['checkin']??'','checkout'=>$_POST['checkout']??'','guests'=>$_POST['guests']??'','pets'=>$_POST['pets']??0,'coupon'=>$_POST['coupon']??''],false);$hours=(int)((new PropertySettingsService($this->db))->get('DEFAULT_QUOTE_EXPIRATION_HOURS',24));$quote=$service->create(['name'=>$_POST['customer_name']??null,'email'=>$_POST['customer_email']??null,'phone'=>$_POST['customer_phone']??null],$calculation,$hours?:24,$userId);flash('success','Orçamento '.$quote['code'].' criado com snapshot.');}
     private function calendarSourceCreate(int $userId):void{AuthorizationService::requirePermission('calendar.manage');$url=trim((string)($_POST['feed_url']??''));if(!filter_var($url,FILTER_VALIDATE_URL))throw new RuntimeException('URL iCal inválida.');$provider=in_array($_POST['provider']??'', ['AIRBNB','BOOKING','GOOGLE','OTHER'],true)?$_POST['provider']:'OTHER';$stmt=$this->db->prepare('INSERT INTO calendar_sources (nome,provider,feed_url,feed_url_hash,timezone,sync_interval_minutes,proximo_sync_em,criado_por) VALUES (?,?,?,?,?,?,NOW(),?)');$stmt->execute([mb_substr(trim((string)$_POST['name']),0,120),$provider,$url,hash('sha256',$url),$_POST['timezone']?:'America/Sao_Paulo',max(5,min(1440,(int)($_POST['interval']??30))),$userId]);}
     private function calendarSourceSync():void{AuthorizationService::requirePermission('calendar.sync');$id=(int)($_POST['source_id']??0);(new JobQueueService($this->db))->enqueue('ICAL_SYNC',['source_id'=>$id],'ical-sync:'.$id.':'.date('YmdHi'),70,5);}
-    private function calendarExportCreate(int $userId):void{AuthorizationService::requirePermission('calendar.manage');$token=bin2hex(random_bytes(32));$this->db->prepare('INSERT INTO calendar_export_tokens (nome,token_hash,criado_por) VALUES (?,?,?)')->execute([mb_substr(trim((string)($_POST['name']??'Exportação principal')),0,120),hash('sha256',$token),$userId]);flash('success','Copie agora o link iCal; o token não será exibido novamente: '.base_url('calendario/'.$token.'.ics'));}
+    private function calendarExportCreate(int $userId):void
+    {
+        AuthorizationService::requirePermission('calendar.manage');
+        $token=bin2hex(random_bytes(32));
+        $name=mb_substr(trim((string)($_POST['name']??'Exportação principal')),0,120);
+        if($name==='')$name='Exportação principal';
+        $this->db->prepare('INSERT INTO calendar_export_tokens (nome,token_hash,criado_por) VALUES (?,?,?)')->execute([$name,hash('sha256',$token),$userId]);
+        flash('calendar_export_url',base_url('calendario/'.$token.'.ics'));
+    }
+    private function calendarExportRevoke():void
+    {
+        AuthorizationService::requirePermission('calendar.manage');
+        $id=(int)($_POST['export_id']??0);
+        if($id<=0)throw new RuntimeException('Link iCal inválido.');
+        $stmt=$this->db->prepare('UPDATE calendar_export_tokens SET ativo=0,revoked_at=NOW() WHERE id=? AND ativo=1 AND revoked_at IS NULL');
+        $stmt->execute([$id]);
+        if($stmt->rowCount()!==1)throw new RuntimeException('O link iCal já foi revogado ou não existe.');
+    }
     private function contractBootstrap(int $userId):void{AuthorizationService::requirePermission('contracts.templates.manage');$path=Env::get('CONTRACT_SOURCE_PDF_PATH','');(new ContractTemplateService($this->db))->bootstrapBundledTemplates($userId,$path!==''?$path:null);}
     private function contractApprove(int $userId):void{AuthorizationService::requirePermission('contracts.templates.approve');$missing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);if($missing!==[])throw new RuntimeException('Configuração contratual incompleta: '.implode(', ',$missing).'.');if(!(bool)(new PropertySettingsService($this->db))->get('CANCELLATION_POLICY_APPROVED',false))throw new RuntimeException('A política de cancelamento ainda não foi aprovada.');(new ContractTemplateService($this->db))->approveVersion((int)$_POST['version_id'],$userId);}
     private function contractGenerate(int $userId):void
@@ -90,7 +108,7 @@ final class OperationsController
         ];
         $contract=(new ContractTemplateService($this->db))->createReservationContract($reservationId,$vars,$userId);(new JobQueueService($this->db))->enqueue('CONTRACT_PDF',['contract_id'=>$contract['id']],'contract-pdf:'.$contract['id'],60,3);(new \Refugio\Services\ReservationAutomationService($this->db,$this->config))->emit('CONTRACT_READY',$reservationId,[],'contract:'.$contract['id']);
     }
-    private function contractPdf():void{AuthorizationService::requirePermission('contracts.generate');(new ContractPdfService($this->db,Env::get('PDF_PYTHON_BINARY','python')))->generate((int)$_POST['contract_id']);}
+    private function contractPdf():void{AuthorizationService::requirePermission('contracts.generate');(new ContractPdfService($this->db))->generate((int)$_POST['contract_id']);}
     private function portalRegenerate(int $userId):void{AuthorizationService::requirePermission('guest_portal.manage');$token=(new GuestPortalService($this->db,$this->config))->regenerate((int)$_POST['reservation_id'],$userId);flash('success','Novo link do portal (copie agora): '.base_url('minha-reserva/'.$token));}
     private function precheckinReview(int $userId):void{AuthorizationService::requirePermission('precheckin.review');$reservationId=(int)$_POST['reservation_id'];$decision=(string)$_POST['decision'];(new PreCheckinService($this->db))->review($reservationId,$decision,(string)($_POST['message']??''),$userId);if($decision==='approve')(new \Refugio\Services\ReservationAutomationService($this->db,$this->config))->emit('PRECHECKIN_APPROVED',$reservationId,[],'precheckin-approved');}
     private function rulesBootstrap(int $userId):void{AuthorizationService::requirePermission('precheckin.rules.manage');(new PreCheckinService($this->db))->bootstrapHouseRules($userId);}

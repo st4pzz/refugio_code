@@ -52,4 +52,4 @@ Execute a migration `009_create_whatsapp_reservation_documents.sql` com o runner
 php scripts/migrate.php
 ```
 
-O gerador usa a mesma variável `PDF_PYTHON_BINARY` dos contratos e requer Python com ReportLab. O worker não é necessário para esta emissão: o PDF é produzido na ação administrativa para ficar disponível imediatamente.
+O gerador usa `dompdf/dompdf` no mesmo processo PHP dos contratos. Na implantação, execute `composer2 install --no-dev --optimize-autoloader`; não é necessário instalar Python nem configurar variável para o binário. O worker não é necessário para esta emissão: o PDF é produzido na ação administrativa para ficar disponível imediatamente.

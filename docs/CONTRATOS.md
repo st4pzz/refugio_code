@@ -10,7 +10,7 @@ Pontos obrigatórios para revisão administrativa/jurídica: cancelamento; multa
 
 ## PDF
 
-`ContractPdfService` invoca `scripts/generate_contract_pdf.py` sem shell. Produção requer Python 3.10+ e ReportLab 4.x; configure `PDF_PYTHON_BINARY`. O processo valida assinatura `%PDF-`, tamanho e SHA-256 antes de registrar. O PDF inclui hash no rodapé. Faça QA renderizando todas as páginas com Poppler.
+`ContractPdfService` renderiza o snapshot HTML com `dompdf/dompdf` dentro do próprio processo PHP. Instale o `composer.lock` com `composer2 install --no-dev --optimize-autoloader`; não há variável de ambiente nem runtime Python. O renderizador bloqueia conteúdo remoto, PHP e JavaScript, valida assinatura `%PDF-`, tamanho e SHA-256 antes de registrar. O PDF inclui hash e paginação no rodapé. Faça QA renderizando todas as páginas com Poppler.
 
 ## Assinatura local auditável
 

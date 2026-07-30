@@ -18,7 +18,7 @@ while ($processed < $limit && ($job = $queue->reserve($worker))) {
             'MARKETING_SYNC' => (new Refugio\Services\MarketingSyncService($db))->sync((int) $job['payload']['integration_id'], (string) $job['payload']['start'], (string) $job['payload']['end'], isset($job['payload']['user_id']) ? (int) $job['payload']['user_id'] : null),
             'RESERVATION_AUTOMATION' => (new Refugio\Services\ReservationAutomationService($db, require dirname(__DIR__) . '/config/app.php'))->process((int) $job['payload']['run_id']),
             'ICAL_SYNC' => (new Refugio\Services\ICalendarService($db))->syncSource((int) $job['payload']['source_id']),
-            'CONTRACT_PDF' => (new Refugio\Services\ContractPdfService($db, Refugio\Support\Env::get('PDF_PYTHON_BINARY', 'python')))->generate((int) $job['payload']['contract_id']),
+            'CONTRACT_PDF' => (new Refugio\Services\ContractPdfService($db))->generate((int) $job['payload']['contract_id']),
             default => throw new RuntimeException('Tipo de job nao suportado: ' . $job['tipo']),
         };
         $queue->complete((int) $job['id']);

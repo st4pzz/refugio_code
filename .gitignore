@@ -7,6 +7,7 @@ storage/qrcodes/*
 !storage/qrcodes/.gitkeep
 storage/reservation-documents/*
 !storage/reservation-documents/.gitkeep
+storage/contracts/
 storage/rate-limits/*
 !storage/rate-limits/.gitkeep
 *.log
@@ -14,4 +15,5 @@ storage/rate-limits/*
 __pycache__/
 *.pyc
 vendor/
+tmp/
 assets/videos/

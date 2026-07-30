@@ -5,7 +5,7 @@
 - [ ] Backup lógico e teste de restauração concluídos.
 - [ ] Migrações 007 e 008 aplicadas primeiro em homologação.
 - [ ] `APP_KEY` forte e `PORTAL_TOKEN_ENCRYPTION_KEY` com 32 bytes Base64.
-- [ ] `PDF_PYTHON_BINARY`, Python 3.10+ e ReportLab 4.x disponíveis no worker.
+- [ ] `composer2 install --no-dev --optimize-autoloader` concluído e extensões PHP `dom`, `mbstring`, `fileinfo` e `gd` ativas.
 - [ ] Dados completos do locador, endereço/CEP do imóvel, comarca, contatos e emergência.
 - [ ] Check-in, checkout, silêncio, estadia mínima/máxima e prazos de hold/cotação.
 - [ ] `GUESTS_INCLUDED_IN_BASE_RATE` e `EXTRA_GUEST_FEE_MODE` definidos.
@@ -22,12 +22,13 @@
 ## Implantação
 
 1. Faça backup e registre a versão atual.
-2. Publique código e dependências sem executar drop scripts.
-3. Rode `php scripts/migrate.php` com credenciais de homologação e depois produção.
-4. Rode `php tests/run.php`.
-5. Instale template/regras pelo painel; versões nascem não aprovadas.
-6. Ative worker e crons gradualmente; observe `jobs`, logs iCal e notificações.
-7. Somente depois libere `public_pricing_enabled`.
+2. Publique o código sem executar drop scripts.
+3. Na raiz publicada, rode `composer2 install --no-dev --optimize-autoloader`.
+4. Rode `php scripts/migrate.php` com credenciais de homologação e depois produção.
+5. Rode `php tests/run.php`.
+6. Instale template/regras pelo painel; versões nascem não aprovadas.
+7. Ative worker e crons gradualmente; observe `jobs`, logs iCal e notificações.
+8. Somente depois libere `public_pricing_enabled`.
 
 ## Backup e rollback
 
@@ -35,4 +36,4 @@ Os arquivos `007_drop_*` e `008_drop_*` são destrutivos e nunca devem ser execu
 
 ## Limitações conhecidas
 
-Sem credenciais MySQL locais, testes E2E exigem ambiente separado. O PDF depende de runtime Python. iCal não expande `RRULE`. A versão sugerida do contrato não deve ser aprovada sem preencher os campos e concluir revisão jurídica/administrativa.
+Sem credenciais MySQL locais, testes E2E exigem ambiente separado. A geração de PDF exige que as dependências do `composer.lock` estejam instaladas. iCal não expande `RRULE`. A versão sugerida do contrato não deve ser aprovada sem preencher os campos e concluir revisão jurídica/administrativa.

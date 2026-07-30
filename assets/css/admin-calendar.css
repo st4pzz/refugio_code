@@ -1,0 +1,44 @@
+.export-link-card {
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #b9dcc8;
+    border-radius: 10px;
+    background: #f0faf4;
+}
+
+.export-link-card p {
+    margin: 6px 0 12px;
+    color: #526257;
+    font-size: .82rem;
+}
+
+.copy-link-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.copy-link-row input {
+    min-width: 0;
+    background: #fff;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: .78rem;
+}
+
+.copy-link-row button {
+    white-space: nowrap;
+}
+
+.copy-feedback {
+    display: block;
+    min-height: 1.2em;
+    margin-top: 7px;
+    color: var(--success);
+    font-size: .78rem;
+}
+
+@media (max-width: 650px) {
+    .copy-link-row {
+        flex-direction: column;
+    }
+}

@@ -144,6 +144,7 @@ final class AdminController
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();
         $unifiedEvents=(new \Refugio\Services\UnifiedCalendarService($this->db))->events($start->format('Y-m-d'),$end->format('Y-m-d'));
         $calendarSources=$this->db->query('SELECT * FROM calendar_sources ORDER BY ativo DESC,nome')->fetchAll();
+        $exportTokens=$this->db->query('SELECT id,nome,ativo,created_at,last_used_at,revoked_at FROM calendar_export_tokens ORDER BY created_at DESC,id DESC')->fetchAll();
         $syncLogs=$this->db->query('SELECT l.*,s.nome source_name FROM calendar_sync_logs l JOIN calendar_sources s ON s.id=l.source_id ORDER BY l.created_at DESC LIMIT 20')->fetchAll();
         require BASE_PATH . '/app/Views/admin/calendar.php';
     }

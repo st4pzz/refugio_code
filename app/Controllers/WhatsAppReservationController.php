@@ -15,7 +15,6 @@ use Refugio\Services\PropertySettingsService;
 use Refugio\Services\ReservationDocumentService;
 use Refugio\Services\ReservationService;
 use Refugio\Support\Csrf;
-use Refugio\Support\Env;
 use RuntimeException;
 use Throwable;
 
@@ -27,11 +26,7 @@ final class WhatsAppReservationController
     public function __construct(private array $config)
     {
         $this->db = Database::connection();
-        $this->documents = new ReservationDocumentService(
-            $this->db,
-            $config,
-            Env::get('PDF_PYTHON_BINARY', 'python')
-        );
+        $this->documents = new ReservationDocumentService($this->db, $config);
     }
 
     public function index(): void

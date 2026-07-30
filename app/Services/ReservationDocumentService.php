@@ -6,7 +6,6 @@ namespace Refugio\Services;
 use DateTimeImmutable;
 use PDO;
 use Refugio\Repositories\CustomerRepository;
-use Refugio\Support\Env;
 use RuntimeException;
 use Throwable;
 
@@ -15,7 +14,7 @@ final class ReservationDocumentService
     public const PROPOSAL = 'PROPOSAL';
     public const PAYMENT_REQUEST = 'PAYMENT_REQUEST';
 
-    public function __construct(private PDO $db, private array $config, private string $pythonBinary = 'python')
+    public function __construct(private PDO $db, private array $config, private ?PdfRenderer $pdfRenderer = null)
     {
     }
 
@@ -57,24 +56,14 @@ final class ReservationDocumentService
         }
         $slug = $type === self::PROPOSAL ? 'pedido-reserva' : 'instrucoes-pagamento';
         $output = $directory . '/' . $slug . '-v' . $version . '.pdf';
-        $temporaryDirectory = BASE_PATH . '/tmp/pdfs';
-        if (!is_dir($temporaryDirectory) && !mkdir($temporaryDirectory, 0750, true) && !is_dir($temporaryDirectory)) {
-            throw new RuntimeException('Não foi possível preparar os arquivos temporários do PDF.');
-        }
-        $payload = tempnam($temporaryDirectory, 'reservation-pdf-');
-        if ($payload === false) throw new RuntimeException('Não foi possível preparar os dados do PDF.');
 
         $renderPayload = $snapshot;
         $renderPayload['assets'] = [
             'logo_path' => $this->logoPath(),
             'qr_code_path' => $this->qrCodePath($pendingPayments),
         ];
-        file_put_contents($payload, json_encode($renderPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
-        try {
-            $this->runGenerator($payload, $output);
-        } finally {
-            @unlink($payload);
-        }
+        $html = ReservationPdfTemplate::render($renderPayload);
+        ($this->pdfRenderer ??= new PdfRenderer())->render($html, $output);
 
         $hash = hash_file('sha256', $output);
         $bytes = filesize($output);
@@ -334,26 +323,6 @@ final class ReservationDocumentService
             if ($path && $root && str_starts_with($path, $root . DIRECTORY_SEPARATOR) && is_file($path)) return $path;
         }
         return null;
-    }
-
-    private function runGenerator(string $payload, string $output): void
-    {
-        $command = [$this->pythonBinary, BASE_PATH . '/scripts/generate_reservation_pdf.py', '--input', $payload, '--output', $output];
-        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, BASE_PATH);
-        if (!is_resource($process)) throw new RuntimeException('O gerador do PDF de reserva não pôde ser iniciado.');
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        if ($exit !== 0 || !is_file($output) || filesize($output) < 1000) {
-            @unlink($output);
-            throw new RuntimeException('Falha ao gerar PDF de reserva: ' . mb_substr(trim((string) $stderr . (string) $stdout), 0, 1000));
-        }
-        if (file_get_contents($output, false, null, 0, 5) !== '%PDF-') {
-            @unlink($output);
-            throw new RuntimeException('O gerador produziu um arquivo PDF inválido.');
-        }
     }
 
     private function relativePath(string $absolute): string

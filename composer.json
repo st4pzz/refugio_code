@@ -1,0 +1,14 @@
+{
+    "name": "refugio-cusco/reservas",
+    "description": "Site e central administrativa do Refúgio do Cuscuzeiro.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2",
+        "dompdf/dompdf": "^3.1.5"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

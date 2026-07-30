@@ -6,11 +6,12 @@ Site institucional e central administrativa em PHP puro para reservas diretas, a
 
 - Apache 2.4 com `mod_rewrite` e `mod_headers`, PHP 8.2+ e HTTPS;
 - MySQL 8+ ou MariaDB 10.5+ com InnoDB e `utf8mb4`;
-- extensões PHP PDO MySQL, JSON, mbstring, cURL, OpenSSL e Fileinfo;
+- extensões PHP PDO MySQL, DOM, JSON, mbstring, cURL, OpenSSL, Fileinfo e GD;
+- Composer 2 para instalar as dependências PHP bloqueadas em `composer.lock`;
 - acesso a cron ou scheduler para reservas, avaliações, fila, financeiro, retenção e sincronizações;
 - SMTP e, conforme os módulos habilitados, credenciais oficiais de WhatsApp Cloud API, Meta Ads, Google Ads e TikTok Ads.
 
-O projeto não introduz framework nem dependências Composer. Valores financeiros são manipulados como centavos/decimais exatos; consultas da aplicação usam PDO preparado.
+O projeto não usa framework. A geração de PDFs usa `dompdf/dompdf`, instalada pelo Composer; valores financeiros são manipulados como centavos/decimais exatos e as consultas usam PDO preparado.
 
 ## Implantação segura
 
@@ -20,7 +21,11 @@ O projeto não introduz framework nem dependências Composer. Valores financeiro
    mysqldump --single-transaction --routines --triggers -u USUARIO -p BANCO > backup-antes-central.sql
    ```
 
-2. Copie `.env.example` para `.env`. Gere chaves diferentes e aleatórias para `APP_KEY` e `MARKETING_ENCRYPTION_KEY`, cada uma com ao menos 32 bytes. Nunca versione `.env`.
+2. Instale as dependências bloqueadas e depois copie `.env.example` para `.env`. Gere chaves diferentes e aleatórias para `APP_KEY` e `MARKETING_ENCRYPTION_KEY`, cada uma com ao menos 32 bytes. Nunca versione `.env`.
+
+   ```bash
+   composer2 install --no-dev --optimize-autoloader
+   ```
 
 3. Em homologação, execute as migrations incrementais e os backfills:
 
@@ -37,6 +42,9 @@ O projeto não introduz framework nem dependências Composer. Valores financeiro
    - `storage/comprovantes`;
    - `storage/qrcodes`;
    - `storage/conversas`.
+   - `storage/contracts`;
+   - `storage/reservation-documents`;
+   - `tmp`.
 
    A raiz `storage` contém regra Apache que nega acesso direto. Mídias de conversa são entregues apenas por rota autenticada e autorizada.
 
