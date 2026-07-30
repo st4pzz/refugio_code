@@ -14,7 +14,9 @@ A aprovação de reserva e a criação de hold usam o mutex `reserva_mutex`, tra
 
 ## Operação
 
-Cadastre e sincronize fontes em `/admin/calendario`. O botão **Sincronizar agora** executa a importação no próprio pedido e sempre registra sucesso ou falha em `calendar_sync_logs`. A atualização automática usa dois passos: o primeiro cron enfileira fontes vencidas e o worker consome a fila.
+Cadastre e sincronize fontes em `/admin/calendario`. Ao cadastrar, a primeira importação é executada imediatamente. O botão **Sincronizar agora** repete a importação no próprio pedido e sempre registra sucesso ou falha em `calendar_sync_logs`. O painel mostra a quantidade e o período dos bloqueios ativos gravados por fonte.
+
+O worker também procura e enfileira fontes vencidas antes de consumir a fila. Portanto, `process_jobs.php` sozinho mantém a importação automática; o cron dedicado `sync_calendars.php` pode ser mantido para reduzir a latência.
 
 Crons recomendados:
 

@@ -72,7 +72,16 @@ final class OperationsController
         $stmt->execute([$this->money($_POST['base_daily_rate']??''),$this->money($_POST['cleaning_fee']??'0'),$included!==''?(int)$included:null,$this->money($_POST['extra_guest_fee']??'0'),$mode?:null,$_POST['minimum_nights']!==''?(int)$_POST['minimum_nights']:null,$_POST['maximum_nights']!==''?(int)$_POST['maximum_nights']:null,$enabled,$userId]);
     }
     private function quoteCreate(int $userId):void{AuthorizationService::requirePermission('quotes.manage');$service=new QuoteService($this->db);$calculation=$service->calculate(['checkin'=>$_POST['checkin']??'','checkout'=>$_POST['checkout']??'','guests'=>$_POST['guests']??'','pets'=>$_POST['pets']??0,'coupon'=>$_POST['coupon']??''],false);$hours=(int)((new PropertySettingsService($this->db))->get('DEFAULT_QUOTE_EXPIRATION_HOURS',24));$quote=$service->create(['name'=>$_POST['customer_name']??null,'email'=>$_POST['customer_email']??null,'phone'=>$_POST['customer_phone']??null],$calculation,$hours?:24,$userId);flash('success','Orçamento '.$quote['code'].' criado com snapshot.');}
-    private function calendarSourceCreate(int $userId):void{AuthorizationService::requirePermission('calendar.manage');$url=trim((string)($_POST['feed_url']??''));if(!filter_var($url,FILTER_VALIDATE_URL))throw new RuntimeException('URL iCal inválida.');$provider=in_array($_POST['provider']??'', ['AIRBNB','BOOKING','GOOGLE','OTHER'],true)?$_POST['provider']:'OTHER';$stmt=$this->db->prepare('INSERT INTO calendar_sources (nome,provider,feed_url,feed_url_hash,timezone,sync_interval_minutes,proximo_sync_em,criado_por) VALUES (?,?,?,?,?,?,NOW(),?)');$stmt->execute([mb_substr(trim((string)$_POST['name']),0,120),$provider,$url,hash('sha256',$url),$_POST['timezone']?:'America/Sao_Paulo',max(5,min(1440,(int)($_POST['interval']??30))),$userId]);}
+    private function calendarSourceCreate(int $userId):void
+    {
+        AuthorizationService::requirePermission('calendar.manage');
+        $url=trim((string)($_POST['feed_url']??''));
+        if(!filter_var($url,FILTER_VALIDATE_URL))throw new RuntimeException('URL iCal inválida.');
+        $provider=in_array($_POST['provider']??'', ['AIRBNB','BOOKING','GOOGLE','OTHER'],true)?$_POST['provider']:'OTHER';
+        $stmt=$this->db->prepare('INSERT INTO calendar_sources (nome,provider,feed_url,feed_url_hash,timezone,sync_interval_minutes,proximo_sync_em,criado_por) VALUES (?,?,?,?,?,?,NOW(),?)');
+        $stmt->execute([mb_substr(trim((string)$_POST['name']),0,120),$provider,$url,hash('sha256',$url),$_POST['timezone']?:'America/Sao_Paulo',max(5,min(1440,(int)($_POST['interval']??30))),$userId]);
+        (new ICalendarService($this->db))->syncSource((int)$this->db->lastInsertId());
+    }
     private function calendarSourceSync():void
     {
         AuthorizationService::requirePermission('calendar.sync');

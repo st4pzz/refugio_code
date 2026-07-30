@@ -102,6 +102,20 @@ final class ICalendarService
         return $this->importEvents($sourceId, $this->parse($content, $timezone));
     }
 
+    public function enqueueDue(JobQueueService $queue, int $limit = 100): int
+    {
+        $limit = max(1, min(500, $limit));
+        $ids = $this->db->query("SELECT id FROM calendar_sources
+            WHERE ativo=1 AND (proximo_sync_em IS NULL OR proximo_sync_em<=NOW())
+            ORDER BY COALESCE(proximo_sync_em,'1970-01-01'),id
+            LIMIT {$limit}")->fetchAll(PDO::FETCH_COLUMN);
+        $minute = date('YmdHi');
+        foreach ($ids as $id) {
+            $queue->enqueue('ICAL_SYNC', ['source_id' => (int) $id], 'ical-sync:' . $id . ':' . $minute, 70, 5);
+        }
+        return count($ids);
+    }
+
     private function importEvents(int $sourceId, array $events): array
     {
         $seen = [];

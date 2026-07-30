@@ -37,6 +37,31 @@
     font-size: .78rem;
 }
 
+.calendar-event.external {
+    border-left: 3px solid #667064;
+    background: #e8ede7;
+    color: #29312a;
+    font-weight: 700;
+}
+
+.calendar-event.provider-airbnb {
+    border-left-color: #ff385c;
+    background: #fff0f3;
+    color: #8d1730;
+}
+
+.calendar-event.provider-booking {
+    border-left-color: #006ce4;
+    background: #eaf4ff;
+    color: #004b9f;
+}
+
+.calendar-event.provider-google {
+    border-left-color: #188038;
+    background: #eaf6ed;
+    color: #135f2c;
+}
+
 @media (max-width: 650px) {
     .copy-link-row {
         flex-direction: column;
