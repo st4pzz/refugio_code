@@ -14,7 +14,9 @@ A aprovação de reserva e a criação de hold usam o mutex `reserva_mutex`, tra
 
 ## Operação
 
-Cadastre e sincronize fontes em `/admin/calendario`. Crons recomendados:
+Cadastre e sincronize fontes em `/admin/calendario`. O botão **Sincronizar agora** executa a importação no próprio pedido e sempre registra sucesso ou falha em `calendar_sync_logs`. A atualização automática usa dois passos: o primeiro cron enfileira fontes vencidas e o worker consome a fila.
+
+Crons recomendados:
 
 ```text
 */5 * * * * php scripts/sync_calendars.php
@@ -23,6 +25,15 @@ Cadastre e sincronize fontes em `/admin/calendario`. Crons recomendados:
 ```
 
 Mudanças e eventos cancelados são processados por upsert. Falhas ficam no log e entram no retry exponencial da fila. Revogue o token de exportação diretamente no painel/banco se o link for exposto. O parser cobre `UID`, `DTSTART`, `DTEND`, `DURATION` simples, `SUMMARY`, `STATUS`, `SEQUENCE`, linhas dobradas, dia inteiro e timezone.
+
+Para diagnosticar a hospedagem via SSH, execute os dois comandos na raiz e depois atualize o painel:
+
+```bash
+php scripts/sync_calendars.php
+php scripts/process_jobs.php --limit=100
+```
+
+O importador aceita até três redirecionamentos HTTP, validando cada destino contra redes privadas/reservadas.
 
 ## Limitações
 

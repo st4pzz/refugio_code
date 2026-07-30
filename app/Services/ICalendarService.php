@@ -12,6 +12,7 @@ use Throwable;
 final class ICalendarService
 {
     private const MAX_FEED_BYTES = 5_242_880;
+    private const MAX_REDIRECTS = 3;
 
     public function __construct(private PDO $db, private string $defaultTimezone = 'America/Sao_Paulo')
     {
@@ -73,7 +74,6 @@ final class ICalendarService
         $stmt = $this->db->prepare('SELECT * FROM calendar_sources WHERE id=? AND ativo=1');
         $stmt->execute([$sourceId]);
         $source = $stmt->fetch() ?: throw new RuntimeException('Fonte de calendário ativa não encontrada.');
-        $this->assertSafeUrl((string) $source['feed_url']);
         $started = microtime(true);
         $this->db->prepare("INSERT INTO calendar_sync_logs (source_id,status,started_at) VALUES (?,'RUNNING',NOW())")->execute([$sourceId]);
         $logId = (int) $this->db->lastInsertId();
@@ -179,6 +179,27 @@ final class ICalendarService
     private function fetch(string $url, ?string $etag, ?string $lastModified): array
     {
         if (!function_exists('curl_init')) throw new RuntimeException('A extensão cURL é necessária para sincronizar iCal.');
+        $currentUrl = $url;
+        for ($redirects = 0; $redirects <= self::MAX_REDIRECTS; $redirects++) {
+            $this->assertSafeUrl($currentUrl);
+            [$body, $status, $headers] = $this->fetchOnce($currentUrl, $etag, $lastModified);
+            if (!in_array($status, [301,302,303,307,308], true)) {
+                return [$body, $status, $headers];
+            }
+            if ($redirects === self::MAX_REDIRECTS) {
+                throw new RuntimeException('A fonte iCal excedeu o limite de redirecionamentos.');
+            }
+            $location = trim((string) ($headers['location'] ?? ''));
+            if ($location === '') {
+                throw new RuntimeException('A fonte iCal respondeu com redirecionamento sem destino.');
+            }
+            $currentUrl = $this->resolveRedirectUrl($currentUrl, $location);
+        }
+        throw new RuntimeException('Não foi possível concluir o redirecionamento da fonte iCal.');
+    }
+
+    private function fetchOnce(string $url, ?string $etag, ?string $lastModified): array
+    {
         $responseHeaders = [];
         $requestHeaders = ['Accept: text/calendar, text/plain;q=0.8'];
         if ($etag) $requestHeaders[] = 'If-None-Match: ' . $etag;
@@ -187,6 +208,7 @@ final class ICalendarService
         curl_setopt_array($handle, [
             CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => false, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 15,
             CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_HTTPHEADER => $requestHeaders,
+            CURLOPT_ENCODING => '',
             CURLOPT_USERAGENT => 'RefugioCalendar/1.0', CURLOPT_HEADERFUNCTION => static function ($curl, string $header) use (&$responseHeaders): int {
                 $length = strlen($header);
                 if (str_contains($header, ':')) { [$key,$value] = explode(':', $header, 2); $responseHeaders[strtolower(trim($key))] = trim($value); }
@@ -199,6 +221,43 @@ final class ICalendarService
         curl_close($handle);
         if (strlen((string) $body) > self::MAX_FEED_BYTES) throw new RuntimeException('O calendário excede o limite de 5 MB.');
         return [(string) $body, $status, $responseHeaders];
+    }
+
+    private function resolveRedirectUrl(string $baseUrl, string $location): string
+    {
+        if (preg_match('/[\x00-\x1F\x7F]/', $location)) {
+            throw new RuntimeException('A fonte iCal retornou um redirecionamento inválido.');
+        }
+        if (preg_match('~^https?://~i', $location)) return $location;
+        $base = parse_url($baseUrl);
+        if (!is_array($base) || empty($base['scheme']) || empty($base['host'])) {
+            throw new RuntimeException('Não foi possível interpretar o redirecionamento da fonte iCal.');
+        }
+        if (str_starts_with($location, '//')) return $base['scheme'] . ':' . $location;
+
+        $authority = $base['scheme'] . '://' . $base['host'] . (isset($base['port']) ? ':' . $base['port'] : '');
+        if (str_starts_with($location, '?')) {
+            return $authority . ($base['path'] ?? '/') . $location;
+        }
+        [$pathAndQuery] = explode('#', $location, 2);
+        $query = '';
+        if (str_contains($pathAndQuery, '?')) {
+            [$pathAndQuery, $queryString] = explode('?', $pathAndQuery, 2);
+            $query = '?' . $queryString;
+        }
+        $path = str_starts_with($pathAndQuery, '/')
+            ? $pathAndQuery
+            : rtrim(str_replace('\\', '/', dirname($base['path'] ?? '/')), '/') . '/' . $pathAndQuery;
+        $segments = [];
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '' || $segment === '.') continue;
+            if ($segment === '..') {
+                array_pop($segments);
+                continue;
+            }
+            $segments[] = $segment;
+        }
+        return $authority . '/' . implode('/', $segments) . $query;
     }
 
     private function finishLog(int $id, string $status, ?int $httpStatus, array $result, float $started): void

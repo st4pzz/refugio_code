@@ -10,6 +10,7 @@ use Refugio\Services\AuthorizationService;
 use Refugio\Services\ContractPdfService;
 use Refugio\Services\ContractTemplateService;
 use Refugio\Services\GuestPortalService;
+use Refugio\Services\ICalendarService;
 use Refugio\Services\JobQueueService;
 use Refugio\Services\PreCheckinService;
 use Refugio\Services\PropertySettingsService;
@@ -72,7 +73,13 @@ final class OperationsController
     }
     private function quoteCreate(int $userId):void{AuthorizationService::requirePermission('quotes.manage');$service=new QuoteService($this->db);$calculation=$service->calculate(['checkin'=>$_POST['checkin']??'','checkout'=>$_POST['checkout']??'','guests'=>$_POST['guests']??'','pets'=>$_POST['pets']??0,'coupon'=>$_POST['coupon']??''],false);$hours=(int)((new PropertySettingsService($this->db))->get('DEFAULT_QUOTE_EXPIRATION_HOURS',24));$quote=$service->create(['name'=>$_POST['customer_name']??null,'email'=>$_POST['customer_email']??null,'phone'=>$_POST['customer_phone']??null],$calculation,$hours?:24,$userId);flash('success','Orçamento '.$quote['code'].' criado com snapshot.');}
     private function calendarSourceCreate(int $userId):void{AuthorizationService::requirePermission('calendar.manage');$url=trim((string)($_POST['feed_url']??''));if(!filter_var($url,FILTER_VALIDATE_URL))throw new RuntimeException('URL iCal inválida.');$provider=in_array($_POST['provider']??'', ['AIRBNB','BOOKING','GOOGLE','OTHER'],true)?$_POST['provider']:'OTHER';$stmt=$this->db->prepare('INSERT INTO calendar_sources (nome,provider,feed_url,feed_url_hash,timezone,sync_interval_minutes,proximo_sync_em,criado_por) VALUES (?,?,?,?,?,?,NOW(),?)');$stmt->execute([mb_substr(trim((string)$_POST['name']),0,120),$provider,$url,hash('sha256',$url),$_POST['timezone']?:'America/Sao_Paulo',max(5,min(1440,(int)($_POST['interval']??30))),$userId]);}
-    private function calendarSourceSync():void{AuthorizationService::requirePermission('calendar.sync');$id=(int)($_POST['source_id']??0);(new JobQueueService($this->db))->enqueue('ICAL_SYNC',['source_id'=>$id],'ical-sync:'.$id.':'.date('YmdHi'),70,5);}
+    private function calendarSourceSync():void
+    {
+        AuthorizationService::requirePermission('calendar.sync');
+        $id=(int)($_POST['source_id']??0);
+        if($id<=0)throw new RuntimeException('Fonte iCal inválida.');
+        (new ICalendarService($this->db))->syncSource($id);
+    }
     private function calendarExportCreate(int $userId):void
     {
         AuthorizationService::requirePermission('calendar.manage');
