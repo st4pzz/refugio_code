@@ -59,6 +59,7 @@ match ($route) {
     'precos' => $operations->pricing(),
     'orcamentos' => $operations->quotes(),
     'contratos' => $operations->contracts(),
+    'contrato-pdf' => $operations->contractDocument((int) ($_GET['id'] ?? 0)),
     'precheckins' => $operations->precheckins(),
     'automacoes' => $operations->automations(),
     'propriedade' => $operations->propertySettings(),

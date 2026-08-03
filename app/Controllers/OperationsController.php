@@ -31,6 +31,31 @@ final class OperationsController
     }
     public function quotes():void{AuthorizationService::requirePermission('quotes.view');$quotes=$this->db->query('SELECT * FROM quotes ORDER BY created_at DESC LIMIT 100')->fetchAll();require BASE_PATH.'/app/Views/admin/quotes.php';}
     public function contracts():void{AuthorizationService::requirePermission('contracts.view');$versions=$this->db->query('SELECT v.*,t.name template_name FROM contract_template_versions v JOIN contract_templates t ON t.id=v.template_id ORDER BY v.version_no DESC')->fetchAll();$contracts=$this->db->query('SELECT c.*,r.codigo,nome_cliente FROM reservation_contracts c JOIN reservas r ON r.id=c.reservation_id ORDER BY c.created_at DESC LIMIT 100')->fetchAll();require BASE_PATH.'/app/Views/admin/contracts.php';}
+    public function contractDocument(int $contractId):never
+    {
+        AuthorizationService::requirePermission('contracts.view');
+        $stmt=$this->db->prepare('SELECT contract_number,pdf_path FROM reservation_contracts WHERE id=?');
+        $stmt->execute([$contractId]);
+        $contract=$stmt->fetch()?:throw new RuntimeException('Contrato não encontrado.');
+        if(empty($contract['pdf_path']))throw new RuntimeException('PDF ainda não foi gerado.');
+
+        $path=realpath(BASE_PATH.'/'.ltrim((string)$contract['pdf_path'],'/\\'));
+        $storage=realpath(BASE_PATH.'/storage/contracts');
+        $normalizedPath=$path===false?'':str_replace('\\','/',$path);
+        $normalizedStorage=$storage===false?'':rtrim(str_replace('\\','/',$storage),'/');
+        if($normalizedPath===''||$normalizedStorage===''||!str_starts_with($normalizedPath,$normalizedStorage.'/')||!is_file($path)){
+            throw new RuntimeException('Arquivo PDF não encontrado no armazenamento protegido.');
+        }
+
+        $filename='contrato-'.preg_replace('/[^A-Za-z0-9_-]/','-',(string)$contract['contract_number']).'.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Length: '.filesize($path));
+        header('Cache-Control: private, no-store');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: inline; filename="'.$filename.'"');
+        readfile($path);
+        exit;
+    }
     public function precheckins():void{AuthorizationService::requirePermission('precheckin.view');$precheckins=$this->db->query('SELECT p.*,r.codigo,r.nome_cliente,r.checkin,r.checkout,(SELECT COUNT(*) FROM reservation_guests g WHERE g.precheckin_id=p.id) guest_count FROM precheckins p JOIN reservas r ON r.id=p.reservation_id ORDER BY r.checkin DESC LIMIT 100')->fetchAll();$ruleVersions=$this->db->query('SELECT * FROM house_rule_versions ORDER BY version_no DESC')->fetchAll();require BASE_PATH.'/app/Views/admin/precheckins.php';}
     public function automations():void{AuthorizationService::requirePermission('automation.view');$rules=$this->db->query('SELECT * FROM automation_rules ORDER BY id')->fetchAll();$runs=$this->db->query('SELECT ar.*,au.name rule_name,r.codigo FROM automation_runs ar JOIN automation_rules au ON au.id=ar.rule_id JOIN reservas r ON r.id=ar.reservation_id ORDER BY ar.created_at DESC LIMIT 100')->fetchAll();require BASE_PATH.'/app/Views/admin/automations.php';}
     public function propertySettings():void{AuthorizationService::requirePermission('property_settings.manage');$settings=(new PropertySettingsService($this->db))->all();$contractMissing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);$pricingReadiness=(new PropertySettingsService($this->db))->publicPricingReadiness();require BASE_PATH.'/app/Views/admin/property-settings.php';}
@@ -57,7 +82,8 @@ final class OperationsController
                 'automation-toggle'=>$this->automationToggle(),
                 default=>throw new RuntimeException('Ação operacional inválida.'),
             };
-            $redirect=match(true){str_starts_with($action,'property-')=>'admin/configuracoes/propriedade',str_starts_with($action,'pricing-')=>'admin/precos',str_starts_with($action,'quote-')=>'admin/orcamentos',str_starts_with($action,'calendar-')=>'admin/calendario',str_starts_with($action,'contract-')||str_starts_with($action,'portal-')=>'admin/contratos',str_starts_with($action,'precheckin-')||str_starts_with($action,'rules-')=>'admin/pre-checkins',str_starts_with($action,'automation-')=>'admin/automacoes',default=>'admin'};flash('success','Operação concluída.');
+            $redirect=match(true){str_starts_with($action,'property-')=>'admin/configuracoes/propriedade',str_starts_with($action,'pricing-')=>'admin/precos',str_starts_with($action,'quote-')=>'admin/orcamentos',str_starts_with($action,'calendar-')=>'admin/calendario',str_starts_with($action,'contract-')||str_starts_with($action,'portal-')=>'admin/contratos',str_starts_with($action,'precheckin-')||str_starts_with($action,'rules-')=>'admin/pre-checkins',str_starts_with($action,'automation-')=>'admin/automacoes',default=>'admin'};
+            if(!isset($_SESSION['_flash']['success']))flash('success','Operação concluída.');
         }catch(Throwable $error){flash('error',$error->getMessage());$redirect=$_SERVER['HTTP_REFERER']??base_url('admin');if(str_starts_with($redirect,'http')){header('Location: '.$redirect,true,303);exit;}}
         redirect(base_url($redirect));
     }
@@ -124,8 +150,23 @@ final class OperationsController
         ];
         $contract=(new ContractTemplateService($this->db))->createReservationContract($reservationId,$vars,$userId);(new JobQueueService($this->db))->enqueue('CONTRACT_PDF',['contract_id'=>$contract['id']],'contract-pdf:'.$contract['id'],60,3);(new \Refugio\Services\ReservationAutomationService($this->db,$this->config))->emit('CONTRACT_READY',$reservationId,[],'contract:'.$contract['id']);
     }
-    private function contractPdf():void{AuthorizationService::requirePermission('contracts.generate');(new ContractPdfService($this->db))->generate((int)$_POST['contract_id']);}
-    private function portalRegenerate(int $userId):void{AuthorizationService::requirePermission('guest_portal.manage');$token=(new GuestPortalService($this->db,$this->config))->regenerate((int)$_POST['reservation_id'],$userId);flash('success','Novo link do portal (copie agora): '.base_url('minha-reserva/'.$token));}
+    private function contractPdf():void
+    {
+        AuthorizationService::requirePermission('contracts.generate');
+        $contractId=(int)($_POST['contract_id']??0);
+        if($contractId<=0)throw new RuntimeException('Contrato inválido.');
+        (new ContractPdfService($this->db))->generate($contractId);
+        flash('success','PDF gerado com sucesso. Use “Abrir PDF” na lista de documentos.');
+    }
+    private function portalRegenerate(int $userId):void
+    {
+        AuthorizationService::requirePermission('guest_portal.manage');
+        $reservationId=(int)($_POST['reservation_id']??0);
+        if($reservationId<=0)throw new RuntimeException('Reserva inválida.');
+        $token=(new GuestPortalService($this->db,$this->config))->regenerate($reservationId,$userId);
+        flash('portal_url',base_url('minha-reserva/'.$token));
+        flash('success','Novo link do portal gerado. Copie-o antes de sair desta página.');
+    }
     private function precheckinReview(int $userId):void{AuthorizationService::requirePermission('precheckin.review');$reservationId=(int)$_POST['reservation_id'];$decision=(string)$_POST['decision'];(new PreCheckinService($this->db))->review($reservationId,$decision,(string)($_POST['message']??''),$userId);if($decision==='approve')(new \Refugio\Services\ReservationAutomationService($this->db,$this->config))->emit('PRECHECKIN_APPROVED',$reservationId,[],'precheckin-approved');}
     private function rulesBootstrap(int $userId):void{AuthorizationService::requirePermission('precheckin.rules.manage');(new PreCheckinService($this->db))->bootstrapHouseRules($userId);}
     private function rulesApprove(int $userId):void{AuthorizationService::requirePermission('precheckin.rules.manage');$this->db->beginTransaction();try{$this->db->prepare("UPDATE house_rule_versions SET status='SUPERSEDED' WHERE status='APPROVED'")->execute();$this->db->prepare("UPDATE house_rule_versions SET status='APPROVED',approved_by=?,approved_at=NOW() WHERE id=? AND status='DRAFT'")->execute([$userId,(int)$_POST['version_id']]);$this->db->commit();}catch(Throwable $e){if($this->db->inTransaction())$this->db->rollBack();throw $e;}}

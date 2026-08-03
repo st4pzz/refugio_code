@@ -175,5 +175,21 @@ test('dompdf produz arquivo a4 valido pelo renderizador php',function(){$path=sy
 test('link privado do calendario sobrevive ao redirect e possui copia com fallback',function(){$controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');$view=file_get_contents(BASE_PATH.'/app/Views/admin/calendar.php');$script=file_get_contents(BASE_PATH.'/assets/js/admin.js');expect(str_contains($controller,"flash('calendar_export_url'"));expect(str_contains($view,"flash('calendar_export_url')"));expect(str_contains($view,'data-copy-target="calendar-export-url"'));expect(str_contains($script,'navigator.clipboard?.writeText'));expect(str_contains($script,"document.execCommand('copy')"));});
 test('links privados do calendario podem ser revogados pelo painel',function(){$controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');$admin=file_get_contents(BASE_PATH.'/app/Controllers/AdminController.php');$view=file_get_contents(BASE_PATH.'/app/Views/admin/calendar.php');expect(str_contains($controller,"'calendar-export-revoke'"));expect(str_contains($controller,'SET ativo=0,revoked_at=NOW()'));expect(str_contains($admin,'FROM calendar_export_tokens'));expect(str_contains($view,'calendar-export-revoke'));});
 
+test('feedback de contrato preserva link do portal e oferece pdf protegido',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/contracts.php');
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    $front=file_get_contents(BASE_PATH.'/admin/index.php');
+    expect(str_contains($controller,"if(!isset(\$_SESSION['_flash']['success']))"));
+    expect(str_contains($controller,"flash('portal_url'"));
+    expect(str_contains($view,"flash('portal_url')"));
+    expect(str_contains($view,'data-copy-target="guest-portal-url"'));
+    expect(str_contains($view,"admin/contratos/' . \$contract['id'] . '/pdf"));
+    expect(str_contains($routes,'admin/contratos/([0-9]+)/pdf'));
+    expect(str_contains($front,"'contrato-pdf' => \$operations->contractDocument"));
+    expect(str_contains($controller,"AuthorizationService::requirePermission('contracts.view')"));
+    expect(str_contains($controller,"BASE_PATH.'/storage/contracts'"));
+});
+
 fwrite(STDOUT, "\n{$passed} teste(s) passaram; {$failed} falharam.\n");
 exit($failed ? 1 : 0);
