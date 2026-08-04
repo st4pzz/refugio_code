@@ -8,6 +8,7 @@ use PDO;
 use Refugio\Config\Database;
 use Refugio\Services\AuthorizationService;
 use Refugio\Services\ContractPdfService;
+use Refugio\Services\ContractSignatureWorkflowService;
 use Refugio\Services\ContractTemplateService;
 use Refugio\Services\GuestPortalService;
 use Refugio\Services\ICalendarService;
@@ -15,8 +16,10 @@ use Refugio\Services\JobQueueService;
 use Refugio\Services\PreCheckinService;
 use Refugio\Services\PropertySettingsService;
 use Refugio\Services\QuoteService;
+use Refugio\Services\UploadService;
 use Refugio\Support\Csrf;
 use Refugio\Support\Env;
+use Refugio\Support\Security;
 use RuntimeException;
 use Throwable;
 
@@ -30,7 +33,16 @@ final class OperationsController
         AuthorizationService::requirePermission('pricing.view');$settings=$this->db->query('SELECT * FROM property_pricing_settings WHERE id=1')->fetch();$readiness=(new PropertySettingsService($this->db))->publicPricingReadiness();$seasons=$this->db->query('SELECT * FROM pricing_seasons ORDER BY starts_on DESC')->fetchAll();$rules=$this->db->query('SELECT * FROM pricing_rules ORDER BY priority,id')->fetchAll();$specialDates=$this->db->query('SELECT * FROM pricing_special_dates ORDER BY starts_on DESC')->fetchAll();require BASE_PATH.'/app/Views/admin/pricing.php';
     }
     public function quotes():void{AuthorizationService::requirePermission('quotes.view');$quotes=$this->db->query('SELECT * FROM quotes ORDER BY created_at DESC LIMIT 100')->fetchAll();require BASE_PATH.'/app/Views/admin/quotes.php';}
-    public function contracts():void{AuthorizationService::requirePermission('contracts.view');$versions=$this->db->query('SELECT v.*,t.name template_name FROM contract_template_versions v JOIN contract_templates t ON t.id=v.template_id ORDER BY v.version_no DESC')->fetchAll();$contracts=$this->db->query('SELECT c.*,r.codigo,nome_cliente FROM reservation_contracts c JOIN reservas r ON r.id=c.reservation_id ORDER BY c.created_at DESC LIMIT 100')->fetchAll();require BASE_PATH.'/app/Views/admin/contracts.php';}
+    public function contracts():void
+    {
+        AuthorizationService::requirePermission('contracts.view');
+        $versions=$this->db->query('SELECT v.*,t.name template_name FROM contract_template_versions v JOIN contract_templates t ON t.id=v.template_id ORDER BY v.version_no DESC')->fetchAll();
+        $contracts=$this->db->query('SELECT c.*,r.codigo,nome_cliente FROM reservation_contracts c JOIN reservas r ON r.id=c.reservation_id ORDER BY c.created_at DESC LIMIT 100')->fetchAll();
+        $signatureDocuments=[];
+        $documents=$this->db->query('SELECT d.* FROM contract_signature_documents d JOIN (SELECT contract_id,stage,MAX(revision_no) revision_no FROM contract_signature_documents GROUP BY contract_id,stage) latest ON latest.contract_id=d.contract_id AND latest.stage=d.stage AND latest.revision_no=d.revision_no')->fetchAll();
+        foreach($documents as $document)$signatureDocuments[(int)$document['contract_id']][$document['stage']]=$document;
+        require BASE_PATH.'/app/Views/admin/contracts.php';
+    }
     public function contractDocument(int $contractId):never
     {
         AuthorizationService::requirePermission('contracts.view');
@@ -56,6 +68,25 @@ final class OperationsController
         readfile($path);
         exit;
     }
+    public function contractSignatureDocument(int $contractId,string $kind):never
+    {
+        AuthorizationService::requirePermission('contracts.view');
+        $stage=match($kind){'hospede'=>ContractSignatureWorkflowService::GUEST_SIGNED,'final'=>ContractSignatureWorkflowService::FULLY_SIGNED,default=>throw new RuntimeException('Documento de assinatura invalido.')};
+        $stmt=$this->db->prepare('SELECT contract_number FROM reservation_contracts WHERE id=?');
+        $stmt->execute([$contractId]);
+        $contract=$stmt->fetch()?:throw new RuntimeException('Contrato nao encontrado.');
+        $workflow=new ContractSignatureWorkflowService($this->db,new UploadService((int)$this->config['upload_max_bytes']));
+        $document=$workflow->latestDocument($contractId,$stage)?:throw new RuntimeException('Documento assinado ainda nao disponivel.');
+        $path=$workflow->resolvePath($document);
+        $filename='contrato-'.preg_replace('/[^A-Za-z0-9_-]/','-',(string)$contract['contract_number']).'-'.($stage===ContractSignatureWorkflowService::FULLY_SIGNED?'final':'hospede').'.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Length: '.filesize($path));
+        header('Cache-Control: private, no-store');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: attachment; filename="'.$filename.'"');
+        readfile($path);
+        exit;
+    }
     public function precheckins():void{AuthorizationService::requirePermission('precheckin.view');$precheckins=$this->db->query('SELECT p.*,r.codigo,r.nome_cliente,r.checkin,r.checkout,(SELECT COUNT(*) FROM reservation_guests g WHERE g.precheckin_id=p.id) guest_count FROM precheckins p JOIN reservas r ON r.id=p.reservation_id ORDER BY r.checkin DESC LIMIT 100')->fetchAll();$ruleVersions=$this->db->query('SELECT * FROM house_rule_versions ORDER BY version_no DESC')->fetchAll();require BASE_PATH.'/app/Views/admin/precheckins.php';}
     public function automations():void{AuthorizationService::requirePermission('automation.view');$rules=$this->db->query('SELECT * FROM automation_rules ORDER BY id')->fetchAll();$runs=$this->db->query('SELECT ar.*,au.name rule_name,r.codigo FROM automation_runs ar JOIN automation_rules au ON au.id=ar.rule_id JOIN reservas r ON r.id=ar.reservation_id ORDER BY ar.created_at DESC LIMIT 100')->fetchAll();require BASE_PATH.'/app/Views/admin/automations.php';}
     public function propertySettings():void{AuthorizationService::requirePermission('property_settings.manage');$settings=(new PropertySettingsService($this->db))->all();$contractMissing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);$pricingReadiness=(new PropertySettingsService($this->db))->publicPricingReadiness();require BASE_PATH.'/app/Views/admin/property-settings.php';}
@@ -75,6 +106,7 @@ final class OperationsController
                 'contract-approve'=>$this->contractApprove($userId),
                 'contract-generate'=>$this->contractGenerate($userId),
                 'contract-pdf'=>$this->contractPdf(),
+                'contract-owner-upload'=>$this->contractOwnerUpload($userId),
                 'portal-regenerate'=>$this->portalRegenerate($userId),
                 'precheckin-review'=>$this->precheckinReview($userId),
                 'rules-bootstrap'=>$this->rulesBootstrap($userId),
@@ -157,6 +189,16 @@ final class OperationsController
         if($contractId<=0)throw new RuntimeException('Contrato inválido.');
         (new ContractPdfService($this->db))->generate($contractId);
         flash('success','PDF gerado com sucesso. Use “Abrir PDF” na lista de documentos.');
+    }
+    private function contractOwnerUpload(int $userId):void
+    {
+        AuthorizationService::requirePermission('contracts.signatures.manage');
+        if(!isset($_POST['owner_signed_on_gov']))throw new RuntimeException('Confirme que voce assinou o PDF no Gov.br antes de enviar.');
+        $contractId=(int)($_POST['contract_id']??0);
+        if($contractId<=0)throw new RuntimeException('Contrato invalido.');
+        $workflow=new ContractSignatureWorkflowService($this->db,new UploadService((int)$this->config['upload_max_bytes']));
+        $document=$workflow->uploadFullySigned($contractId,$_FILES['signed_contract']??[],$userId,Security::clientIp(),$_SERVER['HTTP_USER_AGENT']??'');
+        flash('success','Contrato final registrado com sucesso. Revisao '.$document['revision_no'].' e SHA-256 '.substr((string)$document['sha256'],0,12).'...');
     }
     private function portalRegenerate(int $userId):void
     {

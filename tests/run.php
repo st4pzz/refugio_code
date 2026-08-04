@@ -59,6 +59,7 @@ test('aprovacao envia cobranca por email imediatamente e informa o resultado rea
 test('falha do email automatizado aciona retry e lembrete de pagamento continua agendado',function(){$notification=file_get_contents(BASE_PATH.'/app/Services/NotificationService.php');$reservation=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php');$automation=file_get_contents(BASE_PATH.'/app/Services/ReservationAutomationService.php');expect(str_contains($notification,'bool $throwOnFailure = false'));expect(str_contains($notification,'if ($throwOnFailure) throw'));expect(str_contains($reservation,"emitAutomationRule('PAYMENT_REMINDER'"));expect(str_contains($reservation,"emitAutomationRule('PIX_CHARGE'"));expect(str_contains($automation,'function emitRule'));});
 test('upload malicioso recusado', function() use ($config) { $tmp=tempnam(sys_get_temp_dir(),'bad'); file_put_contents($tmp,"<?php echo 'x';"); try { (new UploadService($config['upload_max_bytes']))->receipt(['error'=>UPLOAD_ERR_OK,'size'=>filesize($tmp),'tmp_name'=>$tmp,'name'=>'ataque.jpg']); } catch (RuntimeException) { unlink($tmp); return; } unlink($tmp); throw new RuntimeException('Arquivo foi aceito.'); });
 test('upload PNG valido', function() use ($config) { $tmp=tempnam(sys_get_temp_dir(),'png'); file_put_contents($tmp,base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')); $stored=(new UploadService($config['upload_max_bytes']))->receipt(['error'=>UPLOAD_ERR_OK,'size'=>filesize($tmp),'tmp_name'=>$tmp,'name'=>'ok.png']); expect($stored['mime']==='image/png'); unlink(BASE_PATH.'/'.$stored['path']); unlink($tmp); });
+test('upload de contrato aceita somente PDF e registra hash e tamanho', function() use ($config) { $tmp=tempnam(sys_get_temp_dir(),'pdf');file_put_contents($tmp,"%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n");$stored=null;try{$stored=(new UploadService($config['upload_max_bytes']))->contractPdf(['error'=>UPLOAD_ERR_OK,'size'=>filesize($tmp),'tmp_name'=>$tmp,'name'=>'contrato-assinado.pdf'],999999);expect($stored['mime']==='application/pdf');expect($stored['sha256']===hash_file('sha256',BASE_PATH.'/'.$stored['path']));expect($stored['bytes']===filesize(BASE_PATH.'/'.$stored['path']));}finally{if($stored&&is_file(BASE_PATH.'/'.$stored['path']))unlink(BASE_PATH.'/'.$stored['path']);@rmdir(BASE_PATH.'/storage/contracts/999999');if(is_file($tmp))unlink($tmp);}});
 test('cron e idempotente por status', function() { $source=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php'); expect(str_contains($source,'p.status IN {$paymentStatuses}')); expect(str_contains($source,"UPDATE reservas SET status='EXPIRADA'")); });
 test('landing page contem entrada para reserva direta', function() { ob_start(); include BASE_PATH.'/index.php'; $html=(string)ob_get_clean(); expect(str_contains($html,'reserva/solicitar')); $dom=new DOMDocument(); @$dom->loadHTML($html); expect($dom->getElementsByTagName('html')->length===1); });
 test('hero usa mp4 otimizado com poster e reproducao silenciosa', function() { $html=file_get_contents(BASE_PATH.'/index.php'); foreach(['assets/videos/IMG_0277.mp4','type="video/mp4"','autoplay','muted','loop','playsinline','poster="assets/images/imagens_a_rotacionar/Noturno.webp"'] as $needle) expect(str_contains($html,$needle)); expect(!str_contains($html,'assets/videos/IMG_0277.MOV')); expect(!str_contains($html,'class="hero-img"')); });
@@ -211,6 +212,31 @@ test('feedback de contrato preserva link do portal e oferece pdf protegido',func
     expect(str_contains($front,"'contrato-pdf' => \$operations->contractDocument"));
     expect(str_contains($controller,"AuthorizationService::requirePermission('contracts.view')"));
     expect(str_contains($controller,"BASE_PATH.'/storage/contracts'"));
+});
+
+test('fluxo de contrato usa PDFs do Gov e elimina aceite local por codigo',function(){
+    $migration=file_get_contents(BASE_PATH.'/database/migrations/011_create_contract_signature_documents.sql');
+    $portal=file_get_contents(BASE_PATH.'/app/Views/guest-portal/show.php');
+    $admin=file_get_contents(BASE_PATH.'/app/Views/admin/contracts.php');
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    $front=file_get_contents(BASE_PATH.'/minha-reserva/index.php');
+    $workflow=file_get_contents(BASE_PATH.'/app/Services/ContractSignatureWorkflowService.php');
+    foreach(['contract_signature_documents','GUEST_SIGNED','FULLY_SIGNED','revision_no','sha256','uploaded_by_admin_id']as$needle)expect(str_contains($migration,$needle),'Campo ausente na migration: '.$needle);
+    expect(str_contains($portal,'contrato/enviar-assinado'));
+    expect(str_contains($portal,'Assine no Gov.br'));
+    expect(str_contains($portal,'enctype="multipart/form-data"'));
+    expect(!str_contains($portal,'Enviar código de assinatura'));
+    expect(!str_contains($portal,'Registrar aceite'));
+    expect(str_contains($admin,'contract-owner-upload'));
+    expect(str_contains($admin,'Baixar PDF do hóspede'));
+    expect(str_contains($admin,'Baixar PDF final'));
+    expect(str_contains($routes,'contrato/enviar-assinado'));
+    expect(str_contains($routes,'documentos/(hospede|final)'));
+    expect(str_contains($front,"'contract-upload'=>\$controller->uploadSignedContract"));
+    expect(str_contains($workflow,"hash_equals((string) \$contract['pdf_hash']"));
+    expect(str_contains($workflow,"hash_equals((string) \$guest['sha256']"));
+    expect(str_contains($workflow,"'GUEST_SIGNED_PDF_UPLOADED'"));
+    expect(str_contains($workflow,"'FULLY_SIGNED_PDF_UPLOADED'"));
 });
 
 test('prompt de marketing com IA fixa oferta publico e restricoes da chacara',function(){

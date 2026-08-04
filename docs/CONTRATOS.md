@@ -14,6 +14,18 @@ Pontos obrigatórios para revisão administrativa/jurídica: cancelamento; multa
 
 Todo PDF termina em uma folha exclusiva de assinaturas, com quebra de página obrigatória, identificação e CPF do locador e do locatário, áreas livres para posicionamento das assinaturas eletrônicas e dois campos opcionais de testemunhas. Essa folha facilita o envio manual ao Gov.br ou a plataforma equivalente; não representa integração automática com a API do Gov.br. Ao regenerar o PDF de um contrato existente, os dados são recuperados do snapshot imutável da própria versão contratual.
 
-## Assinatura local auditável
+## Fluxo de assinatura externa pelo Gov.br
 
-`SignatureProviderInterface` permite provedor futuro. O provedor local usa código de seis dígitos, HMAC-SHA-256, validade de 15 minutos, cinco tentativas e uso único. Registra nome, CPF, canal, IP, user-agent, horário, texto aceito, hash do documento e eventos. CPF deve coincidir com o signatário. O sistema descreve fatos de autenticação e integridade, sem alegar categoria jurídica específica. Configure `APP_KEY` com pelo menos 32 caracteres.
+O portal não simula nem substitui a assinatura eletrônica do Gov.br. O fluxo operacional é:
+
+1. o hóspede baixa o PDF original no portal;
+2. assina o arquivo no aplicativo ou serviço oficial do Gov.br;
+3. envia o PDF assinado no mesmo portal;
+4. o administrador baixa a versão recebida, assina esse arquivo no Gov.br e envia a versão final;
+5. o hóspede e o administrador podem baixar o PDF final registrado.
+
+A migration `011_create_contract_signature_documents.sql` cria o armazenamento lógico das revisões. Execute `php scripts/migrate.php` depois da implantação. Os arquivos ficam no armazenamento privado `storage/contracts/{contract_id}` e nunca são expostos diretamente pelo servidor web.
+
+Cada envio registra etapa, revisão, nome original, tamanho, SHA-256, papel do remetente, administrador responsável quando aplicável, IP, user-agent e horário. Reenvios não apagam versões anteriores. O sistema recusa o PDF do hóspede quando ele é idêntico ao original e recusa o PDF final quando ele é idêntico ao arquivo recebido do hóspede. Isso ajuda a evitar enganos, mas não comprova criptograficamente a assinatura: a autenticidade deve ser conferida no validador oficial do Gov.br.
+
+O provedor local por código permanece apenas como código legado para compatibilidade histórica e não está ligado às rotas nem à interface do portal.

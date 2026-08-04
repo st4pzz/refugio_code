@@ -65,6 +65,10 @@ final class GuestPortalService
             $stmt=$this->db->prepare("UPDATE reservation_contracts SET status='VIEWED' WHERE id=? AND status IN ('READY','SENT')");$stmt->execute([$contracts[0]['id']]);
             if($stmt->rowCount()===1){$contracts[0]['status']='VIEWED';$this->db->prepare("INSERT INTO contract_events (contract_id,event_type,metadata_json,document_hash) SELECT id,'CONTRACT_VIEWED',JSON_OBJECT('channel','GUEST_PORTAL'),content_hash FROM reservation_contracts WHERE id=?")->execute([$contracts[0]['id']]);try{(new ReservationAutomationService($this->db,$this->appConfig))->emit('CONTRACT_VIEWED',$reservationId,[],'contract-viewed:'.$contracts[0]['id']);}catch(\Throwable $error){error_log('[portal-contract-viewed] '.$error->getMessage());}}
         }
+        if(isset($contracts[0])){
+            $contracts[0]['guest_signed_document']=$this->row("SELECT id,revision_no,original_name,byte_size,sha256,created_at FROM contract_signature_documents WHERE contract_id=? AND stage='GUEST_SIGNED' ORDER BY revision_no DESC LIMIT 1",[(int)$contracts[0]['id']]);
+            $contracts[0]['fully_signed_document']=$this->row("SELECT id,revision_no,original_name,byte_size,sha256,created_at FROM contract_signature_documents WHERE contract_id=? AND stage='FULLY_SIGNED' ORDER BY revision_no DESC LIMIT 1",[(int)$contracts[0]['id']]);
+        }
         $precheckin=$this->row('SELECT status,submitted_at,reviewed_at,correction_message FROM precheckins WHERE reservation_id=?',[$reservationId]);
         $settings=(new PropertySettingsService($this->db))->values();
         $hours=max(0,(int)($settings['CHECKIN_INSTRUCTIONS_RELEASE_HOURS']??0));
