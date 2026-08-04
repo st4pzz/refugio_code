@@ -12,6 +12,8 @@ Pontos obrigatórios para revisão administrativa/jurídica: cancelamento; multa
 
 `ContractPdfService` renderiza o snapshot HTML com `dompdf/dompdf` dentro do próprio processo PHP. Instale o `composer.lock` com `composer2 install --no-dev --optimize-autoloader`; não há variável de ambiente nem runtime Python. O renderizador bloqueia conteúdo remoto, PHP e JavaScript, valida assinatura `%PDF-`, tamanho e SHA-256 antes de registrar. O PDF inclui hash e paginação no rodapé. Faça QA renderizando todas as páginas com Poppler.
 
+Todo PDF termina em uma folha exclusiva de assinaturas, com quebra de página obrigatória, identificação e CPF do locador e do locatário, áreas livres para posicionamento das assinaturas eletrônicas e dois campos opcionais de testemunhas. Essa folha facilita o envio manual ao Gov.br ou a plataforma equivalente; não representa integração automática com a API do Gov.br. Ao regenerar o PDF de um contrato existente, os dados são recuperados do snapshot imutável da própria versão contratual.
+
 ## Assinatura local auditável
 
 `SignatureProviderInterface` permite provedor futuro. O provedor local usa código de seis dígitos, HMAC-SHA-256, validade de 15 minutos, cinco tentativas e uso único. Registra nome, CPF, canal, IP, user-agent, horário, texto aceito, hash do documento e eventos. CPF deve coincidir com o signatário. O sistema descreve fatos de autenticação e integridade, sem alegar categoria jurídica específica. Configure `APP_KEY` com pelo menos 32 caracteres.

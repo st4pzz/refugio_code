@@ -26,7 +26,16 @@ final class ContractPdfService
         }
         $output = $directory . '/contract-' . $contract['version_no'] . '.pdf';
         $title = 'Contrato ' . $contract['contract_number'];
-        $html = ContractPdfTemplate::render($title, (string) $contract['html_snapshot'], (string) $contract['content_hash']);
+        $variables = json_decode((string) $contract['variables_snapshot_json'], true);
+        if (!is_array($variables)) {
+            throw new RuntimeException('Os dados de identificação do contrato estão inválidos.');
+        }
+        $html = ContractPdfTemplate::render(
+            $title,
+            (string) $contract['html_snapshot'],
+            (string) $contract['content_hash'],
+            $variables
+        );
         ($this->pdfRenderer ??= new PdfRenderer())->render($html, $output);
 
         $hash = hash_file('sha256', $output);
