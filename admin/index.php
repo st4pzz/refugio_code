@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($route === 'marketing-conectar') $marketing->connect((string) ($_GET['provider'] ?? ''));
     if ($route === 'marketing-conta') $marketing->selectAccount((int) ($_GET['id'] ?? 0));
     if ($route === 'marketing-acao') $marketing->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
+    if ($route === 'marketing-analisar') $marketing->analyze();
     if ($route === 'cliente-acao') $customers->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'configuracao-perfil') $settings->assignProfile();
     if ($route === 'operacao') $operations->action((string) ($_GET['action'] ?? ''));
@@ -53,6 +54,7 @@ match ($route) {
     'financeiro-exportar' => $financial->export(),
     'marketing' => $marketing->index(),
     'marketing-conectar' => $marketing->connect((string) ($_GET['provider'] ?? '')),
+    'marketing-analisar' => $marketing->analyze(),
     'marketing-callback' => $marketing->callback((string) ($_GET['provider'] ?? '')),
     'marketing-contas' => $marketing->accounts((int) ($_GET['integracao'] ?? 0)),
     'configuracoes' => $settings->index(),

@@ -38,6 +38,18 @@ TIKTOK_ADS_APP_SECRET=
 TIKTOK_ADS_REDIRECT_URI=https://SEU_DOMINIO/admin/configuracoes/integracoes/tiktok/callback
 MARKETING_SYNC_DAYS_DEFAULT=30
 MARKETING_SYNC_CRON_ENABLED=true
+
+# Analise de campanhas com OpenAI
+OPENAI_API_KEY=
+OPENAI_PROJECT=
+OPENAI_ORGANIZATION=
+OPENAI_MARKETING_ENABLED=true
+OPENAI_MARKETING_MODEL=gpt-5.6-sol
+OPENAI_MARKETING_REASONING_EFFORT=medium
+OPENAI_MARKETING_MAX_OUTPUT_TOKENS=7000
+OPENAI_MARKETING_MIN_INTERVAL_SECONDS=60
+OPENAI_TIMEOUT_SECONDS=90
+OPENAI_MAX_RETRIES=2
 ```
 
 Gere a chave uma única vez e guarde-a no cofre de segredos da hospedagem:
@@ -48,7 +60,39 @@ php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
 
 Perder ou trocar a chave sem reconectar as contas torna os tokens existentes indecifráveis.
 
+`OPENAI_API_KEY` é uma chave da API da OpenAI e não uma assinatura do ChatGPT. Crie a chave em um projeto da plataforma OpenAI, habilite faturamento/limites e guarde-a somente no `.env` do servidor. `OPENAI_PROJECT` e `OPENAI_ORGANIZATION` são opcionais; use-os quando a chave estiver vinculada a um projeto/organização específicos.
+
+## Análise com OpenAI
+
+O botão “Analisar com IA” usa exclusivamente o snapshot local correspondente ao período, canal, conta, campanha e modelo de atribuição selecionados. O contexto contém:
+
+- totais consolidados e atribuição indicativa;
+- comparação por canal e série diária limitada;
+- desempenho agregado por campanha;
+- inventário de nomes/URLs de criativos, explicitamente identificado como sem desempenho individual.
+
+Não são enviados tokens OAuth, dados de hóspedes, mensagens de WhatsApp ou comprovantes. A requisição usa a Responses API com `store=false`, saída estruturada por JSON Schema, identificador de segurança pseudônimo, timeout e retentativas limitadas. Uma análise concluída é armazenada em `marketing_analises_ia`, incluindo snapshot, hash da entrada, modelo, resposta e uso de tokens para rastreabilidade.
+
+O prompt fixa o posicionamento real do Refúgio: chácara em Analândia/SP, até 10 pessoas, 4 suítes, lazer e natureza, diária de referência de R$ 800, público de famílias e grupos de amigos e proibição de festas/eventos. Recomendações são consultivas; o módulo continua sem endpoints para alterar campanhas.
+
+Antes de habilitar em produção:
+
+1. execute `php scripts/migrate.php` para aplicar `010_create_marketing_ai.sql`;
+2. configure `OPENAI_API_KEY` e mantenha `APP_DEBUG=false`;
+3. sincronize Meta, Google e/ou TikTok;
+4. filtre um período curto e gere a primeira análise;
+5. confira `marketing_analises_ia` e `auditoria` sem expor a chave;
+6. defina limite de orçamento e alertas de uso no projeto OpenAI.
+
+`OPENAI_MARKETING_MIN_INTERVAL_SECONDS` reduz cliques repetidos e custo acidental. Ajuste o modelo por ambiente com `OPENAI_MARKETING_MODEL`; valide qualidade, latência e custo antes de aumentar o esforço ou o limite de saída.
+
+Referências oficiais: [Responses API](https://platform.openai.com/docs/api-reference/responses), [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), [modelos atuais](https://developers.openai.com/api/docs/models) e [controles de dados](https://platform.openai.com/docs/models/default-usage-policies-by-endpoint).
+
 ## Meta
+
+A seção **Marketing > Fontes da análise** detecta `META_APP_ID`, `META_APP_SECRET` e uma `MARKETING_ENCRYPTION_KEY` válida sem exibir seus valores. O estado “Aplicativo configurado” confirma apenas que o aplicativo está pronto para iniciar o OAuth. Depois, autorize a conta de anúncios, selecione a conta retornada e sincronize as campanhas. Se o OAuth já foi concluído mas a conta ainda não foi escolhida, o botão “Selecionar conta de anúncios” retoma o fluxo sem criar outra integração.
+
+As credenciais do WhatsApp (`WHATSAPP_ACCESS_TOKEN` e `WHATSAPP_PHONE_NUMBER_ID`) não são reutilizadas pela Marketing API: os produtos têm escopos e ativos diferentes. O token com `ads_read` obtido pelo fluxo da seção Marketing é criptografado antes de ser salvo.
 
 1. Crie um aplicativo Business no [Meta for Developers](https://developers.facebook.com/).
 2. Adicione Marketing API/Facebook Login e cadastre o callback:

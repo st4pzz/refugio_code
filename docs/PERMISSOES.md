@@ -18,7 +18,7 @@ dashboard.view
 reservas.view, reservas.create, reservas.manage
 clientes.view, clientes.update, clientes.merge, clientes.export, clientes.anonymize
 conversas.view, conversas.reply, conversas.manage
-marketing.view, marketing.sync, marketing.attribution, marketing.connect
+marketing.view, marketing.sync, marketing.attribution, marketing.connect, marketing.analyze
 financeiro.view, financeiro.manage, financeiro.export
 avaliacoes.view, avaliacoes.manage
 configuracoes.view, configuracoes.sensitive

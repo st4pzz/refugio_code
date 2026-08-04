@@ -46,6 +46,7 @@ RewriteRule ^admin/conversas/([0-9]+)/(enviar|template|midia|atualizar|nota|cria
 RewriteRule ^admin/marketing/?$ admin/index.php?route=marketing [L,QSA]
 RewriteRule ^admin/marketing/conectar/(meta|google|tiktok)/?$ admin/index.php?route=marketing-conectar&provider=$1 [L,QSA]
 RewriteRule ^admin/marketing/contas/?$ admin/index.php?route=marketing-contas [L,QSA]
+RewriteRule ^admin/marketing/analisar/?$ admin/index.php?route=marketing-analisar [L,QSA]
 RewriteRule ^admin/marketing/integracoes/([0-9]+)/selecionar-conta/?$ admin/index.php?route=marketing-conta&id=$1 [L,QSA]
 RewriteRule ^admin/marketing/integracoes/([0-9]+)/(sincronizar|testar|desconectar)/?$ admin/index.php?route=marketing-acao&id=$1&action=$2 [L,QSA]
 RewriteRule ^admin/configuracoes/integracoes/(meta|google|tiktok)/callback/?$ admin/index.php?route=marketing-callback&provider=$1 [L,QSA]

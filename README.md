@@ -75,7 +75,7 @@ Todas as opções e exemplos estão em `.env.example`:
 - e-mail: `SMTP_*` e `ADMIN_EMAIL`;
 - avaliações: `REVIEW_INVITATION_*` e `REVIEW_REMINDER_*`;
 - conversas: `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_API_VERSION`, templates, limite de mídia e retenção;
-- marketing: `META_*`, `GOOGLE_ADS_*` e `TIKTOK_ADS_*`;
+- marketing: `META_*`, `GOOGLE_ADS_*`, `TIKTOK_ADS_*` e `OPENAI_*` para análises assistidas;
 - financeiro: `FINANCIAL_DEFAULT_ACCOUNT_ID`.
 
 Em produção use `APP_DEBUG=false`, `SESSION_SECURE=true` e HTTPS. `MARKETING_ENCRYPTION_KEY` protege tokens OAuth com AES-256-GCM e exige OpenSSL. Segredos e dados pessoais são saneados antes de auditoria.
@@ -112,6 +112,8 @@ Detalhes de templates, tipos de mensagem, mídias, retenção, webhook e testes 
 Integrações são conectadas por OAuth no painel, com `state` assinado/temporário e tokens criptografados. A seleção de conta é explícita. A sincronização é somente leitura, paginada, idempotente e protegida por lock; falhas transitórias usam retentativa com backoff.
 
 O dashboard consolida investimento, impressões, alcance, cliques, CTR, CPC, CPM, conversões, receita atribuída e ROAS. Valores do Google Ads em micros são convertidos de forma explícita. A atribuição first/last touch combina UTMs e identificadores `gclid`, `gbraid`, `wbraid`, `fbclid` e `ttclid`; conversões continuam sendo indicativas, não causalidade provada.
+
+Usuários com `marketing.analyze` podem solicitar, sob demanda, uma análise pela OpenAI para o período e filtros atuais. A chamada usa a Responses API com saída JSON estruturada, `store=false`, histórico local e auditoria. Somente métricas consolidadas, nomes de campanhas e metadados dos criativos são enviados; tokens dos provedores, hóspedes e conversas não fazem parte do contexto. A resposta sugere melhorias e testes, mas nunca altera campanhas automaticamente.
 
 Configuração de cada provedor, redirect URIs, escopos, versões e validação estão em [docs/MARKETING.md](docs/MARKETING.md) e [docs/INTEGRACOES.md](docs/INTEGRACOES.md).
 

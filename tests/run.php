@@ -21,6 +21,8 @@ use Refugio\Services\ContractTemplateService;
 use Refugio\Services\ContractPdfTemplate;
 use Refugio\Services\PdfRenderer;
 use Refugio\Services\ReservationPdfTemplate;
+use Refugio\Services\OpenAiMarketingAnalysisService;
+use Refugio\Services\OpenAiResponsesClient;
 use Refugio\Marketing\AbstractAdsProvider;
 use Refugio\Support\ReservationValidator;
 use Refugio\Support\ReviewValidator;
@@ -136,7 +138,7 @@ test('sincronizacao de marketing usa lock e upsert', function() { $source=file_g
 test('adaptadores de marketing implementam interface comum', function() { foreach(['MetaAdsProvider','GoogleAdsProvider','TikTokAdsProvider']as$class){$source=file_get_contents(BASE_PATH.'/app/Marketing/'.$class.'.php');foreach(['listAccounts','listCampaigns','listAdGroups','listAds','getInsights','testConnection']as$method)expect(str_contains($source,'function '.$method));} });
 test('versoes atuais das APIs sao configuraveis', function() { $env=file_get_contents(BASE_PATH.'/.env.example');foreach(['META_API_VERSION=v24.0','GOOGLE_ADS_API_VERSION=v24','TIKTOK_API_VERSION=v1.3','WHATSAPP_API_VERSION=v24.0']as$line)expect(str_contains($env,$line)); });
 test('segredos e callbacks usam variaveis canonicas', function() { $env=file_get_contents(BASE_PATH.'/.env.example');foreach(['MARKETING_ENCRYPTION_KEY=','WHATSAPP_VERIFY_TOKEN=','META_REDIRECT_URI=','GOOGLE_ADS_REDIRECT_URI=','TIKTOK_ADS_REDIRECT_URI=','TIKTOK_ADS_APP_ID=']as$line)expect(str_contains($env,$line));expect(!str_contains($env,'APP_ENCRYPTION_KEY='));expect(!str_contains($env,'WHATSAPP_WEBHOOK_VERIFY_TOKEN=')); });
-test('inicio do OAuth de marketing exige POST e CSRF', function() { $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');$view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');expect(str_contains($controller,"REQUEST_METHOD']??'GET')!=='POST'"));expect(str_contains($controller,"Csrf::verify(\$_POST['_csrf']??null)"));expect(str_contains($view,"method=\"post\"")); });
+test('inicio do OAuth de marketing exige POST e CSRF', function() { $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');$view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');expect(str_contains($controller,"REQUEST_METHOD'] ?? 'GET') !== 'POST'"));expect(str_contains($controller,"Csrf::verify(\$_POST['_csrf'] ?? null)"));expect(str_contains($view,"method=\"post\"")); });
 test('tokens nao aparecem nas views administrativas', function() { foreach(glob(BASE_PATH.'/app/Views/admin/*.php')as$file){$source=file_get_contents($file);expect(!str_contains($source,'access_token_encrypted'),basename($file).' expoe token');expect(!str_contains($source,'refresh_token_encrypted'),basename($file).' expoe refresh token');} });
 test('fila de jobs possui retry limitado e backoff', function() { $source=file_get_contents(BASE_PATH.'/app/Services/JobQueueService.php');$sql=file_get_contents(BASE_PATH.'/database/migrations/003_create_core_operacao.sql');expect(str_contains($source,'max_tentativas'));expect(str_contains($source,'2 **'));expect(str_contains($sql,'uk_job_chave')); });
 test('menu administrativo contem as oito areas solicitadas', function() { $view=file_get_contents(BASE_PATH.'/app/Views/admin/_top.php');foreach(['Dashboard','Reservas','Clientes','Conversas','Marketing','Financeiro','Avaliações','Configurações']as$item)expect(str_contains($view,$item)); });
@@ -209,6 +211,83 @@ test('feedback de contrato preserva link do portal e oferece pdf protegido',func
     expect(str_contains($front,"'contrato-pdf' => \$operations->contractDocument"));
     expect(str_contains($controller,"AuthorizationService::requirePermission('contracts.view')"));
     expect(str_contains($controller,"BASE_PATH.'/storage/contracts'"));
+});
+
+test('prompt de marketing com IA fixa oferta publico e restricoes da chacara',function(){
+    $prompt=OpenAiMarketingAnalysisService::instructions();
+    foreach(['Analandia','10 pessoas','4 suites','beach tennis','campinho de futebol','mesa de sinuca','mesa de baralho','churrasqueira','garagem para 4 veiculos','piscina','hidromassagem','varanda terrea','R$ 800','familias','grupos de amigos']as$fact)expect(str_contains($prompt,$fact),'Fato ausente no prompt: '.$fact);
+    expect(str_contains($prompt,'Eventos e festas nao sao permitidos'));
+    expect(str_contains($prompt,'Nao invente metricas'));
+    expect(str_contains($prompt,'dados nao confiaveis'));
+});
+
+test('saida estruturada da analise de marketing cobre diagnostico criativos e testes',function(){
+    $schema=OpenAiMarketingAnalysisService::responseSchema();
+    expect(($schema['additionalProperties']??true)===false);
+    foreach(['resumo_executivo','nivel_confianca','qualidade_dados','destaques','alertas','recomendacoes','criativos','plano_testes']as$key)expect(isset($schema['properties'][$key]),'Secao ausente: '.$key);
+    expect(($schema['properties']['criativos']['items']['additionalProperties']??true)===false);
+    expect(in_array('restricoes',$schema['properties']['criativos']['items']['required']??[],true));
+});
+
+test('cliente da Responses API extrai texto sem presumir primeiro item',function(){
+    $response=['output'=>[['type'=>'reasoning'],['type'=>'message','content'=>[['type'=>'output_text','text'=>'  {"ok":true}  ']]]]];
+    expect(OpenAiResponsesClient::outputText($response)==='{"ok":true}');
+});
+
+test('analise de marketing com IA e protegida e nao altera campanhas',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');
+    $service=file_get_contents(BASE_PATH.'/app/Services/OpenAiMarketingAnalysisService.php');
+    $route=file_get_contents(BASE_PATH.'/.htaccess');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');
+    expect(str_contains($controller,"requirePermission('marketing.analyze')"));
+    expect(str_contains($controller,"Csrf::verify(\$_POST['_csrf']"));
+    expect(str_contains($service,"'store' => false"));
+    expect(str_contains($service,'marketing_openai_analysis'));
+    expect(str_contains($service,"'safety_identifier'"));
+    expect(str_contains($route,'admin/marketing/analisar'));
+    expect(str_contains($view,'Analisar com IA'));
+    expect(str_contains($view,'!$analysisDataReady'));
+    $repository=file_get_contents(BASE_PATH.'/app/Repositories/MarketingAiRepository.php');
+    foreach(['access_token_encrypted','refresh_token_encrypted','cliente_email','mensagens']as$forbidden)expect(!str_contains($repository,$forbidden),'Dado indevido no dataset: '.$forbidden);
+    expect(str_contains($repository,'safeCreativeUrl'));
+});
+
+test('secao marketing reutiliza configuracao Meta e orienta autorizacao sincronizacao e analise',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');
+    foreach(['META_APP_ID','META_APP_SECRET','MARKETING_ENCRYPTION_KEY','providerStates']as$needle)expect(str_contains($controller,$needle),'Estado Meta ausente: '.$needle);
+    foreach(['Fontes da análise','Aplicativo configurado no servidor','Conta de anúncios autorizada','Selecionar conta de anúncios','Gerenciar e sincronizar','marketing-integrations']as$needle)expect(str_contains($view,$needle),'Fluxo da seção Marketing ausente: '.$needle);
+    expect(str_contains($view,"empty(\$integration['conta_externa_id'])"));
+    expect(str_contains($view,'admin/marketing/conectar/'));
+});
+
+test('migration de IA guarda historico e concede permissao minima',function(){
+    $migration=file_get_contents(BASE_PATH.'/database/migrations/010_create_marketing_ai.sql');
+    expect(str_contains($migration,'CREATE TABLE IF NOT EXISTS marketing_analises_ia'));
+    expect(str_contains($migration,"'marketing.analyze'"));
+    expect(str_contains($migration,"codigo IN ('ADMIN','MARKETING')"));
+    expect(str_contains($migration,'entrada_hash CHAR(64)'));
+});
+
+test('painel de analise com IA renderiza resposta escapada',function(){
+    $dashboard=[
+        'metrics'=>['gasto'=>'0','impressoes'=>0,'alcance'=>null,'cliques'=>0,'ctr'=>null,'cpc'=>null,'cpm'=>null,'leads'=>null,'cpl'=>null,'custo_reserva'=>null,'roas'=>null,'taxa_conversao'=>null],
+        'attribution'=>['leads_internos'=>0,'solicitacoes'=>0,'reservas_confirmadas'=>0,'receita'=>'0'],
+        'daily'=>[],'channels'=>[],'attribution_daily'=>[],
+    ];
+    $integrations=[];$campaigns=[];$filters=['modelo'=>'ultimo'];$start='2026-08-01';$end='2026-08-04';$aiConfigured=true;$analysisDataReady=true;$openAiModel='gpt-test';$analyses=[];
+    $providerStates=['META'=>['provider'=>'META','slug'=>'meta','label'=>'Meta Ads','configured'=>true,'connected'=>true,'integration_count'=>1,'connected_count'=>1,'pending_integration_id'=>null,'campaign_count'=>3,'last_sync'=>'2026-08-04 09:30:00']];
+    $selectedAnalysis=['id'=>1,'data_inicio'=>$start,'data_fim'=>$end,'modelo'=>'gpt-test','created_at'=>'2026-08-04 10:00:00','input_tokens'=>10,'output_tokens'=>20,'analysis'=>[
+        'resumo_executivo'=>'<script>alert(1)</script> Resumo','nivel_confianca'=>'medio','qualidade_dados'=>['diagnostico'=>'Dados de teste','lacunas'=>[]],
+        'destaques'=>[],'alertas'=>[],'recomendacoes'=>[],'criativos'=>[],'plano_testes'=>[],
+    ]];
+    ob_start();require BASE_PATH.'/app/Views/admin/marketing.php';$html=ob_get_clean();
+    expect(str_contains($html,'Análise de campanhas com OpenAI'));
+    expect(str_contains($html,'Meta Ads'));
+    expect(str_contains($html,'Pronto para análise'));
+    expect(str_contains($html,'3 campanha(s) sincronizada(s)'));
+    expect(!str_contains($html,'<script>alert(1)</script>'));
+    expect(str_contains($html,'&lt;script&gt;alert(1)&lt;/script&gt; Resumo'));
 });
 
 fwrite(STDOUT, "\n{$passed} teste(s) passaram; {$failed} falharam.\n");
