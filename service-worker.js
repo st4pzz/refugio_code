@@ -4,7 +4,7 @@
  * Network First para HTML
  */
 
-const CACHE_VERSION = 'v1-refugio-20260722-visual-fix';
+const CACHE_VERSION = 'v1-refugio-20260805-video-carousel';
 const CACHE_IMAGES = CACHE_VERSION + '-images';
 const CACHE_STATIC = CACHE_VERSION + '-static';
 const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';
@@ -15,6 +15,7 @@ const STATIC_ASSETS = [
   '/style.css',
   '/assets/css/reviews-public.css',
   '/assets/js/reviews-carousel.js',
+  '/assets/js/videos-carousel.js',
   '/assets/js/register-sw.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap'
@@ -66,6 +67,11 @@ self.addEventListener('fetch', event => {
 
   // Ignorar requisições não-GET
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Deixar o navegador tratar range requests e cache nativo dos vídeos.
+  if (/\.(mp4|webm)$/i.test(url.pathname)) {
     return;
   }
 

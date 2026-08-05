@@ -2,7 +2,7 @@
 
 ## Escopo
 
-O módulo `/admin/marketing` é somente leitura e análise. Ele conecta Meta Ads, Google Ads e TikTok Ads por OAuth, seleciona a conta autorizada, sincroniza campanhas/grupos/anúncios/métricas para o MySQL e monta o dashboard exclusivamente com dados locais. Não cria, altera, ativa ou exclui campanhas.
+O módulo `/admin/marketing` é somente leitura e análise. Ele conecta Meta Ads, Google Ads e TikTok Ads por OAuth e também aceita métricas do Google Ads por um script assinado. Campanhas e métricas são salvas no MySQL, e o dashboard é montado exclusivamente com dados locais. Não cria, altera, ativa ou exclui campanhas.
 
 As versões usadas em julho de 2026 são configuráveis: Meta Graph/Marketing `v24.0`, Google Ads `v24` e TikTok Business API `v1.3`. Antes de atualizar, confira os calendários de versão oficiais e execute a suíte de testes.
 
@@ -32,6 +32,11 @@ GOOGLE_ADS_CLIENT_SECRET=
 GOOGLE_ADS_DEVELOPER_TOKEN=
 GOOGLE_ADS_LOGIN_CUSTOMER_ID=
 GOOGLE_ADS_REDIRECT_URI=https://SEU_DOMINIO/admin/configuracoes/integracoes/google/callback
+GOOGLE_ADS_SCRIPT_SECRET=
+GOOGLE_ADS_SCRIPT_CAMPAIGNS=Leads-Search-1,Leads-Performance Max-2
+GOOGLE_ADS_SCRIPT_MAX_AGE_SECONDS=300
+GOOGLE_ADS_SCRIPT_MAX_PAYLOAD_BYTES=1048576
+GOOGLE_ADS_SCRIPT_MAX_ROWS=2000
 TIKTOK_API_VERSION=v1.3
 TIKTOK_ADS_APP_ID=
 TIKTOK_ADS_APP_SECRET=
@@ -108,6 +113,43 @@ As credenciais do WhatsApp (`WHATSAPP_ACCESS_TOKEN` e `WHATSAPP_PHONE_NUMBER_ID`
 Referências oficiais: [Marketing API Get Started](https://developers.facebook.com/docs/marketing-api/get-started), [autenticação](https://developers.facebook.com/docs/marketing-api/overview/authentication), [Insights API](https://developers.facebook.com/docs/marketing-api/insights) e a [coleção oficial Meta no Postman](https://www.postman.com/meta/facebook-marketing-api/overview).
 
 ## Google Ads
+
+### Opção recomendada nesta hospedagem: Google Ads Script
+
+Esta opção dispensa OAuth, developer token e um processo Python. O script roda dentro da própria conta Google Ads, consulta apenas as campanhas autorizadas e envia os últimos 30 dias ao endpoint do site. O servidor valida HMAC-SHA256 e uma janela curta de tempo, recusa campanhas fora da lista, impede repetição pelo `request_id` e faz upsert das métricas diárias.
+
+1. Aplique `012_create_google_ads_script_imports.sql` com `php scripts/migrate.php`.
+2. Gere um segredo forte:
+
+   ```bash
+   php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+   ```
+
+3. Coloque o resultado em `GOOGLE_ADS_SCRIPT_SECRET` no `.env` de produção. Não reutilize `APP_KEY`, token Meta ou senha do banco.
+4. Confirme a lista exata, separada por vírgulas:
+
+   ```dotenv
+   GOOGLE_ADS_SCRIPT_CAMPAIGNS=Leads-Search-1,Leads-Performance Max-2
+   ```
+
+5. Em **Marketing > Google Ads**, baixe `refugio-google-ads-sync.js`.
+6. Abra **Google Ads > Ferramentas > Ações em massa > Scripts**, crie um script, cole o arquivo e substitua `COLE_AQUI_O_MESMO_SEGREDO_DO_ENV` pelo segredo do passo 2.
+7. Clique em **Autorizar** e depois em **Visualizar**. O log deve terminar com `Sincronizacao concluida`.
+8. Volte ao painel Marketing e confirme a conta e as duas campanhas. Em seguida, agende o script para rodar diariamente.
+
+O segredo também fica no código do Google Ads Script. Restrinja o acesso de usuários à conta de anúncios e, se alguém perder a autorização, gere outro segredo e atualize os dois lados.
+
+O endpoint é:
+
+```text
+https://www.refugiodocuscuzeiro.com.br/api/marketing/google-ads-script
+```
+
+O script importa gasto, impressões, cliques, conversões, todas as conversões e valor de conversão por campanha/dia. Nesta integração, `metrics.conversions` é usado como quantidade de leads; mantenha as ações de conversão da conta configuradas para representar os leads que deseja analisar. Alcance não é inventado e permanece nulo. A integração não lê consultas de pesquisa, dados pessoais nem altera campanhas.
+
+Referências oficiais: [primeiros passos com Google Ads Scripts](https://developers.google.com/google-ads/scripts/docs/getting-started), [relatórios com `AdsApp.search`](https://developers.google.com/google-ads/scripts/docs/concepts/reports), [`UrlFetchApp`](https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app) e [HMAC-SHA256 em `Utilities`](https://developers.google.com/apps-script/reference/utilities/utilities).
+
+### Opção alternativa: Google Ads API por OAuth
 
 1. Crie credenciais OAuth Web no Google Cloud e habilite acesso à Google Ads API.
 2. Cadastre o callback:

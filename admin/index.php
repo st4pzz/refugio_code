@@ -55,6 +55,7 @@ match ($route) {
     'marketing' => $marketing->index(),
     'marketing-conectar' => $marketing->connect((string) ($_GET['provider'] ?? '')),
     'marketing-analisar' => $marketing->analyze(),
+    'marketing-google-script' => $marketing->downloadGoogleAdsScript(),
     'marketing-callback' => $marketing->callback((string) ($_GET['provider'] ?? '')),
     'marketing-contas' => $marketing->accounts((int) ($_GET['integracao'] ?? 0)),
     'configuracoes' => $settings->index(),

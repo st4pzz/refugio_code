@@ -24,17 +24,18 @@ $analysisDataReady = (bool) ($analysisDataReady ?? (count($campaigns) > 0 || cou
     <div class="panel-heading">
         <div>
             <h2>Fontes da análise</h2>
-            <p>As credenciais do aplicativo habilitam o OAuth. A conta de anúncios precisa ser autorizada uma vez e sincronizada para alimentar o painel.</p>
+            <p>As contas podem usar OAuth ou envio assinado pelo Google Ads Script. Os dados recebidos alimentam o mesmo painel local.</p>
         </div>
     </div>
     <div class="marketing-source-grid">
         <?php foreach ($providerStates as $state): ?>
             <?php
             $ready = $state['connected'] && $state['campaign_count'] > 0;
+            $usingGoogleScript = $state['provider'] === 'GOOGLE' && !empty($state['script_configured']);
             $statusLabel = !$state['configured']
                 ? 'Configuração pendente'
                 : (!$state['connected']
-                    ? ($state['pending_integration_id'] ? 'Selecionar conta' : 'Aplicativo configurado')
+                    ? ($state['pending_integration_id'] ? 'Selecionar conta' : ($usingGoogleScript ? 'Script pronto para instalar' : 'Aplicativo configurado'))
                     : ($state['campaign_count'] > 0 ? 'Pronto para análise' : 'Sincronização pendente'));
             ?>
             <article class="marketing-source-card <?= $ready ? 'is-ready' : '' ?>">
@@ -43,14 +44,17 @@ $analysisDataReady = (bool) ($analysisDataReady ?? (count($campaigns) > 0 || cou
                     <span class="admin-status <?= $ready ? 'status-conectada' : 'status-pendente' ?>"><?= e($statusLabel) ?></span>
                 </header>
                 <ol class="marketing-source-steps">
-                    <li class="<?= $state['configured'] ? 'done' : '' ?>">Aplicativo configurado no servidor</li>
-                    <li class="<?= $state['connected'] ? 'done' : '' ?>">Conta de anúncios autorizada</li>
+                    <li class="<?= $state['configured'] ? 'done' : '' ?>"><?= $usingGoogleScript ? 'Segredo do script configurado no servidor' : 'Aplicativo configurado no servidor' ?></li>
+                    <li class="<?= ($usingGoogleScript ? $state['script_connected'] : $state['connected']) ? 'done' : '' ?>"><?= $usingGoogleScript ? 'Primeiro envio recebido da conta' : 'Conta de anúncios autorizada' ?></li>
                     <li class="<?= $state['campaign_count'] > 0 ? 'done' : '' ?>"><?= (int) $state['campaign_count'] ?> campanha(s) sincronizada(s)</li>
                 </ol>
                 <?php if ($state['last_sync']): ?>
                     <small>Última sincronização: <?= e(date('d/m/Y H:i', strtotime($state['last_sync']))) ?></small>
                 <?php endif; ?>
-                <?php if (can('marketing.connect') && $state['configured'] && !$state['connected'] && !$state['pending_integration_id']): ?>
+                <?php if (can('marketing.connect') && $usingGoogleScript): ?>
+                    <a class="admin-secondary" href="<?= e(base_url('admin/marketing/google-ads-script/download')) ?>">Baixar Google Ads Script</a>
+                    <small>Cole o segredo do <code>.env</code> no arquivo, execute uma visualização e agende diariamente no Google Ads.</small>
+                <?php elseif (can('marketing.connect') && $state['configured'] && !$state['connected'] && !$state['pending_integration_id']): ?>
                     <form action="<?= e(base_url('admin/marketing/conectar/' . $state['slug'])) ?>" method="post">
                         <?= csrf_field() ?>
                         <button class="admin-secondary">Autorizar <?= e($state['label']) ?></button>
@@ -300,22 +304,24 @@ $analysisDataReady = (bool) ($analysisDataReady ?? (count($campaigns) > 0 || cou
     <div class="panel-heading"><h2>Integrações</h2><span>Credenciais nunca são exibidas.</span></div>
     <?php if (!$integrations): ?><div class="empty-state"><p>Nenhuma conta conectada.</p></div><?php endif; ?>
     <?php foreach ($integrations as $integration): ?>
+        <?php $integrationConfig = json_decode((string) ($integration['config_json'] ?? '{}'), true) ?: []; $scriptManaged = ($integrationConfig['connection_mode'] ?? '') === 'GOOGLE_ADS_SCRIPT'; ?>
         <article class="integration-card">
             <div>
                 <strong><?= e($integration['provider'] . ' · ' . $integration['nome']) ?></strong>
                 <span class="admin-status status-<?= e(strtolower($integration['status'])) ?>"><?= e($integration['status']) ?></span>
                 <small>Última sincronização: <?= e($integration['ultima_sincronizacao_em'] ? date('d/m/Y H:i', strtotime($integration['ultima_sincronizacao_em'])) : 'Nunca') ?></small>
+                <?php if ($scriptManaged): ?><small>Origem: envio automático assinado pelo Google Ads Script.</small><?php endif; ?>
                 <?php if ($integration['erro_ultima_sincronizacao']): ?><p class="error-text"><?= e($integration['erro_ultima_sincronizacao']) ?></p><?php endif; ?>
             </div>
             <div class="action-row">
                 <?php if (can('marketing.connect') && empty($integration['conta_externa_id']) && $integration['status'] !== 'DESCONECTADA'): ?>
                     <a class="admin-secondary" href="<?= e(base_url('admin/marketing/contas') . '?integracao=' . (int) $integration['id']) ?>">Selecionar conta</a>
                 <?php endif; ?>
-                <?php if (can('marketing.sync') && !empty($integration['conta_externa_id']) && $integration['status'] !== 'DESCONECTADA'): ?>
+                <?php if (can('marketing.sync') && !$scriptManaged && !empty($integration['conta_externa_id']) && $integration['status'] !== 'DESCONECTADA'): ?>
                     <form action="<?= e(base_url('admin/marketing/integracoes/' . $integration['id'] . '/sincronizar')) ?>" method="post"><?= csrf_field() ?><input type="hidden" name="inicio" value="<?= e($start) ?>"><input type="hidden" name="fim" value="<?= e($end) ?>"><button class="admin-primary">Sincronizar agora</button></form>
                     <form action="<?= e(base_url('admin/marketing/integracoes/' . $integration['id'] . '/testar')) ?>" method="post"><?= csrf_field() ?><button class="admin-secondary">Testar conexão</button></form>
                 <?php endif; ?>
-                <?php if (can('marketing.connect') && $integration['status'] !== 'DESCONECTADA'): ?>
+                <?php if (can('marketing.connect') && !$scriptManaged && $integration['status'] !== 'DESCONECTADA'): ?>
                     <form action="<?= e(base_url('admin/marketing/integracoes/' . $integration['id'] . '/desconectar')) ?>" method="post" data-confirm="Desconectar e apagar as credenciais desta conta?"><?= csrf_field() ?><button class="admin-danger">Desconectar</button></form>
                 <?php endif; ?>
             </div>

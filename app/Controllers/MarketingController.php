@@ -11,6 +11,8 @@ use Refugio\Repositories\MarketingAiRepository;
 use Refugio\Repositories\MarketingRepository;
 use Refugio\Services\AuditService;
 use Refugio\Services\AuthorizationService;
+use Refugio\Services\GoogleAdsScriptImportService;
+use Refugio\Services\GoogleAdsScriptTemplate;
 use Refugio\Services\JobQueueService;
 use Refugio\Services\MarketingOAuthService;
 use Refugio\Services\MarketingSyncService;
@@ -264,6 +266,21 @@ final class MarketingController
         redirect(base_url('admin/marketing'));
     }
 
+    public function downloadGoogleAdsScript(): never
+    {
+        AuthorizationService::requirePermission('marketing.connect');
+        $script = GoogleAdsScriptTemplate::render(
+            (string) $this->config['url'],
+            GoogleAdsScriptImportService::campaignNames()
+        );
+        header('Content-Type: application/javascript; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="refugio-google-ads-sync.js"');
+        header('Cache-Control: private, no-store');
+        header('X-Content-Type-Options: nosniff');
+        echo $script;
+        exit;
+    }
+
     private function period(array $source): array
     {
         $preset = (string) ($source['periodo'] ?? '30d');
@@ -328,13 +345,25 @@ final class MarketingController
                 static fn(array $integration): bool => ($integration['status'] ?? '') === 'CONECTADA'
                     && trim((string) ($integration['conta_externa_id'] ?? '')) !== ''
             ));
-            $configured = $encryptionReady;
+            $oauthConfigured = $encryptionReady;
             foreach ($definition['keys'] as $key) {
                 if (trim(Env::get($key)) === '') {
-                    $configured = false;
+                    $oauthConfigured = false;
                     break;
                 }
             }
+            $scriptConfigured = $provider === 'GOOGLE' && strlen(trim(Env::get('GOOGLE_ADS_SCRIPT_SECRET'))) >= 32;
+            $scriptConnected = false;
+            if ($provider === 'GOOGLE') {
+                foreach ($connected as $integration) {
+                    $integrationConfig = json_decode((string) ($integration['config_json'] ?? '{}'), true) ?: [];
+                    if (($integrationConfig['connection_mode'] ?? '') === 'GOOGLE_ADS_SCRIPT') {
+                        $scriptConnected = true;
+                        break;
+                    }
+                }
+            }
+            $configured = $oauthConfigured || $scriptConfigured;
             $campaignCount = count(array_filter(
                 $campaigns,
                 static fn(array $campaign): bool => strtoupper((string) ($campaign['provider'] ?? '')) === $provider
@@ -358,6 +387,9 @@ final class MarketingController
                 'slug' => strtolower($provider),
                 'label' => $definition['label'],
                 'configured' => $configured,
+                'oauth_configured' => $oauthConfigured,
+                'script_configured' => $scriptConfigured,
+                'script_connected' => $scriptConnected,
                 'connected' => count($connected) > 0,
                 'integration_count' => count($providerIntegrations),
                 'connected_count' => count($connected),

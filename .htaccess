@@ -23,6 +23,7 @@ RewriteRule ^avaliar/([a-f0-9]{64})/?$ avaliar/index.php?token=$1 [L,QSA]
 RewriteRule ^api/avaliacoes/publicas/?$ api/avaliacoes/publicas.php [L,QSA]
 RewriteRule ^api/avaliacoes/([a-f0-9]{64})/?$ api/avaliacoes/index.php?token=$1 [L,QSA]
 RewriteRule ^api/whatsapp/webhook/?$ api/whatsapp/webhook.php [L,QSA]
+RewriteRule ^api/marketing/google-ads-script/?$ api/marketing/google-ads-script.php [L,QSA]
 RewriteRule ^contato/whatsapp/?$ contato/whatsapp.php [L,QSA]
 
 RewriteRule ^admin/?$ admin/index.php?route=dashboard [L,QSA]
@@ -47,6 +48,7 @@ RewriteRule ^admin/marketing/?$ admin/index.php?route=marketing [L,QSA]
 RewriteRule ^admin/marketing/conectar/(meta|google|tiktok)/?$ admin/index.php?route=marketing-conectar&provider=$1 [L,QSA]
 RewriteRule ^admin/marketing/contas/?$ admin/index.php?route=marketing-contas [L,QSA]
 RewriteRule ^admin/marketing/analisar/?$ admin/index.php?route=marketing-analisar [L,QSA]
+RewriteRule ^admin/marketing/google-ads-script/download/?$ admin/index.php?route=marketing-google-script [L,QSA]
 RewriteRule ^admin/marketing/integracoes/([0-9]+)/selecionar-conta/?$ admin/index.php?route=marketing-conta&id=$1 [L,QSA]
 RewriteRule ^admin/marketing/integracoes/([0-9]+)/(sincronizar|testar|desconectar)/?$ admin/index.php?route=marketing-acao&id=$1&action=$2 [L,QSA]
 RewriteRule ^admin/configuracoes/integracoes/(meta|google|tiktok)/callback/?$ admin/index.php?route=marketing-callback&provider=$1 [L,QSA]
@@ -91,6 +93,7 @@ RewriteRule ^politicas/(privacidade|termos|exclusao-de-dados|cancelamento|regras
     ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/svg+xml "access plus 1 year"
     ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType video/mp4 "access plus 7 days"
 
     ExpiresByType font/ttf "access plus 1 year"
     ExpiresByType font/otf "access plus 1 year"
@@ -116,6 +119,10 @@ RewriteRule ^politicas/(privacidade|termos|exclusao-de-dados|cancelamento|regras
     <FilesMatch "\.(css|js)$">
         Header set Cache-Control "public, max-age=86400"
         Header append Vary "Accept-Encoding"
+    </FilesMatch>
+
+    <FilesMatch "\.mp4$">
+        Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
 
     <FilesMatch "\.(html|php)$">

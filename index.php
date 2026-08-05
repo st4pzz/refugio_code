@@ -113,7 +113,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         })(window, document);
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
-    <link rel="stylesheet" href="style.css?v=20260727-hero-video">
+    <link rel="stylesheet" href="style.css?v=20260805-video-carousel">
     <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
     <!-- Font Awesome CSS (defer loading, não-crítico) -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
@@ -152,6 +152,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="#chacara" class="nav-link">A Chácara</a></li>
                     <li><a href="#galeria" class="nav-link">Fotos</a></li>
+                    <li><a href="#videos" class="nav-link">Vídeos</a></li>
                     <li><a href="#anlandia" class="nav-link">Analândia</a></li>
                     <li><a href="#localizacao" class="nav-link">Localização</a></li>
                     <li><a href="reserva/solicitar" class="nav-link nav-reserva">Reserva direta</a></li>
@@ -319,16 +320,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/imagens_a_rotacionar/IMG_3525.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
-                    <div class="galeria-overlay"><p>Detalhes</p></div>
-                </div>
-
-                <div class="galeria-item">
-                    <img src="assets/images/imagens_a_rotacionar/IMG_3527.webp" alt="Área Externa" loading="lazy" decoding="async" width="400" height="300">
-                    <div class="galeria-overlay"><p>Área Externa</p></div>
-                </div>
-
-                <div class="galeria-item">
                     <img src="assets/images/imagens_a_rotacionar/IMG_3881.webp" alt="Piscina & Lazer" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Piscina & Lazer</p></div>
                 </div>
@@ -399,11 +390,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_8262 2.webp" alt="Ambiente" loading="lazy" decoding="async" width="400" height="300">
-                    <div class="galeria-overlay"><p>Ambiente</p></div>
-                </div>
-
-                <div class="galeria-item">
                     <img src="assets/images/galeria/IMG_8266.webp" alt="Detalhes" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Detalhes</p></div>
                 </div>
@@ -426,6 +412,90 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <div class="galeria-item">
                     <img src="assets/images/galeria/varanda.webp" alt="Varanda" loading="lazy" decoding="async" width="400" height="300">
                     <div class="galeria-overlay"><p>Varanda</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_6618.webp" alt="Suíte com cama de casal e bicama" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Suíte com cama de casal</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_6614.webp" alt="Bicama em uma das suítes" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Conforto para a família</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/foto_spa.webp" alt="Hidromassagem com vista para a natureza e o Morro do Cuscuzeiro" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Hidromassagem com vista</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_6608.webp" alt="Suíte aconchegante com cama de casal" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Suíte aconchegante</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_0553.webp" alt="Suíte com camas de solteiro e penteadeira" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Suíte completa</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_0550.webp" alt="Banheiro privativo com box de vidro" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Banheiro da suíte</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_0549.webp" alt="Bancada do banheiro preparada com toalhas" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Detalhes do banheiro</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_0544.webp" alt="Suíte com duas camas de solteiro" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Suíte com camas de solteiro</p></div>
+                </div>
+
+                <div class="galeria-item">
+                    <img src="assets/images/galeria/IMG_0308.webp" alt="Quarto com cama de casal e cama de solteiro" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Quarto para a família</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VÍDEOS -->
+    <section class="videos" id="videos" aria-labelledby="videos-title">
+        <div class="section-container">
+            <h2 class="section-title" id="videos-title">Vídeos do Refúgio</h2>
+            <p class="section-subtitle">Sinta um pouco da atmosfera da chácara antes da sua estadia</p>
+
+            <div class="video-carousel" data-video-carousel role="region" aria-roledescription="carousel" aria-label="Vídeos do Refúgio">
+                <div class="video-viewport">
+                    <div class="video-track" data-video-track>
+                        <article class="video-slide" data-video-slide role="group" aria-roledescription="slide" aria-label="1 de 1">
+                            <div class="video-slide-card">
+                                <div class="video-slide-copy">
+                                    <span class="video-kicker">Refúgio em movimento</span>
+                                    <h3>Um olhar sobre a chácara</h3>
+                                    <p>Conheça o clima de tranquilidade, natureza e lazer do Refúgio do Cuscuzeiro.</p>
+                                    <small>Use os controles do vídeo para reproduzir, pausar ou assistir em tela cheia.</small>
+                                </div>
+                                <div class="video-frame">
+                                    <video controls playsinline preload="metadata" poster="assets/images/imagens_a_rotacionar/Noturno.webp" aria-label="Vídeo apresentando o Refúgio do Cuscuzeiro">
+                                        <source src="assets/videos/IMG_0277.mp4" type="video/mp4">
+                                        Seu navegador não suporta a reprodução deste vídeo.
+                                    </video>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <button class="video-carousel-button video-prev" type="button" data-video-prev aria-label="Vídeo anterior">‹</button>
+                <button class="video-carousel-button video-next" type="button" data-video-next aria-label="Próximo vídeo">›</button>
+
+                <div class="video-carousel-footer">
+                    <div class="video-dots" data-video-dots aria-label="Escolher vídeo"></div>
+                    <span class="video-status" data-video-status aria-live="polite">1 / 1</span>
                 </div>
             </div>
         </div>
@@ -676,6 +746,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </script>
     <!-- Lazy Loading Script (defer para não bloquear renderização) -->
     <script defer src="assets/js/reviews-carousel.js?v=2"></script>
+    <script defer src="assets/js/videos-carousel.js?v=1"></script>
     <!-- Service Worker Registration (async pois é não-crítico) -->
     <script async src="assets/js/register-sw.js"></script>
 </body>
