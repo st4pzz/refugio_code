@@ -278,6 +278,17 @@ test('upload do contrato informa progresso limite e erro junto ao formulario',fu
     }
 });
 
+test('upload assinado evita conflito de collation do MySQL da hospedagem',function(){
+    $database=file_get_contents(BASE_PATH.'/app/Config/Database.php');
+    $workflow=file_get_contents(BASE_PATH.'/app/Services/ContractSignatureWorkflowService.php');
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/GuestPortalController.php');
+    expect(str_contains($database,'SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci'));
+    expect(!str_contains($workflow,"IF(?='FULLY_SIGNED'"));
+    expect(str_contains($workflow,"SET status='SIGNED_BY_GUEST' WHERE id=?"));
+    expect(str_contains($workflow,"SET status='FULLY_SIGNED',fully_signed_at=NOW() WHERE id=?"));
+    expect(str_contains($controller,'$error instanceof PDOException'));
+});
+
 test('prompt de marketing com IA fixa oferta publico e restricoes da chacara',function(){
     $prompt=OpenAiMarketingAnalysisService::instructions();
     foreach(['Analandia','10 pessoas','4 suites','beach tennis','campinho de futebol','mesa de sinuca','mesa de baralho','churrasqueira','garagem para 4 veiculos','piscina','hidromassagem','varanda terrea','R$ 800','familias','grupos de amigos']as$fact)expect(str_contains($prompt,$fact),'Fato ausente no prompt: '.$fact);

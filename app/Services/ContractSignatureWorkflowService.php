@@ -124,9 +124,15 @@ final class ContractSignatureWorkflowService
             $signer = $this->db->prepare("UPDATE contract_signers SET status='SIGNED',accepted_at=NOW(),accepted_ip=?,accepted_user_agent=?,document_hash_at_acceptance=? WHERE contract_id=? AND signer_role=?");
             $signer->execute([mb_substr($ip, 0, 45), mb_substr($userAgent, 0, 500), $stored['sha256'], $contractId, $role]);
 
-            $newStatus = $stage === self::GUEST_SIGNED ? 'SIGNED_BY_GUEST' : 'FULLY_SIGNED';
-            $this->db->prepare("UPDATE reservation_contracts SET status=?,fully_signed_at=IF(?='FULLY_SIGNED',NOW(),fully_signed_at) WHERE id=?")
-                ->execute([$newStatus, $newStatus, $contractId]);
+            if ($stage === self::GUEST_SIGNED) {
+                $newStatus = 'SIGNED_BY_GUEST';
+                $this->db->prepare("UPDATE reservation_contracts SET status='SIGNED_BY_GUEST' WHERE id=?")
+                    ->execute([$contractId]);
+            } else {
+                $newStatus = 'FULLY_SIGNED';
+                $this->db->prepare("UPDATE reservation_contracts SET status='FULLY_SIGNED',fully_signed_at=NOW() WHERE id=?")
+                    ->execute([$contractId]);
+            }
 
             $eventType = $stage === self::GUEST_SIGNED ? 'GUEST_SIGNED_PDF_UPLOADED' : 'FULLY_SIGNED_PDF_UPLOADED';
             $metadata = json_encode(['document_id' => $documentId, 'revision_no' => $revision, 'source' => $role === 'GUEST' ? 'GUEST_PORTAL' : 'ADMIN_PORTAL'], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);

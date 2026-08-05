@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Refugio\Controllers;
 
 use PDO;
+use PDOException;
 use Refugio\Config\Database;
 use Refugio\Services\ContractSignatureWorkflowService;
 use Refugio\Services\GuestPortalService;
@@ -110,7 +111,10 @@ final class GuestPortalController
                 (int) ($_FILES['signed_contract']['error'] ?? UPLOAD_ERR_NO_FILE),
                 (int) ($_SERVER['CONTENT_LENGTH'] ?? 0)
             ));
-            flash('error', $error->getMessage());
+            $message = $error instanceof PDOException
+                ? 'Nao foi possivel registrar o contrato no momento. Tente enviar novamente em instantes.'
+                : $error->getMessage();
+            flash('error', $message);
         }
         redirect(base_url('minha-reserva/' . rawurlencode($token) . '#contrato'));
     }

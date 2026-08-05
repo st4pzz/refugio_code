@@ -26,6 +26,10 @@ final class Database
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_STRINGIFY_FETCHES => false,
         ]);
+        // Keep bound parameters and SQL literals on the same collation used by
+        // the application tables. Some shared-hosting MySQL servers default the
+        // connection to utf8mb4_general_ci even when the schema is unicode_ci.
+        self::$connection->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
         self::$connection->exec("SET time_zone = '" . date('P') . "'");
         return self::$connection;
     }
