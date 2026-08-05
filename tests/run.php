@@ -247,6 +247,37 @@ test('fluxo de contrato usa PDFs do Gov e elimina aceite local por codigo',funct
     expect(str_contains($workflow,"'FULLY_SIGNED_PDF_UPLOADED'"));
 });
 
+test('formularios preservam a sessao entre dominio com e sem www',function()use(&$config){
+    $originalUrl=$config['url']??null;
+    $hadHost=array_key_exists('HTTP_HOST',$_SERVER);
+    $originalHost=$_SERVER['HTTP_HOST']??null;
+    try{
+        $config['url']='https://www.refugiodocuscuzeiro.com.br';
+        $_SERVER['HTTP_HOST']='refugiodocuscuzeiro.com.br';
+        expect(base_url('minha-reserva/token')==='/minha-reserva/token');
+        $_SERVER['HTTP_HOST']='www.refugiodocuscuzeiro.com.br';
+        expect(base_url('minha-reserva/token')==='/minha-reserva/token');
+        $_SERVER['HTTP_HOST']='dominio-malicioso.example';
+        expect(base_url('minha-reserva/token')==='https://www.refugiodocuscuzeiro.com.br/minha-reserva/token');
+    }finally{
+        $config['url']=$originalUrl;
+        if($hadHost)$_SERVER['HTTP_HOST']=$originalHost;else unset($_SERVER['HTTP_HOST']);
+    }
+});
+
+test('upload do contrato informa progresso limite e erro junto ao formulario',function()use($config){
+    $portal=file_get_contents(BASE_PATH.'/app/Views/guest-portal/show.php');
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/GuestPortalController.php');
+    $script=file_get_contents(BASE_PATH.'/assets/js/reservas.js');
+    foreach(['contract-upload-feedback','data-upload-form','MAX_FILE_SIZE','Progresso do envio']as$needle)expect(str_contains($portal,$needle));
+    expect(str_contains($controller,'assertUploadRequestWasParsed'));
+    expect(str_contains($script,"button.textContent='Enviando...'"));
+    foreach([UPLOAD_ERR_INI_SIZE=>'limite permitido',UPLOAD_ERR_PARTIAL=>'interrompido',UPLOAD_ERR_NO_FILE=>'Selecione o contrato']as$error=>$message){
+        try{(new UploadService($config['upload_max_bytes']))->contractPdf(['error'=>$error],1);}catch(RuntimeException $exception){expect(str_contains($exception->getMessage(),$message));continue;}
+        throw new RuntimeException('Erro de upload nao foi recusado: '.$error);
+    }
+});
+
 test('prompt de marketing com IA fixa oferta publico e restricoes da chacara',function(){
     $prompt=OpenAiMarketingAnalysisService::instructions();
     foreach(['Analandia','10 pessoas','4 suites','beach tennis','campinho de futebol','mesa de sinuca','mesa de baralho','churrasqueira','garagem para 4 veiculos','piscina','hidromassagem','varanda terrea','R$ 800','familias','grupos de amigos']as$fact)expect(str_contains($prompt,$fact),'Fato ausente no prompt: '.$fact);

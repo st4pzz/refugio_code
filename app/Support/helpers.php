@@ -56,11 +56,17 @@ function base_url(string $path = ''): string
     $base = rtrim((string) ($config['url'] ?? ''), '/');
     $normalizedPath = ltrim($path, '/');
 
-    // Em testes locais usamos URL same-origin para preservar host e porta e
-    // impedir que um APP_URL de produção redirecione assets/formulários locais.
-    $requestHost = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    // Formularios e redirects precisam permanecer no mesmo host da sessao.
+    // www.exemplo.com e exemplo.com compartilham o site, mas nao o cookie host-only.
+    $requestHost = trim((string) ($_SERVER['HTTP_HOST'] ?? ''));
     $isLocalRequest = preg_match('/^(?:localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/i', $requestHost) === 1;
-    if (PHP_SAPI !== 'cli' && ($base === 'http://localhost' || $isLocalRequest)) {
+    $configuredHost = strtolower((string) (parse_url($base, PHP_URL_HOST) ?? ''));
+    $requestHostname = strtolower((string) (parse_url('http://' . $requestHost, PHP_URL_HOST) ?? ''));
+    $configuredDomain = preg_replace('/^www\./i', '', $configuredHost) ?? $configuredHost;
+    $requestDomain = preg_replace('/^www\./i', '', $requestHostname) ?? $requestHostname;
+    $equivalentPublicHost = $configuredDomain !== '' && hash_equals($configuredDomain, $requestDomain);
+
+    if ($requestHost !== '' && ($base === 'http://localhost' || $isLocalRequest || $equivalentPublicHost)) {
         return '/' . $normalizedPath;
     }
 

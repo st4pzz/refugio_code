@@ -1,0 +1,14 @@
+.contract-upload-feedback {
+    margin: 1rem 0;
+}
+
+.contract-upload-form > label:first-of-type {
+    display: grid;
+    gap: .45rem;
+    font-weight: 600;
+}
+
+.contract-upload-form progress {
+    width: 100%;
+    accent-color: #68755d;
+}

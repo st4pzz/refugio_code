@@ -28,7 +28,8 @@ final class UploadService
     private function store(array $file, string $folder, array $allowed): array
     {
         if (!preg_match('#^[a-z0-9/_-]+$#i', $folder)) throw new RuntimeException('Destino de upload invalido.');
-        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) throw new RuntimeException('Selecione um arquivo valido.');
+        $uploadError = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($uploadError !== UPLOAD_ERR_OK) throw new RuntimeException($this->uploadErrorMessage($uploadError));
         if (($file['size'] ?? 0) < 1 || $file['size'] > $this->maxBytes) throw new RuntimeException('O arquivo excede o limite permitido.');
         $tmp = (string) $file['tmp_name'];
         $mime = $this->mime($tmp);
@@ -57,6 +58,17 @@ final class UploadService
             'sha256' => $hash,
             'bytes' => $bytes,
         ];
+    }
+
+    private function uploadErrorMessage(int $error): string
+    {
+        return match ($error) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'O PDF excede o limite permitido para envio.',
+            UPLOAD_ERR_PARTIAL => 'O envio do PDF foi interrompido. Verifique sua conexão e tente novamente.',
+            UPLOAD_ERR_NO_FILE => 'Selecione o contrato assinado em PDF antes de enviar.',
+            UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE, UPLOAD_ERR_EXTENSION => 'O servidor não conseguiu receber o PDF. Tente novamente em instantes.',
+            default => 'Não foi possível receber o PDF enviado.',
+        };
     }
 
     private function mime(string $file): string

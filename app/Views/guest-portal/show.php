@@ -7,14 +7,16 @@ $contractStatusLabels=[
     'SIGNED_BY_GUEST'=>'Recebido do hóspede',
     'FULLY_SIGNED'=>'Concluído pelas duas partes',
 ];
+$portalSuccess=flash('success');
+$portalError=flash('error');
 require BASE_PATH.'/app/Views/public/_top.php';
 ?>
 <section class="reservation-card portal-hero">
     <p class="eyebrow">Minha reserva</p>
     <h1>Olá, <?= e($portal['guest_first_name']) ?></h1>
     <p>Acompanhe cada etapa da estadia <strong><?= e($portal['code']) ?></strong>.</p>
-    <?php if($message=flash('success')):?><div class="alert alert-success"><?= e($message) ?></div><?php endif;?>
-    <?php if($message=flash('error')):?><div class="alert alert-error"><?= e($message) ?></div><?php endif;?>
+    <?php if(!$portal['contract']&&$portalSuccess):?><div class="alert alert-success" role="status"><?= e($portalSuccess) ?></div><?php endif;?>
+    <?php if(!$portal['contract']&&$portalError):?><div class="alert alert-error" role="alert"><?= e($portalError) ?></div><?php endif;?>
 </section>
 
 <section class="reservation-card">
@@ -40,6 +42,9 @@ require BASE_PATH.'/app/Views/public/_top.php';
         <span class="contract-status"><?= e($contractStatusLabels[$contract['status']]??$contract['status']) ?></span>
     </div>
 
+    <?php if($portalSuccess):?><div class="alert alert-success contract-upload-feedback" id="contract-upload-success" role="status"><?= e($portalSuccess) ?></div><?php endif;?>
+    <?php if($portalError):?><div class="alert alert-error contract-upload-feedback" id="contract-upload-error" role="alert"><?= e($portalError) ?></div><?php endif;?>
+
     <?php if($finalDocument):?>
         <div class="contract-complete" role="status">
             <strong>Contrato concluído e registrado</strong>
@@ -64,12 +69,14 @@ require BASE_PATH.'/app/Views/public/_top.php';
             </div>
             <details class="contract-replace"><summary>Enviei o arquivo errado</summary>
         <?php endif;?>
-        <form class="contract-upload-form" action="<?= e(base_url('minha-reserva/'.rawurlencode($token).'/contrato/enviar-assinado')) ?>" method="post" enctype="multipart/form-data">
+        <form class="contract-upload-form" action="<?= e(base_url('minha-reserva/'.rawurlencode($token).'/contrato/enviar-assinado')) ?>" method="post" enctype="multipart/form-data" data-upload-form>
             <?= csrf_field() ?>
+            <input type="hidden" name="MAX_FILE_SIZE" value="<?= (int)($uploadMaxBytes??8*1024*1024) ?>">
             <label>Contrato assinado em PDF<input type="file" name="signed_contract" accept=".pdf,application/pdf" required></label>
             <label class="contract-confirm"><input type="checkbox" name="signed_on_gov" value="1" required><span>Confirmo que este é o PDF assinado por mim no Gov.br e que conferi o documento antes do envio.</span></label>
             <button class="primary-button" type="submit"><?= $guestDocument?'Substituir PDF enviado':'Enviar contrato assinado' ?></button>
-            <small>O sistema valida o formato e registra o hash do arquivo. A autenticidade da assinatura deve ser conferida no serviço oficial do Gov.br.</small>
+            <progress value="0" max="100" hidden aria-label="Progresso do envio"></progress>
+            <small>Envie apenas PDF de até <?= max(1,(int)floor(($uploadMaxBytes??8*1024*1024)/1048576)) ?> MB. O sistema valida o formato e registra o hash do arquivo. A autenticidade da assinatura deve ser conferida no serviço oficial do Gov.br.</small>
         </form>
         <?php if($guestDocument):?></details><?php endif;?>
     <?php endif;?>

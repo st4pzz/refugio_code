@@ -27,6 +27,7 @@ final class GuestPortalController
     {
         try {
             $portal = (new GuestPortalService(Database::connection(), $this->config))->resolve($token);
+            $uploadMaxBytes = (int) $this->config['upload_max_bytes'];
             require BASE_PATH . '/app/Views/guest-portal/show.php';
         } catch (Throwable $error) {
             $this->error($error);
@@ -75,6 +76,7 @@ final class GuestPortalController
     public function uploadSignedContract(string $token): never
     {
         try {
+            $this->assertUploadRequestWasParsed();
             Csrf::verify($_POST['_csrf'] ?? null);
             if (!isset($_POST['signed_on_gov'])) throw new RuntimeException('Confirme que o PDF foi assinado no Gov.br antes de enviar.');
             $db = Database::connection();
@@ -102,6 +104,12 @@ final class GuestPortalController
             }
             flash('success', 'Contrato assinado enviado. Agora o proprietário fará a assinatura pelo Gov.br.');
         } catch (Throwable $error) {
+            error_log(sprintf(
+                '[contract-upload] %s file_error=%d content_length=%d',
+                $error->getMessage(),
+                (int) ($_FILES['signed_contract']['error'] ?? UPLOAD_ERR_NO_FILE),
+                (int) ($_SERVER['CONTENT_LENGTH'] ?? 0)
+            ));
             flash('error', $error->getMessage());
         }
         redirect(base_url('minha-reserva/' . rawurlencode($token) . '#contrato'));
@@ -154,6 +162,15 @@ final class GuestPortalController
     private function workflow(PDO $db): ContractSignatureWorkflowService
     {
         return new ContractSignatureWorkflowService($db, new UploadService((int) $this->config['upload_max_bytes']));
+    }
+
+    private function assertUploadRequestWasParsed(): void
+    {
+        $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($contentLength > 0 && $_POST === [] && $_FILES === []) {
+            $limitMb = max(1, (int) floor(((int) $this->config['upload_max_bytes']) / 1048576));
+            throw new RuntimeException('O servidor recusou o envio antes de processá-lo. Envie um PDF com no máximo ' . $limitMb . ' MB.');
+        }
     }
 
     private function streamPdf(string $path, string $filename, bool $inline = true): never

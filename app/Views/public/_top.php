@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="<?= e(base_url('assets/css/reservas.css?v=2')) ?>">
     <?php if (($robots ?? '') === 'index,follow'): ?><link rel="stylesheet" href="<?= e(base_url('assets/css/policies.css?v=1')) ?>"><?php endif; ?>
     <link rel="stylesheet" href="<?= e(base_url('assets/css/reviews.css?v=1')) ?>">
-    <link rel="stylesheet" href="<?= e(base_url('assets/css/guest-portal.css?v=2')) ?>">
+    <link rel="stylesheet" href="<?= e(base_url('assets/css/guest-portal.css?v=3')) ?>">
+    <link rel="stylesheet" href="<?= e(base_url('assets/css/guest-portal-upload.css?v=1')) ?>">
 </head>
 <body class="reservation-app">
 <header class="reservation-header"><a href="<?= e(base_url()) ?>" aria-label="Voltar ao inicio"><img src="<?= e(base_url('assets/images/logo_crema.webp')) ?>" alt="Refugio do Cuscuzeiro" width="58" height="58"><span>Refugio do Cuscuzeiro</span></a></header>
