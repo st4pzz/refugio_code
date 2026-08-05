@@ -289,6 +289,19 @@ test('upload assinado evita conflito de collation do MySQL da hospedagem',functi
     expect(str_contains($controller,'$error instanceof PDOException'));
 });
 
+test('regeneracao do contrato cria nova revisao com a data atual',function(){
+    $service=file_get_contents(BASE_PATH.'/app/Services/ContractRevisionService.php');
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/contracts.php');
+    $pdf=file_get_contents(BASE_PATH.'/app/Services/ContractPdfService.php');
+    foreach(['contract_date_long','CONTRACT_SUPERSEDED','superseded_by','ContractPdfService']as$needle)expect(str_contains($service,$needle));
+    expect(str_contains($service,"format('d/m/Y')"));
+    expect(str_contains($controller,"'contract-revise'"));
+    expect(str_contains($view,'Gerar nova revisão com data de hoje'));
+    expect(str_contains($view,'Data do documento:'));
+    expect(str_contains($pdf,'$ownsTransaction'));
+});
+
 test('prompt de marketing com IA fixa oferta publico e restricoes da chacara',function(){
     $prompt=OpenAiMarketingAnalysisService::instructions();
     foreach(['Analandia','10 pessoas','4 suites','beach tennis','campinho de futebol','mesa de sinuca','mesa de baralho','churrasqueira','garagem para 4 veiculos','piscina','hidromassagem','varanda terrea','R$ 800','familias','grupos de amigos']as$fact)expect(str_contains($prompt,$fact),'Fato ausente no prompt: '.$fact);

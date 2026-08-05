@@ -8,6 +8,7 @@ use PDO;
 use Refugio\Config\Database;
 use Refugio\Services\AuthorizationService;
 use Refugio\Services\ContractPdfService;
+use Refugio\Services\ContractRevisionService;
 use Refugio\Services\ContractSignatureWorkflowService;
 use Refugio\Services\ContractTemplateService;
 use Refugio\Services\GuestPortalService;
@@ -106,6 +107,7 @@ final class OperationsController
                 'contract-approve'=>$this->contractApprove($userId),
                 'contract-generate'=>$this->contractGenerate($userId),
                 'contract-pdf'=>$this->contractPdf(),
+                'contract-revise'=>$this->contractRevise($userId),
                 'contract-owner-upload'=>$this->contractOwnerUpload($userId),
                 'portal-regenerate'=>$this->portalRegenerate($userId),
                 'precheckin-review'=>$this->precheckinReview($userId),
@@ -189,6 +191,14 @@ final class OperationsController
         if($contractId<=0)throw new RuntimeException('Contrato inválido.');
         (new ContractPdfService($this->db))->generate($contractId);
         flash('success','PDF gerado com sucesso. Use “Abrir PDF” na lista de documentos.');
+    }
+    private function contractRevise(int $userId):void
+    {
+        AuthorizationService::requirePermission('contracts.generate');
+        $contractId=(int)($_POST['contract_id']??0);
+        if($contractId<=0)throw new RuntimeException('Contrato inválido.');
+        $revision=(new ContractRevisionService($this->db))->reviseWithCurrentDate($contractId,$userId);
+        flash('success','Nova revisão '.$revision['contract_number'].' gerada com data '.$revision['contract_date_long'].'. O PDF anterior foi preservado no histórico.');
     }
     private function contractOwnerUpload(int $userId):void
     {

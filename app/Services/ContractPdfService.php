@@ -45,16 +45,17 @@ final class ContractPdfService
             throw new RuntimeException('Não foi possível validar o PDF gerado.');
         }
         $relative = substr(str_replace('\\', '/', $output), strlen(str_replace('\\', '/', BASE_PATH)) + 1);
-        $this->db->beginTransaction();
+        $ownsTransaction = !$this->db->inTransaction();
+        if ($ownsTransaction) $this->db->beginTransaction();
         try {
             $this->db->prepare('UPDATE reservation_contracts SET pdf_path=?,pdf_hash=? WHERE id=?')->execute([$relative, $hash, $contractId]);
             $this->db->prepare("INSERT INTO contract_documents (contract_id,document_type,storage_path,mime_type,byte_size,sha256) VALUES (?,'UNSIGNED_PDF',?,'application/pdf',?,?) ON DUPLICATE KEY UPDATE storage_path=VALUES(storage_path),byte_size=VALUES(byte_size),sha256=VALUES(sha256)")
                 ->execute([$contractId, $relative, $bytes, $hash]);
             $this->db->prepare("INSERT INTO contract_events (contract_id,event_type,metadata_json,document_hash) VALUES (?,'PDF_GENERATED',?,?)")
                 ->execute([$contractId, json_encode(['path' => $relative, 'bytes' => $bytes], JSON_THROW_ON_ERROR), $hash]);
-            $this->db->commit();
+            if ($ownsTransaction) $this->db->commit();
         } catch (\Throwable $error) {
-            if ($this->db->inTransaction()) $this->db->rollBack();
+            if ($ownsTransaction && $this->db->inTransaction()) $this->db->rollBack();
             throw $error;
         }
         return ['path' => $output, 'relative_path' => $relative, 'sha256' => $hash, 'bytes' => $bytes];

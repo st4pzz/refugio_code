@@ -40,9 +40,9 @@ require __DIR__ . '/_top.php';
 <section class="admin-panel contract-admin-list">
     <div class="panel-heading"><div><p class="eyebrow">Fluxo Gov.br</p><h2>Documentos gerados</h2></div><small>O sistema guarda todas as revisões e o SHA-256 de cada PDF.</small></div>
     <?php if (!$contracts): ?><p class="empty-state">Nenhum contrato gerado.</p><?php endif; ?>
-    <?php foreach ($contracts as $contract):$documents=$signatureDocuments[(int)$contract['id']]??[];$guestDocument=$documents['GUEST_SIGNED']??null;$finalDocument=$documents['FULLY_SIGNED']??null;?>
+    <?php foreach ($contracts as $contract):$documents=$signatureDocuments[(int)$contract['id']]??[];$guestDocument=$documents['GUEST_SIGNED']??null;$finalDocument=$documents['FULLY_SIGNED']??null;$contractVariables=json_decode((string)$contract['variables_snapshot_json'],true)?:[];$contractDate=$contractVariables['contract_date_long']??null;?>
         <article class="contract-admin-card">
-            <header><div><strong><?= e($contract['contract_number']) ?> · <?= e($contract['codigo']) ?></strong><small><?= e($contract['nome_cliente']) ?> · <?= e($statusLabels[$contract['status']]??$contract['status']) ?></small></div><span class="admin-status status-<?= strtolower($contract['status']) ?>"><?= e($statusLabels[$contract['status']]??$contract['status']) ?></span></header>
+            <header><div><strong><?= e($contract['contract_number']) ?> · <?= e($contract['codigo']) ?></strong><small><?= e($contract['nome_cliente']) ?> · <?= e($statusLabels[$contract['status']]??$contract['status']) ?><?= $contractDate?' · Data do documento: '.e($contractDate):'' ?></small></div><span class="admin-status status-<?= strtolower($contract['status']) ?>"><?= e($statusLabels[$contract['status']]??$contract['status']) ?></span></header>
             <div class="contract-admin-steps">
                 <div class="<?= $contract['pdf_path']?'done':'' ?>"><span>1</span><strong>PDF original</strong><small><?= $contract['pdf_path']?'Disponível para o hóspede':'Pendente' ?></small></div>
                 <div class="<?= $guestDocument?'done':'' ?>"><span>2</span><strong>Assinatura do hóspede</strong><small><?= $guestDocument?'Recebida em '.date('d/m/Y H:i',strtotime($guestDocument['created_at'])):'Aguardando upload' ?></small></div>
@@ -50,7 +50,7 @@ require __DIR__ . '/_top.php';
             </div>
             <div class="document-actions">
                 <?php if ($contract['pdf_path']): ?><a class="admin-secondary" href="<?= e(base_url('admin/contratos/' . $contract['id'] . '/pdf')) ?>" target="_blank" rel="noopener">Abrir original</a><?php endif; ?>
-                <?php if (!$guestDocument && $contract['pdf_path']): ?><form method="post" action="<?= e(base_url('admin/operacoes/contract-pdf')) ?>"><?= csrf_field() ?><input type="hidden" name="contract_id" value="<?= (int) $contract['id'] ?>"><button class="admin-secondary">Gerar PDF novamente</button></form><?php endif; ?>
+                <?php if (!$guestDocument && $contract['pdf_path'] && in_array($contract['status'],['READY','SENT','VIEWED'],true)): ?><form method="post" action="<?= e(base_url('admin/operacoes/contract-revise')) ?>"><?= csrf_field() ?><input type="hidden" name="contract_id" value="<?= (int) $contract['id'] ?>"><button class="admin-secondary">Gerar nova revisão com data de hoje</button></form><?php endif; ?>
                 <form method="post" action="<?= e(base_url('admin/operacoes/portal-regenerate')) ?>"><?= csrf_field() ?><input type="hidden" name="reservation_id" value="<?= (int) $contract['reservation_id'] ?>"><button class="admin-secondary">Novo link portal</button></form>
                 <?php if($guestDocument):?><a class="admin-primary" href="<?= e(base_url('admin/contratos/'.$contract['id'].'/documentos/hospede.pdf')) ?>">Baixar PDF do hóspede</a><?php endif;?>
                 <?php if($finalDocument):?><a class="admin-primary" href="<?= e(base_url('admin/contratos/'.$contract['id'].'/documentos/final.pdf')) ?>">Baixar PDF final</a><?php endif;?>
