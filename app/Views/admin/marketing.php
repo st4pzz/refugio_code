@@ -154,7 +154,7 @@ $aiJobActive = $aiJob && in_array((string) ($aiJob['status'] ?? ''), ['PENDENTE'
         </form>
         <?php if ($aiJobActive): ?>
             <div class="ai-job-status running" role="status" aria-live="polite">
-                <strong><?= ($aiJob['status'] ?? '') === 'PROCESSANDO' ? 'A IA está analisando as campanhas.' : 'A análise está aguardando o worker.' ?></strong>
+                <strong><?php if (!empty($aiJob['openai_response_id'])): ?>A IA está analisando as campanhas.<?php elseif (($aiJob['status'] ?? '') === 'PROCESSANDO'): ?>O worker está preparando a análise.<?php else: ?>A análise está aguardando o worker.<?php endif; ?></strong>
                 <span>Solicitação #<?= (int) $aiJob['id'] ?>. Esta página será atualizada automaticamente; você pode sair e voltar depois.</span>
             </div>
             <script>window.setTimeout(function(){window.location.reload();},15000);</script>

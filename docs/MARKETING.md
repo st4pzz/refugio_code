@@ -56,7 +56,7 @@ OPENAI_MARKETING_MIN_INTERVAL_SECONDS=60
 OPENAI_TIMEOUT_SECONDS=90
 OPENAI_MAX_RETRIES=2
 OPENAI_BACKGROUND_TIMEOUT_SECONDS=600
-OPENAI_BACKGROUND_POLL_SECONDS=2
+OPENAI_BACKGROUND_POLL_SECONDS=10
 ```
 
 Gere a chave uma única vez e guarde-a no cofre de segredos da hospedagem:
@@ -78,7 +78,7 @@ O botão “Analisar com IA” usa exclusivamente o snapshot local correspondent
 - desempenho agregado por campanha;
 - inventário de nomes/URLs de criativos, explicitamente identificado como sem desempenho individual.
 
-Não são enviados tokens OAuth, dados de hóspedes, mensagens de WhatsApp ou comprovantes. O POST do painel valida os dados e adiciona `MARKETING_AI_ANALYSIS` à fila; o worker inicia a Responses API em background e acompanha o status sem manter a conexão do navegador aberta. A requisição usa `store=false`, saída estruturada por JSON Schema, identificador de segurança pseudônimo, timeout e retentativas limitadas. Uma análise concluída é armazenada em `marketing_analises_ia`, incluindo snapshot, hash da entrada, modelo, resposta e uso de tokens para rastreabilidade.
+Não são enviados tokens OAuth, dados de hóspedes, mensagens de WhatsApp ou comprovantes. O POST do painel valida os dados e adiciona `MARKETING_AI_ANALYSIS` à fila. Em uma execução curta, o worker inicia a Responses API em background e persiste o `response_id`; execuções seguintes consultam esse ID até a conclusão, sem manter o navegador ou o processo do cron aguardando. A requisição usa `store=false`, saída estruturada por JSON Schema, identificador de segurança pseudônimo, timeout e retentativas limitadas. Uma análise concluída é armazenada em `marketing_analises_ia`, incluindo snapshot, hash da entrada, modelo, resposta e uso de tokens para rastreabilidade.
 
 O prompt fixa o posicionamento real do Refúgio: chácara em Analândia/SP, até 10 pessoas, 4 suítes, lazer e natureza, diária de referência de R$ 800, público de famílias e grupos de amigos e proibição de festas/eventos. Recomendações são consultivas; o módulo continua sem endpoints para alterar campanhas.
 

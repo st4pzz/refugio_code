@@ -148,7 +148,8 @@ final class MarketingAiRepository
 
     public function latestJobByUser(int $userId): ?array
     {
-        $stmt = $this->db->prepare("SELECT id,status,tentativas,max_tentativas,erro_ultimo,created_at,updated_at,finalizado_em
+        $stmt = $this->db->prepare("SELECT id,status,tentativas,max_tentativas,erro_ultimo,created_at,updated_at,finalizado_em,
+                JSON_UNQUOTE(JSON_EXTRACT(payload_json,'$.openai_background.response_id')) openai_response_id
             FROM jobs
             WHERE tipo='MARKETING_AI_ANALYSIS'
               AND JSON_UNQUOTE(JSON_EXTRACT(payload_json,'$.user_id'))=?

@@ -24,6 +24,7 @@ final class JobQueueService
     {
         $this->db->beginTransaction();
         try {
+            $this->db->exec("UPDATE jobs SET status='FALHOU',erro_ultimo=COALESCE(erro_ultimo,'Limite de tentativas atingido.'),finalizado_em=NOW() WHERE status='PENDENTE' AND tentativas>=max_tentativas");
             $job = $this->db->query("SELECT * FROM jobs WHERE status='PENDENTE' AND disponivel_em<=NOW() ORDER BY prioridade,id LIMIT 1 FOR UPDATE")->fetch();
             if (!$job) {
                 $this->db->commit();
@@ -48,6 +49,20 @@ final class JobQueueService
         $this->db->prepare("UPDATE jobs SET status='CONCLUIDO',finalizado_em=NOW(),bloqueado_em=NULL,bloqueado_por=NULL WHERE id=? AND status='PROCESSANDO'")->execute([$id]);
     }
 
+    public function defer(int $id, array $payload, int $delaySeconds = 10): void
+    {
+        $delaySeconds = max(5, min(300, $delaySeconds));
+        $stmt = $this->db->prepare("UPDATE jobs
+            SET status='PENDENTE',payload_json=?,disponivel_em=DATE_ADD(NOW(),INTERVAL ? SECOND),
+                tentativas=GREATEST(tentativas-1,0),bloqueado_em=NULL,bloqueado_por=NULL
+            WHERE id=? AND status='PROCESSANDO'");
+        $stmt->execute([
+            json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            $delaySeconds,
+            $id,
+        ]);
+    }
+
     public function fail(array $job, Throwable|string $error): void
     {
         $message = mb_substr($error instanceof Throwable ? $error->getMessage() : $error, 0, 4000);
@@ -60,6 +75,22 @@ final class JobQueueService
     public function releaseStale(int $minutes = 15): int
     {
         $minutes = max(5, min(120, $minutes));
-        return $this->db->exec("UPDATE jobs SET status='PENDENTE',bloqueado_em=NULL,bloqueado_por=NULL,disponivel_em=NOW() WHERE status='PROCESSANDO' AND bloqueado_em<DATE_SUB(NOW(),INTERVAL {$minutes} MINUTE)");
+        return $this->db->exec("UPDATE jobs
+            SET status=IF(tentativas>=max_tentativas,'FALHOU','PENDENTE'),
+                erro_ultimo=IF(tentativas>=max_tentativas,COALESCE(erro_ultimo,'Processamento interrompido antes da conclusao.'),erro_ultimo),
+                finalizado_em=IF(tentativas>=max_tentativas,NOW(),NULL),
+                bloqueado_em=NULL,bloqueado_por=NULL,disponivel_em=NOW()
+            WHERE status='PROCESSANDO' AND bloqueado_em<DATE_SUB(NOW(),INTERVAL {$minutes} MINUTE)");
+    }
+
+    public function failStaleAiWithoutResponseId(int $minutes = 5): int
+    {
+        $minutes = max(2, min(15, $minutes));
+        return $this->db->exec("UPDATE jobs
+            SET status='FALHOU',erro_ultimo='O worker foi interrompido antes de salvar o identificador da resposta da OpenAI.',
+                finalizado_em=NOW(),bloqueado_em=NULL,bloqueado_por=NULL
+            WHERE tipo='MARKETING_AI_ANALYSIS' AND status='PROCESSANDO'
+              AND bloqueado_em<DATE_SUB(NOW(),INTERVAL {$minutes} MINUTE)
+              AND JSON_EXTRACT(payload_json,'$.openai_background.response_id') IS NULL");
     }
 }

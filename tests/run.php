@@ -321,6 +321,9 @@ test('saida estruturada da analise de marketing cobre diagnostico criativos e te
 test('cliente da Responses API extrai texto sem presumir primeiro item',function(){
     $response=['output'=>[['type'=>'reasoning'],['type'=>'message','content'=>[['type'=>'output_text','text'=>'  {"ok":true}  ']]]]];
     expect(OpenAiResponsesClient::outputText($response)==='{"ok":true}');
+    expect(OpenAiResponsesClient::isPending(['status'=>'queued']));
+    expect(OpenAiResponsesClient::isPending(['status'=>'in_progress']));
+    expect(!OpenAiResponsesClient::isPending(['status'=>'completed']));
 });
 
 test('analise de marketing com IA e protegida e nao altera campanhas',function(){
@@ -345,12 +348,20 @@ test('analise de marketing com IA usa fila e background para nao depender do tim
     $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');
     $worker=file_get_contents(BASE_PATH.'/scripts/process_jobs.php');
     $client=file_get_contents(BASE_PATH.'/app/Services/OpenAiResponsesClient.php');
+    $jobService=file_get_contents(BASE_PATH.'/app/Services/MarketingAiAnalysisJobService.php');
+    $queue=file_get_contents(BASE_PATH.'/app/Services/JobQueueService.php');
     $view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');
     expect(str_contains($controller,"enqueue('MARKETING_AI_ANALYSIS'"));
     expect(str_contains($controller,'hasActiveJobByUser'));
     expect(str_contains($worker,"'MARKETING_AI_ANALYSIS'"));
     expect(str_contains($client,"\$payload['background'] = true"));
     expect(str_contains($client,'OPENAI_BACKGROUND_TIMEOUT_SECONDS'));
+    expect(str_contains($jobService,"'response_id' => \$responseId"));
+    expect(str_contains($jobService,'$queue->defer'));
+    expect(str_contains($worker,'MarketingAiAnalysisJobService::DEFERRED'));
+    expect(str_contains($worker,'failStaleAiWithoutResponseId'));
+    expect(str_contains($worker,'adiado(s)'));
+    expect(str_contains($queue,"tentativas>=max_tentativas"));
     expect(str_contains($view,'A IA está analisando as campanhas.'));
     expect(str_contains($view,'window.location.reload()'));
 });

@@ -17,8 +17,17 @@ final class OpenAiResponsesClient
 
     public function createInBackgroundAndWait(array $payload): array
     {
+        return $this->waitForBackground($this->createInBackground($payload));
+    }
+
+    public function createInBackground(array $payload): array
+    {
         $payload['background'] = true;
-        $response = $this->create($payload);
+        return $this->create($payload);
+    }
+
+    public function waitForBackground(array $response): array
+    {
         if (!self::isPending($response)) {
             return $response;
         }
@@ -134,7 +143,7 @@ final class OpenAiResponsesClient
         throw new RuntimeException('Falha na OpenAI apos novas tentativas.');
     }
 
-    private static function isPending(array $response): bool
+    public static function isPending(array $response): bool
     {
         return in_array((string) ($response['status'] ?? ''), ['queued', 'in_progress'], true);
     }
