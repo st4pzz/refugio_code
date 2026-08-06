@@ -9,6 +9,8 @@ $fmt = static fn(mixed $value, string $suffix = ''): string => $value === null ?
 $analysis = is_array($selectedAnalysis['analysis'] ?? null) ? $selectedAnalysis['analysis'] : [];
 $providerStates = is_array($providerStates ?? null) ? $providerStates : [];
 $analysisDataReady = (bool) ($analysisDataReady ?? (count($campaigns) > 0 || count($dashboard['daily'] ?? []) > 0));
+$aiJob = is_array($aiJob ?? null) ? $aiJob : null;
+$aiJobActive = $aiJob && in_array((string) ($aiJob['status'] ?? ''), ['PENDENTE', 'PROCESSANDO'], true);
 ?>
 
 <section class="page-heading">
@@ -148,8 +150,20 @@ $analysisDataReady = (bool) ($analysisDataReady ?? (count($campaigns) > 0 || cou
                 <strong><?= e(date('d/m/Y', strtotime($start))) ?> a <?= e(date('d/m/Y', strtotime($end))) ?></strong>
                 <small>Serão enviados somente métricas, campanhas e metadados de criativos — sem hóspedes ou credenciais.</small>
             </div>
-            <button class="admin-primary" <?= (!$aiConfigured || !$analysisDataReady) ? 'disabled' : '' ?>>Analisar com IA</button>
+            <button class="admin-primary" <?= (!$aiConfigured || !$analysisDataReady || $aiJobActive) ? 'disabled' : '' ?>><?= $aiJobActive ? 'Análise em andamento' : 'Analisar com IA' ?></button>
         </form>
+        <?php if ($aiJobActive): ?>
+            <div class="ai-job-status running" role="status" aria-live="polite">
+                <strong><?= ($aiJob['status'] ?? '') === 'PROCESSANDO' ? 'A IA está analisando as campanhas.' : 'A análise está aguardando o worker.' ?></strong>
+                <span>Solicitação #<?= (int) $aiJob['id'] ?>. Esta página será atualizada automaticamente; você pode sair e voltar depois.</span>
+            </div>
+            <script>window.setTimeout(function(){window.location.reload();},15000);</script>
+        <?php elseif (($aiJob['status'] ?? '') === 'FALHOU'): ?>
+            <div class="ai-job-status failed" role="alert">
+                <strong>A última análise não foi concluída.</strong>
+                <span><?= e((string) ($aiJob['erro_ultimo'] ?: 'Consulte o log do worker para obter os detalhes.')) ?></span>
+            </div>
+        <?php endif; ?>
         <?php if (!$aiConfigured): ?>
             <p class="ai-config-warning">Configure <code>OPENAI_API_KEY</code> no servidor e execute a migration 010 para habilitar a análise.</p>
         <?php elseif (!$analysisDataReady): ?>

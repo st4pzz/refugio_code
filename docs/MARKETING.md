@@ -55,6 +55,8 @@ OPENAI_MARKETING_MAX_OUTPUT_TOKENS=7000
 OPENAI_MARKETING_MIN_INTERVAL_SECONDS=60
 OPENAI_TIMEOUT_SECONDS=90
 OPENAI_MAX_RETRIES=2
+OPENAI_BACKGROUND_TIMEOUT_SECONDS=600
+OPENAI_BACKGROUND_POLL_SECONDS=2
 ```
 
 Gere a chave uma única vez e guarde-a no cofre de segredos da hospedagem:
@@ -76,22 +78,22 @@ O botão “Analisar com IA” usa exclusivamente o snapshot local correspondent
 - desempenho agregado por campanha;
 - inventário de nomes/URLs de criativos, explicitamente identificado como sem desempenho individual.
 
-Não são enviados tokens OAuth, dados de hóspedes, mensagens de WhatsApp ou comprovantes. A requisição usa a Responses API com `store=false`, saída estruturada por JSON Schema, identificador de segurança pseudônimo, timeout e retentativas limitadas. Uma análise concluída é armazenada em `marketing_analises_ia`, incluindo snapshot, hash da entrada, modelo, resposta e uso de tokens para rastreabilidade.
+Não são enviados tokens OAuth, dados de hóspedes, mensagens de WhatsApp ou comprovantes. O POST do painel valida os dados e adiciona `MARKETING_AI_ANALYSIS` à fila; o worker inicia a Responses API em background e acompanha o status sem manter a conexão do navegador aberta. A requisição usa `store=false`, saída estruturada por JSON Schema, identificador de segurança pseudônimo, timeout e retentativas limitadas. Uma análise concluída é armazenada em `marketing_analises_ia`, incluindo snapshot, hash da entrada, modelo, resposta e uso de tokens para rastreabilidade.
 
 O prompt fixa o posicionamento real do Refúgio: chácara em Analândia/SP, até 10 pessoas, 4 suítes, lazer e natureza, diária de referência de R$ 800, público de famílias e grupos de amigos e proibição de festas/eventos. Recomendações são consultivas; o módulo continua sem endpoints para alterar campanhas.
 
 Antes de habilitar em produção:
 
 1. execute `php scripts/migrate.php` para aplicar `010_create_marketing_ai.sql`;
-2. configure `OPENAI_API_KEY` e mantenha `APP_DEBUG=false`;
+2. configure `OPENAI_API_KEY`, mantenha `APP_DEBUG=false` e confirme que `scripts/process_jobs.php` está sendo executado pelo cron/worker;
 3. sincronize Meta, Google e/ou TikTok;
 4. filtre um período curto e gere a primeira análise;
 5. confira `marketing_analises_ia` e `auditoria` sem expor a chave;
 6. defina limite de orçamento e alertas de uso no projeto OpenAI.
 
-`OPENAI_MARKETING_MIN_INTERVAL_SECONDS` reduz cliques repetidos e custo acidental. Ajuste o modelo por ambiente com `OPENAI_MARKETING_MODEL`; valide qualidade, latência e custo antes de aumentar o esforço ou o limite de saída.
+`OPENAI_MARKETING_MIN_INTERVAL_SECONDS` reduz cliques repetidos e custo acidental. `OPENAI_BACKGROUND_TIMEOUT_SECONDS` limita por quanto tempo o worker acompanha a resposta e `OPENAI_BACKGROUND_POLL_SECONDS` controla o intervalo entre consultas. Ajuste o modelo por ambiente com `OPENAI_MARKETING_MODEL`; valide qualidade, latência e custo antes de aumentar o esforço ou o limite de saída.
 
-Referências oficiais: [Responses API](https://platform.openai.com/docs/api-reference/responses), [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), [modelos atuais](https://developers.openai.com/api/docs/models) e [controles de dados](https://platform.openai.com/docs/models/default-usage-policies-by-endpoint).
+Referências oficiais: [Responses API](https://platform.openai.com/docs/api-reference/responses), [Background mode](https://developers.openai.com/api/docs/guides/background), [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), [modelos atuais](https://developers.openai.com/api/docs/models) e [controles de dados](https://platform.openai.com/docs/models/default-usage-policies-by-endpoint).
 
 ## Meta
 

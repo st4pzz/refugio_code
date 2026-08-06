@@ -146,6 +146,23 @@ final class MarketingAiRepository
         return $seconds === false ? null : (int) $seconds;
     }
 
+    public function latestJobByUser(int $userId): ?array
+    {
+        $stmt = $this->db->prepare("SELECT id,status,tentativas,max_tentativas,erro_ultimo,created_at,updated_at,finalizado_em
+            FROM jobs
+            WHERE tipo='MARKETING_AI_ANALYSIS'
+              AND JSON_UNQUOTE(JSON_EXTRACT(payload_json,'$.user_id'))=?
+            ORDER BY id DESC LIMIT 1");
+        $stmt->execute([(string) $userId]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function hasActiveJobByUser(int $userId): bool
+    {
+        $job = $this->latestJobByUser($userId);
+        return $job && in_array((string) $job['status'], ['PENDENTE', 'PROCESSANDO'], true);
+    }
+
     public static function decode(array $row): array
     {
         $row['filters'] = json_decode((string) ($row['filtros_json'] ?? '{}'), true) ?: [];

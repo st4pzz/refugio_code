@@ -47,9 +47,11 @@ final class MarketingController
         $openAiModel = Env::get('OPENAI_MARKETING_MODEL', 'gpt-5.6-sol');
         $analyses = [];
         $selectedAnalysis = null;
+        $aiJob = null;
         try {
             $aiRepository = new MarketingAiRepository($this->db);
             $analyses = array_map([MarketingAiRepository::class, 'decode'], $aiRepository->latest());
+            $aiJob = $aiRepository->latestJobByUser((int) ($_SESSION['admin_id'] ?? 0));
             $wantedId = max(0, (int) ($_GET['analise'] ?? 0));
             if ($wantedId > 0) {
                 $row = $aiRepository->find($wantedId);
@@ -86,24 +88,21 @@ final class MarketingController
             ], static fn(mixed $value): bool => $value !== null && $value !== '');
 
             $userId = (int) $_SESSION['admin_id'];
-            $analysisId = (new OpenAiMarketingAnalysisService($this->db))->analyze($start, $end, $filters, $userId);
-            $row = (new MarketingAiRepository($this->db))->find($analysisId);
-            (new AuditService($this->db))->record(
-                'MARKETING',
-                'GERAR_ANALISE_IA',
-                'marketing_analises_ia',
-                $analysisId,
-                null,
-                [
-                    'periodo' => [$start, $end],
-                    'filtros' => $filters,
-                    'modelo' => $row['modelo'] ?? Env::get('OPENAI_MARKETING_MODEL', 'gpt-5.6-sol'),
-                    'input_tokens' => $row['input_tokens'] ?? null,
-                    'output_tokens' => $row['output_tokens'] ?? null,
-                ]
-            );
-            $redirectParams['analise'] = $analysisId;
-            flash('success', 'Analise de campanhas concluida pela IA. Revise as recomendacoes antes de alterar qualquer campanha.');
+            $aiRepository = new MarketingAiRepository($this->db);
+            if ($aiRepository->hasActiveJobByUser($userId)) {
+                throw new RuntimeException('Ja existe uma analise de marketing com IA aguardando ou em processamento.');
+            }
+            (new OpenAiMarketingAnalysisService($this->db))->validateRequest($start, $end, $filters, $userId);
+            $minimumInterval = max(1, min(3600, Env::int('OPENAI_MARKETING_MIN_INTERVAL_SECONDS', 60)));
+            $fingerprint = hash('sha256', json_encode([$start, $end, $filters], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+            $uniqueKey = 'marketing-ai:' . $userId . ':' . intdiv(time(), $minimumInterval) . ':' . $fingerprint;
+            (new JobQueueService($this->db))->enqueue('MARKETING_AI_ANALYSIS', [
+                'start' => $start,
+                'end' => $end,
+                'filters' => $filters,
+                'user_id' => $userId,
+            ], $uniqueKey, 30, 1);
+            flash('success', 'Analise adicionada a fila. O painel sera atualizado quando a IA concluir.');
         } catch (Throwable $error) {
             flash('error', $error->getMessage());
         }

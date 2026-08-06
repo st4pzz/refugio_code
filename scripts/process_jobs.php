@@ -18,6 +18,7 @@ while ($processed < $limit && ($job = $queue->reserve($worker))) {
             'WHATSAPP_WEBHOOK' => (new Refugio\Services\WhatsAppWebhookService($db))->process((int) $job['payload']['event_id']),
             'WHATSAPP_MEDIA' => (new Refugio\Services\WhatsAppWebhookService($db))->downloadMedia((int) $job['payload']['message_id']),
             'MARKETING_SYNC' => (new Refugio\Services\MarketingSyncService($db))->sync((int) $job['payload']['integration_id'], (string) $job['payload']['start'], (string) $job['payload']['end'], isset($job['payload']['user_id']) ? (int) $job['payload']['user_id'] : null),
+            'MARKETING_AI_ANALYSIS' => (new Refugio\Services\MarketingAiAnalysisJobService($db))->process($job['payload']),
             'RESERVATION_AUTOMATION' => (new Refugio\Services\ReservationAutomationService($db, require dirname(__DIR__) . '/config/app.php'))->process((int) $job['payload']['run_id']),
             'ICAL_SYNC' => $ical->syncSource((int) $job['payload']['source_id']),
             'CONTRACT_PDF' => (new Refugio\Services\ContractPdfService($db))->generate((int) $job['payload']['contract_id']),

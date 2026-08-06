@@ -12,6 +12,47 @@ final class OpenAiResponsesClient
 
     public function create(array $payload): array
     {
+        return $this->request('POST', self::ENDPOINT, $payload);
+    }
+
+    public function createInBackgroundAndWait(array $payload): array
+    {
+        $payload['background'] = true;
+        $response = $this->create($payload);
+        if (!self::isPending($response)) {
+            return $response;
+        }
+
+        $responseId = trim((string) ($response['id'] ?? ''));
+        if ($responseId === '') {
+            throw new RuntimeException('A OpenAI iniciou a analise sem retornar um identificador para acompanhamento.');
+        }
+
+        $timeout = max(30, min(1800, Env::int('OPENAI_BACKGROUND_TIMEOUT_SECONDS', 600)));
+        $pollInterval = max(1, min(10, Env::int('OPENAI_BACKGROUND_POLL_SECONDS', 2)));
+        $deadline = microtime(true) + $timeout;
+        do {
+            sleep($pollInterval);
+            $response = $this->retrieve($responseId);
+        } while (self::isPending($response) && microtime(true) < $deadline);
+
+        if (self::isPending($response)) {
+            throw new RuntimeException('A OpenAI ainda estava processando a analise apos ' . $timeout . ' segundo(s).');
+        }
+        return $response;
+    }
+
+    public function retrieve(string $responseId): array
+    {
+        $responseId = trim($responseId);
+        if ($responseId === '' || strlen($responseId) > 190 || !preg_match('/^[A-Za-z0-9_-]+$/', $responseId)) {
+            throw new RuntimeException('Identificador de resposta da OpenAI invalido.');
+        }
+        return $this->request('GET', self::ENDPOINT . '/' . rawurlencode($responseId));
+    }
+
+    private function request(string $method, string $url, ?array $payload = null): array
+    {
         $apiKey = trim(Env::get('OPENAI_API_KEY'));
         if ($apiKey === '') {
             throw new RuntimeException('Configure OPENAI_API_KEY antes de solicitar uma analise com IA.');
@@ -34,20 +75,18 @@ final class OpenAiResponsesClient
             $headers[] = 'OpenAI-Project: ' . $project;
         }
 
-        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $body = $payload === null ? null : json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         $timeout = max(15, min(120, Env::int('OPENAI_TIMEOUT_SECONDS', 90)));
         $maxRetries = max(0, min(3, Env::int('OPENAI_MAX_RETRIES', 2)));
 
         for ($attempt = 0; $attempt <= $maxRetries; $attempt++) {
             $responseHeaders = [];
-            $curl = curl_init(self::ENDPOINT);
-            curl_setopt_array($curl, [
-                CURLOPT_POST => true,
+            $curl = curl_init($url);
+            $options = [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_TIMEOUT => $timeout,
                 CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_POSTFIELDS => $body,
                 CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_SSL_VERIFYHOST => 2,
                 CURLOPT_USERAGENT => 'RefugioCuscuzeiro/1.0 marketing-analysis',
@@ -59,7 +98,14 @@ final class OpenAiResponsesClient
                     }
                     return $length;
                 },
-            ]);
+            ];
+            if ($method === 'POST') {
+                $options[CURLOPT_POST] = true;
+                $options[CURLOPT_POSTFIELDS] = $body;
+            } else {
+                $options[CURLOPT_HTTPGET] = true;
+            }
+            curl_setopt_array($curl, $options);
             $raw = curl_exec($curl);
             $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
             $transportError = curl_error($curl);
@@ -86,6 +132,11 @@ final class OpenAiResponsesClient
         }
 
         throw new RuntimeException('Falha na OpenAI apos novas tentativas.');
+    }
+
+    private static function isPending(array $response): bool
+    {
+        return in_array((string) ($response['status'] ?? ''), ['queued', 'in_progress'], true);
     }
 
     public static function outputText(array $response): string

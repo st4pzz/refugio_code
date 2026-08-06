@@ -113,7 +113,7 @@ Integrações são conectadas por OAuth no painel, com `state` assinado/temporá
 
 O dashboard consolida investimento, impressões, alcance, cliques, CTR, CPC, CPM, conversões, receita atribuída e ROAS. Valores do Google Ads em micros são convertidos de forma explícita. A atribuição first/last touch combina UTMs e identificadores `gclid`, `gbraid`, `wbraid`, `fbclid` e `ttclid`; conversões continuam sendo indicativas, não causalidade provada.
 
-Usuários com `marketing.analyze` podem solicitar, sob demanda, uma análise pela OpenAI para o período e filtros atuais. A chamada usa a Responses API com saída JSON estruturada, `store=false`, histórico local e auditoria. Somente métricas consolidadas, nomes de campanhas e metadados dos criativos são enviados; tokens dos provedores, hóspedes e conversas não fazem parte do contexto. A resposta sugere melhorias e testes, mas nunca altera campanhas automaticamente.
+Usuários com `marketing.analyze` podem solicitar, sob demanda, uma análise pela OpenAI para o período e filtros atuais. A solicitação entra na fila de jobs e o worker usa a Responses API em background, evitando manter o POST do painel aberto até a conclusão. A saída é JSON estruturada, com `store=false`, histórico local e auditoria. Somente métricas consolidadas, nomes de campanhas e metadados dos criativos são enviados; tokens dos provedores, hóspedes e conversas não fazem parte do contexto. A resposta sugere melhorias e testes, mas nunca altera campanhas automaticamente.
 
 Configuração de cada provedor, redirect URIs, escopos, versões e validação estão em [docs/MARKETING.md](docs/MARKETING.md) e [docs/INTEGRACOES.md](docs/INTEGRACOES.md).
 

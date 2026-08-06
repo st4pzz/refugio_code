@@ -341,6 +341,20 @@ test('analise de marketing com IA e protegida e nao altera campanhas',function()
     expect(str_contains($repository,'safeCreativeUrl'));
 });
 
+test('analise de marketing com IA usa fila e background para nao depender do timeout do nginx',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');
+    $worker=file_get_contents(BASE_PATH.'/scripts/process_jobs.php');
+    $client=file_get_contents(BASE_PATH.'/app/Services/OpenAiResponsesClient.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');
+    expect(str_contains($controller,"enqueue('MARKETING_AI_ANALYSIS'"));
+    expect(str_contains($controller,'hasActiveJobByUser'));
+    expect(str_contains($worker,"'MARKETING_AI_ANALYSIS'"));
+    expect(str_contains($client,"\$payload['background'] = true"));
+    expect(str_contains($client,'OPENAI_BACKGROUND_TIMEOUT_SECONDS'));
+    expect(str_contains($view,'A IA está analisando as campanhas.'));
+    expect(str_contains($view,'window.location.reload()'));
+});
+
 test('secao marketing reutiliza configuracao Meta e orienta autorizacao sincronizacao e analise',function(){
     $controller=file_get_contents(BASE_PATH.'/app/Controllers/MarketingController.php');
     $view=file_get_contents(BASE_PATH.'/app/Views/admin/marketing.php');
