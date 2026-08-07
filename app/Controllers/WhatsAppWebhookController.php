@@ -25,6 +25,23 @@ final class WhatsAppWebhookController
 
     public function receive(): never
     {
+           error_log(
+        '[WHATSAPP WEBHOOK] POST RECEBIDO - ' .
+        date('Y-m-d H:i:s')
+    );
+
+    $raw = file_get_contents('php://input') ?: '';
+
+    error_log(
+        '[WHATSAPP WEBHOOK] payload bytes=' . strlen($raw)
+    );
+
+    $signature = (string) ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+
+    error_log(
+        '[WHATSAPP WEBHOOK] signature=' .
+        ($signature !== '' ? 'PRESENTE' : 'AUSENTE')
+    );
         $raw = file_get_contents('php://input') ?: '';
         $signature = (string) ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
         if (!WhatsAppWebhookService::validSignature($raw, $signature)) {
