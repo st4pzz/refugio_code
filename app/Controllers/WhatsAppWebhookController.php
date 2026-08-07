@@ -24,40 +24,97 @@ final class WhatsAppWebhookController
     }
 
     public function receive(): never
-    {
-           error_log(
-        '[WHATSAPP WEBHOOK] POST RECEBIDO - ' .
-        date('Y-m-d H:i:s')
+{
+    $debug = static function (string $message): void {
+        error_log('[whatsapp-webhook-debug] ' . $message);
+    };
+
+    $debug(
+        'POST RECEBIDO host=' . ($_SERVER['HTTP_HOST'] ?? '') .
+        ' uri=' . ($_SERVER['REQUEST_URI'] ?? '')
     );
 
     $raw = file_get_contents('php://input') ?: '';
 
-    error_log(
-        '[WHATSAPP WEBHOOK] payload bytes=' . strlen($raw)
+    $signature = (string) (
+        $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? ''
     );
 
-    $signature = (string) ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+    $appSecret = Env::get('WHATSAPP_APP_SECRET');
 
-    error_log(
-        '[WHATSAPP WEBHOOK] signature=' .
-        ($signature !== '' ? 'PRESENTE' : 'AUSENTE')
+    $debug(
+        'body_bytes=' . strlen($raw) .
+        ' signature=' . ($signature !== '' ? 'PRESENTE' : 'AUSENTE') .
+        ' app_secret=' . ($appSecret !== '' ? 'PRESENTE' : 'AUSENTE')
     );
-        $raw = file_get_contents('php://input') ?: '';
-        $signature = (string) ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
-        if (!WhatsAppWebhookService::validSignature($raw, $signature)) {
-            http_response_code(401); header('Content-Type: application/json'); echo '{"error":"invalid signature"}'; exit;
-        }
-        try {
-            $service = new WhatsAppWebhookService(Database::connection());
-            $eventId = $service->accept($raw);
-            $service->process($eventId);
-            http_response_code(200); header('Content-Type: text/plain; charset=UTF-8'); echo 'EVENT_RECEIVED';
-        } catch (JsonException) {
-            http_response_code(400); header('Content-Type: application/json'); echo '{"error":"invalid payload"}';
-        } catch (Throwable $error) {
-            error_log('[whatsapp-webhook] ' . $error->getMessage());
-            http_response_code(500); header('Content-Type: application/json'); echo '{"error":"temporary failure"}';
-        }
+
+    $signatureValid = WhatsAppWebhookService::validSignature(
+        $raw,
+        $signature,
+        $appSecret
+    );
+
+    $debug(
+        'signature_valid=' . ($signatureValid ? 'SIM' : 'NAO')
+    );
+
+    if (!$signatureValid) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo '{"error":"invalid signature"}';
         exit;
     }
+
+    try {
+        $db = Database::connection();
+
+        $databaseName = (string) $db
+            ->query('SELECT DATABASE()')
+            ->fetchColumn();
+
+        $debug('database=' . $databaseName);
+
+        $service = new WhatsAppWebhookService($db);
+
+        $eventId = $service->accept($raw);
+
+        $debug('evento_gravado id=' . $eventId);
+
+        $service->process($eventId);
+
+        $debug('evento_processado id=' . $eventId);
+
+        http_response_code(200);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'EVENT_RECEIVED';
+
+    } catch (JsonException $error) {
+
+        $debug('JSON_INVALIDO');
+
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo '{"error":"invalid payload"}';
+
+    } catch (Throwable $error) {
+
+        $debug(
+            'ERRO=' .
+            get_class($error) .
+            ': ' .
+            $error->getMessage()
+        );
+
+        error_log(
+            '[whatsapp-webhook] ' .
+            $error->getMessage()
+        );
+
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo '{"error":"temporary failure"}';
+    }
+
+    exit;
+}
 }
