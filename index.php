@@ -203,8 +203,22 @@ $showCookieBanner = $cookieConsent === '';
         })(window, document);
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
-    <link rel="stylesheet" href="style.css?v=20260805-video-carousel">
+    <link rel="stylesheet" href="style.css?v=20260807-cookie-consent">
     <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
+    <style>
+        .cookie-consent-banner{display:grid !important;}
+        .cookie-consent-actions{display:grid !important;grid-template-columns:1fr 1fr !important;gap:.6rem !important;align-items:stretch !important;}
+        .cookie-consent-link{grid-column:1/-1 !important;display:block !important;}
+        .cookie-consent-button{display:inline-flex !important;align-items:center;justify-content:center;min-height:46px;}
+        .floating-buttons-container{position:fixed !important;display:flex !important;flex-direction:column !important;gap:1.5rem !important;right:2rem !important;bottom:2rem !important;z-index:9999 !important;visibility:visible !important;opacity:1 !important;}
+        body.cookie-consent-visible .floating-buttons-container{bottom:11rem !important;}
+        .float-btn{display:flex !important;}
+        @media (max-width:480px){
+            .cookie-consent-banner{left:.75rem !important;right:.75rem !important;bottom:.75rem !important;max-width:none !important;width:auto !important;}
+            .cookie-consent-actions{grid-template-columns:1fr !important;}
+            .floating-buttons-container{right:1rem !important;bottom:12rem !important;}
+        }
+    </style>
     <!-- Font Awesome CSS (defer loading, não-crítico) -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
