@@ -31,7 +31,9 @@ final class WhatsAppWebhookController
             http_response_code(401); header('Content-Type: application/json'); echo '{"error":"invalid signature"}'; exit;
         }
         try {
-            (new WhatsAppWebhookService(Database::connection()))->accept($raw);
+            $service = new WhatsAppWebhookService(Database::connection());
+            $eventId = $service->accept($raw);
+            $service->process($eventId);
             http_response_code(200); header('Content-Type: text/plain; charset=UTF-8'); echo 'EVENT_RECEIVED';
         } catch (JsonException) {
             http_response_code(400); header('Content-Type: application/json'); echo '{"error":"invalid payload"}';
