@@ -124,15 +124,19 @@ $showCookieBanner = $cookieConsent === '';
                 loadTikTokPixel();
             }
 
-            function hideBanner() {
-                var banner = document.querySelector('[data-cookie-consent-banner]');
-                if (!banner) return;
-                banner.classList.add('is-hidden');
-                window.setTimeout(function () {
-                    banner.hidden = true;
-                }, 250);
-                document.body.classList.remove('cookie-consent-visible');
-            }
+           function hideBanner() {
+    var banner = document.querySelector('[data-cookie-consent-banner]');
+
+    if (!banner) return;
+
+    banner.classList.add('is-hidden');
+    document.body.classList.remove('cookie-consent-visible');
+
+    window.setTimeout(function () {
+        banner.hidden = true;
+        banner.style.display = 'none';
+    }, 250);
+}
 
             function setConsentChoice(value) {
                 setCookie(consentCookieName, value, consentCookieMaxAge);
@@ -206,7 +210,7 @@ $showCookieBanner = $cookieConsent === '';
     <link rel="stylesheet" href="style.css?v=20260807-cookie-consent">
     <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
     <style>
-        .cookie-consent-banner{display:grid !important;}
+      
         .cookie-consent-actions{display:grid !important;grid-template-columns:1fr 1fr !important;gap:.6rem !important;align-items:stretch !important;}
         .cookie-consent-link{grid-column:1/-1 !important;display:block !important;}
         .cookie-consent-button{display:inline-flex !important;align-items:center;justify-content:center;min-height:46px;}

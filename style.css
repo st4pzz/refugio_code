@@ -1273,9 +1273,10 @@ section {
 }
 
 .cookie-consent-banner.is-hidden {
-    opacity: 0;
-    transform: translateY(18px);
-    pointer-events: none;
+    animation: none !important;
+    opacity: 0 !important;
+    transform: translateY(18px) !important;
+    pointer-events: none !important;
 }
 
 .cookie-consent-copy {
