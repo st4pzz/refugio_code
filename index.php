@@ -1,26 +1,10 @@
+<?php
+$cookieConsent = (string) ($_COOKIE['refugio_cookie_consent'] ?? '');
+$showCookieBanner = $cookieConsent === '';
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-5D4WKTM7');</script>
-<!-- End Google Tag Manager -->
-    <!-- TikTok Pixel Code Start -->
-    <script>
-    !function (w, d, t) {
-      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-    var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._i[e]._partner=o||'GoogleTagManagerClient',ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{},ttq._partner=ttq._partner||'GoogleTagManagerClient';n=document.createElement("script")
-    ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-
-
-      ttq.load('D9FTH53C77UBS5FSK8MG');
-      ttq.page();
-    }(window, document, 'ttq');
-    </script>
-    <!-- TikTok Pixel Code End -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
@@ -37,6 +21,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             var googleAdsId = 'AW-18158463231';
             var googleConversionId = 'AW-18158463231/1kiHCPjr7q0cEP_R0NJD';
             var metaPixelId = '1375499027959251';
+            var tiktokPixelId = 'D9FTH53C77UBS5FSK8MG';
+            var consentCookieName = 'refugio_cookie_consent';
+            var consentCookieMaxAge = 31536000;
 
             window.dataLayer = window.dataLayer || [];
             window.gtag = window.gtag || function () {
@@ -54,44 +41,109 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 fbq.queue = [];
             }
 
-            function loadScript(src) {
+            function loadScript(src, id) {
+                if (id && document.getElementById(id)) return;
                 var script = document.createElement('script');
+                if (id) script.id = id;
                 script.async = true;
                 script.src = src;
                 document.head.appendChild(script);
             }
 
+            function getCookie(name) {
+                var prefix = name + '=';
+                var parts = document.cookie ? document.cookie.split('; ') : [];
+                for (var i = 0; i < parts.length; i++) {
+                    if (parts[i].indexOf(prefix) === 0) {
+                        return decodeURIComponent(parts[i].slice(prefix.length));
+                    }
+                }
+                return '';
+            }
+
+            function setCookie(name, value, maxAge) {
+                document.cookie = name + '=' + encodeURIComponent(value) + '; Max-Age=' + maxAge + '; Path=/; SameSite=Lax';
+            }
+
+            function hasMarketingConsent() {
+                return getCookie(consentCookieName) === 'accepted';
+            }
+
+            function loadTikTokPixel() {
+                if (window.__tiktokTagsLoaded) return;
+                window.__tiktokTagsLoaded = true;
+
+                var ttq = window.ttq = window.ttq || [];
+                ttq.methods = ['page', 'track', 'identify', 'instances', 'debug', 'on', 'off', 'once', 'ready', 'alias', 'group', 'enableCookie', 'disableCookie', 'holdConsent', 'revokeConsent', 'grantConsent'];
+                ttq.setAndDefer = function (target, method) {
+                    target[method] = function () {
+                        target.push([method].concat(Array.prototype.slice.call(arguments, 0)));
+                    };
+                };
+                for (var i = 0; i < ttq.methods.length; i++) {
+                    ttq.setAndDefer(ttq, ttq.methods[i]);
+                }
+                ttq.instance = function (pixelId) {
+                    var instance = ttq._i[pixelId] || [];
+                    for (var j = 0; j < ttq.methods.length; j++) ttq.setAndDefer(instance, ttq.methods[j]);
+                    return instance;
+                };
+                ttq.load = function (pixelId, options) {
+                    var src = 'https://analytics.tiktok.com/i18n/pixel/events.js';
+                    var partner = options && options.partner;
+                    ttq._i = ttq._i || {};
+                    ttq._i[pixelId] = [];
+                    ttq._i[pixelId]._u = src;
+                    ttq._i[pixelId]._partner = partner || 'GoogleTagManagerClient';
+                    ttq._t = ttq._t || {};
+                    ttq._t[pixelId] = +new Date();
+                    ttq._o = ttq._o || {};
+                    ttq._o[pixelId] = options || {};
+                    ttq._partner = ttq._partner || 'GoogleTagManagerClient';
+                    loadScript(src + '?sdkid=' + pixelId + '&lib=ttq', 'tiktok-pixel-loader');
+                };
+
+                ttq.load(tiktokPixelId);
+                ttq.page();
+            }
+
             function loadMarketingTags() {
-                if (window.__marketingTagsLoaded) return;
+                if (window.__marketingTagsLoaded || !hasMarketingConsent()) return;
                 window.__marketingTagsLoaded = true;
 
-                loadScript('https://www.googletagmanager.com/gtag/js?id=' + googleAdsId);
+                loadScript('https://www.googletagmanager.com/gtm.js?id=GTM-5D4WKTM7', 'gtm-loader');
+                loadScript('https://www.googletagmanager.com/gtag/js?id=' + googleAdsId, 'google-ads-loader');
                 window.gtag('js', new Date());
                 window.gtag('config', googleAdsId);
 
-                loadScript('https://connect.facebook.net/en_US/fbevents.js');
+                loadScript('https://connect.facebook.net/en_US/fbevents.js', 'meta-pixel-loader');
                 window.fbq('init', metaPixelId);
                 window.fbq('track', 'PageView');
                 window.fbq('track', 'ViewContent');
+
+                loadTikTokPixel();
             }
 
-            function scheduleMarketingTags() {
-                var run = function () {
-                    if ('requestIdleCallback' in window) {
-                        window.requestIdleCallback(loadMarketingTags, { timeout: 2500 });
-                    } else {
-                        window.setTimeout(loadMarketingTags, 1200);
-                    }
-                };
+            function hideBanner() {
+                var banner = document.querySelector('[data-cookie-consent-banner]');
+                if (!banner) return;
+                banner.classList.add('is-hidden');
+                window.setTimeout(function () {
+                    banner.hidden = true;
+                }, 250);
+                document.body.classList.remove('cookie-consent-visible');
+            }
 
-                if (document.readyState === 'complete') {
-                    run();
-                } else {
-                    window.addEventListener('load', run, { once: true });
+            function setConsentChoice(value) {
+                setCookie(consentCookieName, value, consentCookieMaxAge);
+                if (value === 'accepted') {
+                    loadMarketingTags();
                 }
+                hideBanner();
             }
 
             window.gtag_report_conversion = function () {
+                if (!hasMarketingConsent()) return false;
                 window.gtag('event', 'conversion', {
                     send_to: googleConversionId,
                     value: 1.0,
@@ -101,6 +153,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             };
 
             window.trackOutboundClick = function (metaEvent) {
+                if (!hasMarketingConsent()) return true;
                 loadMarketingTags();
                 if (metaEvent && typeof window.fbq === 'function') {
                     window.fbq('track', metaEvent);
@@ -109,7 +162,44 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 return true;
             };
 
-            scheduleMarketingTags();
+            window.acceptCookieConsent = function () {
+                setConsentChoice('accepted');
+                return true;
+            };
+
+            window.rejectCookieConsent = function () {
+                setConsentChoice('rejected');
+                return true;
+            };
+
+            function bindConsentBanner() {
+                var banner = document.querySelector('[data-cookie-consent-banner]');
+                if (!banner) return;
+                var acceptButton = banner.querySelector('[data-cookie-consent-accept]');
+                var rejectButton = banner.querySelector('[data-cookie-consent-reject]');
+
+                if (acceptButton) {
+                    acceptButton.addEventListener('click', function () {
+                        window.acceptCookieConsent();
+                    });
+                }
+
+                if (rejectButton) {
+                    rejectButton.addEventListener('click', function () {
+                        window.rejectCookieConsent();
+                    });
+                }
+            }
+
+            if (hasMarketingConsent()) {
+                loadMarketingTags();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bindConsentBanner, { once: true });
+            } else {
+                bindConsentBanner();
+            }
         })(window, document);
     </script>
     <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
@@ -125,12 +215,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <!-- Preload do logo; o vídeo da hero carrega apenas os metadados inicialmente -->
     <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
 </head>
-<body>
-    <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5D4WKTM7"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1375499027959251&ev=PageView&noscript=1" alt=""></noscript>
+<body<?= $showCookieBanner ? ' class="cookie-consent-visible"' : '' ?>>
     <!-- HEADER STICKY -->
     <header class="header scrolled">
          <div class="header-container">
@@ -637,10 +722,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
     </footer>
 
+    <?php if ($showCookieBanner): ?>
+    <div class="cookie-consent-banner" data-cookie-consent-banner role="dialog" aria-live="polite" aria-label="Consentimento de cookies">
+        <div class="cookie-consent-copy">
+            <p class="cookie-consent-kicker">Cookies e consentimento</p>
+            <strong>Usamos cookies para melhorar sua navegação.</strong>
+            <p>Os essenciais mantêm o site funcionando. Com sua autorização, usamos cookies de análise e marketing para medir visitas e conversões.</p>
+        </div>
+        <div class="cookie-consent-actions">
+            <a class="cookie-consent-link" href="<?= e(base_url('politicas/privacidade')) ?>">Ver política</a>
+            <button type="button" class="cookie-consent-button secondary" data-cookie-consent-reject>Somente essenciais</button>
+            <button type="button" class="cookie-consent-button primary" data-cookie-consent-accept>Aceitar cookies</button>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- BOTÕES FLUTUANTES (CALL TO ACTION) -->
    <div class="floating-buttons-container">
     <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
-        <a href="/contato/whatsapp"
+        <a href="https://wa.me/5516997376487"
            onclick="trackOutboundClick('Lead')"
            target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
             <span class="float-ping"></span>
