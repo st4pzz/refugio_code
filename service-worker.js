@@ -4,14 +4,12 @@
  * Network First para HTML
  */
 
-const CACHE_VERSION = 'v1-refugio-20260805-video-carousel';
+const CACHE_VERSION = 'v1-refugio-20260807-cookie-consent';
 const CACHE_IMAGES = CACHE_VERSION + '-images';
 const CACHE_STATIC = CACHE_VERSION + '-static';
 const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.php',
   '/style.css',
   '/assets/css/reviews-public.css',
   '/assets/js/reviews-carousel.js',
@@ -143,6 +141,11 @@ self.addEventListener('fetch', event => {
   
   // Strategy 3: Network First para HTML (sempre tentar rede primeiro)
   else if (url.pathname.endsWith('/') || /\.php$/.test(url.pathname) || /\.html$/.test(url.pathname)) {
+    if (url.pathname === '/' || url.pathname === '/index.php') {
+      event.respondWith(fetch(request, { cache: 'no-store' }));
+      return;
+    }
+
     event.respondWith(
       fetch(request).then(networkResponse => {
         if (!networkResponse || networkResponse.status !== 200) {
