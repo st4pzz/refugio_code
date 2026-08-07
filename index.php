@@ -744,7 +744,7 @@ $showCookieBanner = $cookieConsent === '';
             <p>Os essenciais mantêm o site funcionando. Com sua autorização, usamos cookies de análise e marketing para medir visitas e conversões.</p>
         </div>
         <div class="cookie-consent-actions">
-            <a class="cookie-consent-link" href="<?= e(base_url('politicas/privacidade')) ?>">Ver política</a>
+            <a class="cookie-consent-link" href="politicas/privacidade">Ver política</a>
             <button type="button" class="cookie-consent-button secondary" data-cookie-consent-reject>Somente essenciais</button>
             <button type="button" class="cookie-consent-button primary" data-cookie-consent-accept>Aceitar Cookies</button>
         </div>
