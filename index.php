@@ -732,7 +732,7 @@ $showCookieBanner = $cookieConsent === '';
         <div class="cookie-consent-actions">
             <a class="cookie-consent-link" href="<?= e(base_url('politicas/privacidade')) ?>">Ver política</a>
             <button type="button" class="cookie-consent-button secondary" data-cookie-consent-reject>Somente essenciais</button>
-            <button type="button" class="cookie-consent-button primary" data-cookie-consent-accept>Aceitar cookies</button>
+            <button type="button" class="cookie-consent-button primary" data-cookie-consent-accept>Aceitar Cookies</button>
         </div>
     </div>
     <?php endif; ?>

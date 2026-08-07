@@ -1546,6 +1546,11 @@ section {
     pointer-events: auto;
 }
 
+body.cookie-consent-visible .floating-buttons-container {
+    bottom: 9.5rem;
+    z-index: 1001;
+}
+
 /* ---- RESPONSIVIDADE MOBILE FIRST ---- */
 
 /* Tablets - 768px */
@@ -1772,6 +1777,10 @@ section {
         bottom: 1.5rem;
         right: 1.5rem;
         gap: 1rem;
+    }
+
+    body.cookie-consent-visible .floating-buttons-container {
+        bottom: 10.25rem;
     }
 
     body.cookie-consent-visible .floating-buttons-container {
