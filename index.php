@@ -685,14 +685,14 @@ $showCookieBanner = $cookieConsent === '';
                     <i class="fas fa-phone"></i>
                     <div>
                         <h4>Contato</h4>
-                        <p>(16) 99621-2350</p>
+                        <p><a href="https://wa.me/5516997376487" target="_blank" rel="noopener noreferrer">+55 16 99737-6487</a></p>
                     </div>
                 </div>
                 <div class="info-item">
                     <i class="fas fa-envelope"></i>
                     <div>
                         <h4>Email</h4>
-                        <p>refugiodocuscuzeiro@gmail.com</p>
+                        <p><a href="mailto:reservas@refugiodocuscuzeiro.com.br">reservas@refugiodocuscuzeiro.com.br</a></p>
                     </div>
                 </div>
                 <a href="https://www.instagram.com/refugiodocuscuzeiro/" target="_blank" rel="noopener noreferrer" class="info-item info-social">
