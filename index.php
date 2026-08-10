@@ -1,6 +1,60 @@
 <?php
 $cookieConsent = (string) ($_COOKIE['refugio_cookie_consent'] ?? '');
 $showCookieBanner = $cookieConsent === '';
+
+$landingSections = [
+    'a-chacara' => [
+        'id' => 'chacara',
+        'title' => 'Conheça o Refúgio do Cuscuzeiro | Chácara em Analândia',
+        'description' => 'Conheça o Refúgio do Cuscuzeiro, chácara para aluguel por temporada em Analândia, São Paulo.',
+    ],
+    'avaliacoes-dos-hospedes' => [
+        'id' => 'reviews',
+        'title' => 'Avaliações dos hóspedes | Refúgio do Cuscuzeiro',
+        'description' => 'Veja avaliações reais de hóspedes que já aproveitaram o Refúgio do Cuscuzeiro em Analândia.',
+    ],
+    'comodidades' => [
+        'id' => 'comodidades',
+        'title' => 'Comodidades da chácara | Refúgio do Cuscuzeiro',
+        'description' => 'Conheça as suítes, piscina, churrasqueira, campo, salão de jogos e demais comodidades da chácara.',
+    ],
+    'galeria-de-fotos' => [
+        'id' => 'galeria',
+        'title' => 'Galeria de fotos | Refúgio do Cuscuzeiro',
+        'description' => 'Veja fotos dos quartos, áreas de lazer, piscina e demais espaços do Refúgio do Cuscuzeiro.',
+    ],
+    'videos-do-refugio' => [
+        'id' => 'videos',
+        'title' => 'Vídeos do Refúgio do Cuscuzeiro',
+        'description' => 'Assista aos vídeos e conheça a atmosfera, os espaços e a natureza do Refúgio do Cuscuzeiro.',
+    ],
+    'conheca-analandia' => [
+        'id' => 'anlandia',
+        'title' => 'Conheça Analândia | Refúgio do Cuscuzeiro',
+        'description' => 'Explore os atrativos de Analândia: Morro do Cuscuzeiro, cachoeiras, ecoturismo, gastronomia e ciclismo.',
+    ],
+    'reserva-direta' => [
+        'id' => 'reserva-direta',
+        'title' => 'Reserva direta | Refúgio do Cuscuzeiro',
+        'description' => 'Solicite sua reserva diretamente com o Refúgio do Cuscuzeiro e consulte a disponibilidade das datas.',
+    ],
+    'localizacao' => [
+        'id' => 'localizacao',
+        'title' => 'Localização | Refúgio do Cuscuzeiro em Analândia',
+        'description' => 'Veja a localização do Refúgio do Cuscuzeiro em Analândia, São Paulo, e planeje sua chegada.',
+    ],
+];
+
+$requestPath = trim((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? ''), '/');
+$requestedLandingSlug = strtolower(trim((string) ($_GET['landing_section'] ?? $requestPath)));
+$landingSection = $landingSections[$requestedLandingSlug] ?? null;
+$landingSectionSlug = $landingSection ? $requestedLandingSlug : '';
+$landingTargetId = $landingSection['id'] ?? '';
+$pageTitle = $landingSection['title'] ?? 'Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada';
+$pageDescription = $landingSection['description'] ?? 'Refúgio do Cuscuzeiro - Chácara de aluguel por temporada em Analândia, São Paulo. Piscina, suítes, churrasqueira e muito mais.';
+$canonicalPath = $landingSection ? '/' . $landingSectionSlug : '/';
+$canonicalUrl = 'https://www.refugiodocuscuzeiro.com.br' . $canonicalPath;
+$escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -8,12 +62,15 @@ $showCookieBanner = $cookieConsent === '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <meta name="description" content="Refúgio do Cuscuzeiro - Chácara de aluguel por temporada em Analândia, São Paulo. Piscina, suítes, churrasqueira e muito mais.">
+    <base href="/">
+    <meta name="description" content="<?= $escape($pageDescription) ?>">
     <meta name="keywords" content="chácara, aluguel, temporada, Analândia, piscina, refúgio">
-    <meta property="og:title" content="Refúgio do Cuscuzeiro - Chácara de Aluguel">
-    <meta property="og:description" content="Seu refúgio perfeito em Analândia. Natureza, conforto e exclusividade.">
+    <meta property="og:title" content="<?= $escape($pageTitle) ?>">
+    <meta property="og:description" content="<?= $escape($pageDescription) ?>">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/images/logo_refugio.webp">
+    <meta property="og:url" content="<?= $escape($canonicalUrl) ?>">
+    <meta property="og:image" content="https://www.refugiodocuscuzeiro.com.br/assets/images/logo_refugio.webp">
+    <link rel="canonical" href="<?= $escape($canonicalUrl) ?>">
     <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
     <meta name="facebook-domain-verification" content="sm11y3l28i1v2s2g36avcu3z3vejtg" />
     <script>
@@ -206,7 +263,7 @@ $showCookieBanner = $cookieConsent === '';
             }
         })(window, document);
     </script>
-    <title>Refúgio do Cuscuzeiro - Chácara de Aluguel por Temporada</title>
+    <title><?= $escape($pageTitle) ?></title>
     <link rel="stylesheet" href="style.css?v=20260807-cookie-consent">
     <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
     <style>
@@ -233,7 +290,7 @@ $showCookieBanner = $cookieConsent === '';
     <!-- Preload do logo; o vídeo da hero carrega apenas os metadados inicialmente -->
     <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
 </head>
-<body<?= $showCookieBanner ? ' class="cookie-consent-visible"' : '' ?>>
+<body data-landing-section="<?= $escape($landingSectionSlug) ?>"<?= $showCookieBanner ? ' class="cookie-consent-visible"' : '' ?>>
     <!-- HEADER STICKY -->
     <header class="header scrolled">
          <div class="header-container">
@@ -253,12 +310,12 @@ $showCookieBanner = $cookieConsent === '';
                     <span></span>
                 </button>
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="#chacara" class="nav-link">A Chácara</a></li>
-                    <li><a href="#galeria" class="nav-link">Fotos</a></li>
-                    <li><a href="#videos" class="nav-link">Vídeos</a></li>
-                    <li><a href="#anlandia" class="nav-link">Analândia</a></li>
-                    <li><a href="#localizacao" class="nav-link">Localização</a></li>
-                    <li><a href="reserva/solicitar" class="nav-link nav-reserva">Reserva direta</a></li>
+                    <li><a href="/a-chacara" class="nav-link"<?= $landingSectionSlug === 'a-chacara' ? ' aria-current="page"' : '' ?>>A Chácara</a></li>
+                    <li><a href="/galeria-de-fotos" class="nav-link"<?= $landingSectionSlug === 'galeria-de-fotos' ? ' aria-current="page"' : '' ?>>Fotos</a></li>
+                    <li><a href="/videos-do-refugio" class="nav-link"<?= $landingSectionSlug === 'videos-do-refugio' ? ' aria-current="page"' : '' ?>>Vídeos</a></li>
+                    <li><a href="/conheca-analandia" class="nav-link"<?= $landingSectionSlug === 'conheca-analandia' ? ' aria-current="page"' : '' ?>>Analândia</a></li>
+                    <li><a href="/localizacao" class="nav-link"<?= $landingSectionSlug === 'localizacao' ? ' aria-current="page"' : '' ?>>Localização</a></li>
+                    <li><a href="/reserva/solicitar" class="nav-link nav-reserva">Reserva direta</a></li>
                 </ul>
             </nav>
         </div>
@@ -287,8 +344,8 @@ $showCookieBanner = $cookieConsent === '';
             <h2 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h2>
             <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
             <div class="hero-actions">
-                <a class="cta-button cta-reserva" href="reserva/solicitar">Solicitar reserva direta</a>
-                <button class="cta-button cta-secondary" onclick="scrollToComodidades()">Conheça Nossas Comodidades</button>
+                <a class="cta-button cta-reserva" href="/reserva/solicitar">Solicitar reserva direta</a>
+                <a class="cta-button cta-secondary" href="/comodidades">Conheça Nossas Comodidades</a>
             </div>
         </div>
     </section>
@@ -677,7 +734,7 @@ $showCookieBanner = $cookieConsent === '';
                 <p>Envie as datas desejadas sem compromisso. Confirmamos a disponibilidade manualmente e, se aprovado, voce recebe uma pagina segura com a cobranca Pix.</p>
                 <p class="reservation-disclaimer">Esta e uma solicitacao de reserva e esta sujeita a confirmacao de disponibilidade.</p>
             </div>
-            <a class="reservation-button" href="reserva/solicitar">Solicitar reserva direta</a>
+            <a class="reservation-button" href="/reserva/solicitar">Solicitar reserva direta</a>
         </div>
     </section>
 
@@ -736,6 +793,7 @@ $showCookieBanner = $cookieConsent === '';
         <div class="section-container">
             <p>&copy; 2026 Refúgio do Cuscuzeiro. Todos os direitos reservados.</p>
             <p>Desenvolvido com <i class="fas fa-heart"></i> para sua comodidade</p>
+            <p class="footer-legal"><a href="/a-chacara">A chácara</a> · <a href="/avaliacoes-dos-hospedes">Avaliações</a> · <a href="/comodidades">Comodidades</a> · <a href="/galeria-de-fotos">Fotos</a> · <a href="/videos-do-refugio">Vídeos</a> · <a href="/conheca-analandia">Analândia</a> · <a href="/reserva-direta">Reserva direta</a> · <a href="/localizacao">Localização</a></p>
             <p class="footer-legal"><a href="politicas/privacidade">Privacidade</a> · <a href="politicas/termos">Termos de serviço</a> · <a href="politicas/exclusao-de-dados">Exclusão de dados</a> · <a href="politicas/cancelamento">Cancelamento</a> · <a href="politicas/regras">Regras</a></p>
         </div>
     </footer>
@@ -794,6 +852,18 @@ $showCookieBanner = $cookieConsent === '';
 </div>
 
     <script>
+        const initialLandingSection = <?= json_encode($landingTargetId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+        function scrollToLandingSection(sectionId, behavior = 'smooth') {
+            const target = document.getElementById(sectionId);
+            if (!target) return;
+
+            const header = document.querySelector('.header');
+            const headerHeight = header ? header.offsetHeight : 0;
+            const top = target.getBoundingClientRect().top + window.scrollY - headerHeight;
+            window.scrollTo({ top: Math.max(0, top), behavior });
+        }
+
         // Menu Mobile Toggle
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
@@ -815,16 +885,14 @@ $showCookieBanner = $cookieConsent === '';
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
+                scrollToLandingSection(this.getAttribute('href').slice(1));
             });
         });
 
-        // Função para scroll para comodidades
-        function scrollToComodidades() {
-            document.getElementById('comodidades').scrollIntoView({ behavior: 'smooth' });
+        if (initialLandingSection) {
+            window.addEventListener('load', () => {
+                scrollToLandingSection(initialLandingSection, 'auto');
+            }, { once: true });
         }
 
         // Floating Buttons - Tooltip Hover

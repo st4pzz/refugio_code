@@ -7,6 +7,9 @@ RewriteEngine On
 RewriteRule ^(?:app|config|database|docs|scripts|storage|tests|resources|tmp|output|\.git)(?:/|$) - [F,L,NC]
 RewriteRule ^\.env(?:\.|$) - [F,L,NC]
 
+# URLs permanentes para as secoes da landing page.
+RewriteRule ^(a-chacara|avaliacoes-dos-hospedes|comodidades|galeria-de-fotos|videos-do-refugio|conheca-analandia|reserva-direta|localizacao)/?$ index.php?landing_section=$1 [L,QSA]
+
 RewriteRule ^reserva/solicitar/?$ reserva/solicitar.php [L,QSA]
 RewriteRule ^reserva/sucesso/?$ reserva/sucesso.php [L,QSA]
 RewriteRule ^reserva/(?:pagamento/)?([A-Za-z0-9_-]{40,80})/?$ reserva/index.php?token=$1 [L,QSA]
