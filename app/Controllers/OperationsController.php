@@ -18,6 +18,7 @@ use Refugio\Services\PreCheckinService;
 use Refugio\Services\PropertySettingsService;
 use Refugio\Services\QuoteService;
 use Refugio\Services\UploadService;
+use Refugio\Models\ReservationStatus;
 use Refugio\Support\Csrf;
 use Refugio\Support\Env;
 use Refugio\Support\Security;
@@ -38,6 +39,7 @@ final class OperationsController
     {
         AuthorizationService::requirePermission('contracts.view');
         $versions=$this->db->query('SELECT v.*,t.name template_name FROM contract_template_versions v JOIN contract_templates t ON t.id=v.template_id ORDER BY v.version_no DESC')->fetchAll();
+        $approvedReservations=$this->db->query("SELECT id,codigo,nome_cliente,checkin,checkout,status FROM reservas WHERE status IN ('AGUARDANDO_PAGAMENTO','COMPROVANTE_ENVIADO','PAGAMENTO_CONFIRMADO','RESERVA_CONFIRMADA','FINALIZADA') ORDER BY checkin DESC,id DESC")->fetchAll();
         $contracts=$this->db->query('SELECT c.*,r.codigo,nome_cliente FROM reservation_contracts c JOIN reservas r ON r.id=c.reservation_id ORDER BY c.created_at DESC LIMIT 100')->fetchAll();
         $signatureDocuments=[];
         $documents=$this->db->query('SELECT d.* FROM contract_signature_documents d JOIN (SELECT contract_id,stage,MAX(revision_no) revision_no FROM contract_signature_documents GROUP BY contract_id,stage) latest ON latest.contract_id=d.contract_id AND latest.stage=d.stage AND latest.revision_no=d.revision_no')->fetchAll();
@@ -171,7 +173,7 @@ final class OperationsController
     private function contractApprove(int $userId):void{AuthorizationService::requirePermission('contracts.templates.approve');$missing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);if($missing!==[])throw new RuntimeException('Configuração contratual incompleta: '.implode(', ',$missing).'.');if(!(bool)(new PropertySettingsService($this->db))->get('CANCELLATION_POLICY_APPROVED',false))throw new RuntimeException('A política de cancelamento ainda não foi aprovada.');(new ContractTemplateService($this->db))->approveVersion((int)$_POST['version_id'],$userId);}
     private function contractGenerate(int $userId):void
     {
-        AuthorizationService::requirePermission('contracts.generate');$reservationId=(int)($_POST['reservation_id']??0);$stmt=$this->db->prepare('SELECT * FROM reservas WHERE id=?');$stmt->execute([$reservationId]);$r=$stmt->fetch()?:throw new RuntimeException('Reserva não encontrada.');$settings=(new PropertySettingsService($this->db))->values();
+        AuthorizationService::requirePermission('contracts.generate');$reservationId=(int)($_POST['reservation_id']??0);$stmt=$this->db->prepare('SELECT * FROM reservas WHERE id=?');$stmt->execute([$reservationId]);$r=$stmt->fetch()?:throw new RuntimeException('Reserva não encontrada.');if(!in_array($r['status'],[ReservationStatus::AGUARDANDO_PAGAMENTO->value,ReservationStatus::COMPROVANTE_ENVIADO->value,ReservationStatus::PAGAMENTO_CONFIRMADO->value,ReservationStatus::RESERVA_CONFIRMADA->value,ReservationStatus::FINALIZADA->value],true))throw new RuntimeException('Selecione uma reserva aprovada para gerar o contrato.');$settings=(new PropertySettingsService($this->db))->values();
         if(empty($settings['CANCELLATION_POLICY_APPROVED']))throw new RuntimeException('A política de cancelamento precisa de aprovação antes de gerar contrato.');$pre=(new PreCheckinService($this->db))->ensure($reservationId);$pre=(new PreCheckinService($this->db))->load($reservationId);$payments=$this->rows('SELECT * FROM pagamentos WHERE reserva_id=? ORDER BY id',[$reservationId]);$confirmed=array_sum(array_map(static fn($p)=>(float)($p['status']==='CONFIRMADO'?$p['valor']:0),$payments));$first=$payments[0]??[];$nights=(new DateTimeImmutable($r['checkin']))->diff(new DateTimeImmutable($r['checkout']))->days;
         $vars=[
             'owner_full_name'=>$settings['OWNER_FULL_NAME']??null,'owner_nationality'=>$settings['OWNER_NATIONALITY']??null,'owner_marital_status'=>$settings['OWNER_MARITAL_STATUS']??null,'owner_profession'=>$settings['OWNER_PROFESSION']??null,'owner_rg'=>$settings['OWNER_RG']??null,'owner_cpf'=>$settings['OWNER_CPF']??null,'owner_address'=>$settings['OWNER_ADDRESS']??null,'owner_phone'=>$settings['OWNER_PHONE']??null,'owner_email'=>$settings['OWNER_EMAIL']??null,
