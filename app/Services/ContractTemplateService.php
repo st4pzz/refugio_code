@@ -12,8 +12,8 @@ final class ContractTemplateService
     public const TEMPLATE_CODE = 'TEMPORARY_LEISURE_RENTAL';
 
     public const REQUIRED_VARIABLES = [
-        'owner_full_name','owner_nationality','owner_marital_status','owner_profession','owner_rg','owner_cpf','owner_address','owner_phone','owner_email',
-        'guest_full_name','guest_nationality','guest_marital_status','guest_profession','guest_rg','guest_cpf','guest_address','guest_phone','guest_email',
+        'owner_full_name','owner_nationality','owner_marital_status','owner_profession','owner_cpf','owner_address','owner_phone','owner_email',
+        'guest_full_name','guest_nationality','guest_marital_status','guest_profession','guest_cpf','guest_address','guest_phone','guest_email',
         'property_name','property_full_address','checkin_at','checkout_at','number_of_nights','total_amount','rental_amount','cleaning_fee','extra_guest_amount',
         'deposit_amount','deposit_due_at','balance_amount','balance_due_at','payment_method','unauthorized_visitor_fee','cancellation_policy','quiet_hours','pets_policy',
         'contract_forum_city','contract_city','contract_date_long','checkin_time','checkout_time','emergency_contact','contract_number','contract_version','document_hash',
@@ -48,6 +48,7 @@ final class ContractTemplateService
             $insert=$this->db->prepare('INSERT IGNORE INTO contract_template_versions (template_id,version_no,status,source_kind,title,body_html,variables_json,change_summary,legal_review_notes,source_document_hash,content_hash,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
             $insert->execute([$templateId,1,'ARCHIVED','SOURCE_ARCHIVE','Contrato recebido — arquivo imutável',$archived,$variables,'Extração textual integral das 12 páginas do PDF recebido, preservada para auditoria.','Não usar para assinatura: inclui a página de instruções, placeholders e 12 linhas de hóspedes.',$sourceHash,hash('sha256',$archived),$userId]);
             $insert->execute([$templateId,2,'PENDING_APPROVAL','EDITABLE_HTML','Contrato dinâmico — proposta v2',$suggested,$variables,'Remove página editorial; limita a 10 hóspedes; substitui placeholders por variáveis; explicita assinatura local auditável.','Revisar cancelamento, multa de 20%, foro, caução, visitantes, pets, silêncio e regras municipais antes de aprovar.',$sourceHash,hash('sha256',$suggested),$userId]);
+            $insert->execute([$templateId,3,'PENDING_APPROVAL','EDITABLE_HTML','Contrato dinâmico — CPF como documento',$suggested,$variables,'Substitui a identificação por RG pelo CPF das partes.','Revisar e aprovar esta versão antes de gerar novos contratos.',$sourceHash,hash('sha256',$suggested),$userId]);
             $this->db->commit();
             return ['template_id'=>$templateId,'source_hash'=>$sourceHash];
         } catch (Throwable $error) {

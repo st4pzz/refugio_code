@@ -412,7 +412,7 @@ final class ReservationService
             if(!$contract->fetchColumn()&&($reservation=$this->reservations->find($reservationId))){
                 $missing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);
                 $details='Pagamento confirmado, mas o contrato ainda requer os dados jurídicos do locatário '
-                    .'(nacionalidade, estado civil, profissão, RG e endereço completo) e a validação do inventário/anexos.';
+                    .'(nacionalidade, estado civil, profissão, CPF e endereço completo) e a validação do inventário/anexos.';
                 if($missing!==[])$details.=' Configurações pendentes: '.implode(', ',$missing).'.';
                 $this->notifications->admin($reservation,'CONTRACT_PREPARATION_REQUIRED',$details,'admin/contratos');
             }
