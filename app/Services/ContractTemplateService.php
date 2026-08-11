@@ -16,7 +16,7 @@ final class ContractTemplateService
         'guest_full_name','guest_nationality','guest_marital_status','guest_profession','guest_cpf','guest_address','guest_phone','guest_email',
         'property_name','property_full_address','checkin_at','checkout_at','number_of_nights','total_amount','rental_amount','cleaning_fee','extra_guest_amount',
         'deposit_amount','deposit_due_at','balance_amount','balance_due_at','payment_method','unauthorized_visitor_fee','cancellation_policy','quiet_hours','pets_policy',
-        'contract_forum_city','contract_city','contract_date_long','checkin_time','checkout_time','emergency_contact','contract_number','contract_version','document_hash',
+        'contract_forum_city','contract_city','contract_date_long','checkin_time','checkout_time','max_guests','emergency_contact','contract_number','contract_version','document_hash',
     ];
 
     private const RAW_VARIABLES = ['inventory_rows','guest_rows','vehicle_rows'];
@@ -49,6 +49,7 @@ final class ContractTemplateService
             $insert->execute([$templateId,1,'ARCHIVED','SOURCE_ARCHIVE','Contrato recebido — arquivo imutável',$archived,$variables,'Extração textual integral das 12 páginas do PDF recebido, preservada para auditoria.','Não usar para assinatura: inclui a página de instruções, placeholders e 12 linhas de hóspedes.',$sourceHash,hash('sha256',$archived),$userId]);
             $insert->execute([$templateId,2,'PENDING_APPROVAL','EDITABLE_HTML','Contrato dinâmico — proposta v2',$suggested,$variables,'Remove página editorial; limita a 10 hóspedes; substitui placeholders por variáveis; explicita assinatura local auditável.','Revisar cancelamento, multa de 20%, foro, caução, visitantes, pets, silêncio e regras municipais antes de aprovar.',$sourceHash,hash('sha256',$suggested),$userId]);
             $insert->execute([$templateId,3,'PENDING_APPROVAL','EDITABLE_HTML','Contrato dinâmico — CPF como documento',$suggested,$variables,'Substitui a identificação por RG pelo CPF das partes.','Revisar e aprovar esta versão antes de gerar novos contratos.',$sourceHash,hash('sha256',$suggested),$userId]);
+            $insert->execute([$templateId,4,'PENDING_APPROVAL','EDITABLE_HTML','Contrato dinâmico — capacidade configurável',$suggested,$variables,'Substitui o limite fixo de 10 pessoas pela capacidade definida nas configurações da propriedade.','Revise e aprove esta versão para que capacidade e horários atuais sejam usados nos novos contratos.',$sourceHash,hash('sha256',$suggested),$userId]);
             $this->db->commit();
             return ['template_id'=>$templateId,'source_hash'=>$sourceHash];
         } catch (Throwable $error) {
@@ -130,11 +131,12 @@ final class ContractTemplateService
         }
     }
 
-    public static function guestRows(array $guests): string
+    public static function guestRows(array $guests, int $maxGuests = 10): string
     {
-        if(count($guests)>10) throw new RuntimeException('O contrato aceita no máximo 10 hóspedes.');
+        $maxGuests = max(1, $maxGuests);
+        if (count($guests) > $maxGuests) throw new RuntimeException('Guest list exceeds the configured capacity.');
         $rows='';
-        for($index=0;$index<10;$index++){
+        for($index=0;$index<$maxGuests;$index++){
             $guest=$guests[$index]??[];
             $values=[$index+1,$guest['full_name']??'', $guest['cpf']??$guest['document_number']??'', $guest['birth_date']??'', $guest['phone']??''];
             $rows.='<tr>'.implode('',array_map(static fn($value):string=>'<td>'.htmlspecialchars((string)$value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'</td>',$values)).'</tr>';

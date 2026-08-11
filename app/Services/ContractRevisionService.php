@@ -42,8 +42,24 @@ final class ContractRevisionService
 
             $variables = json_decode((string) $source['variables_snapshot_json'], true);
             if (!is_array($variables)) throw new RuntimeException('O snapshot do contrato esta invalido.');
+            $reservationStatement = $this->db->prepare('SELECT checkin,checkout FROM reservas WHERE id=?');
+            $reservationStatement->execute([(int) $source['reservation_id']]);
+            $reservation = $reservationStatement->fetch() ?: throw new RuntimeException('Reserva nao encontrada.');
+            $settings = (new PropertySettingsService($this->db))->values();
+            $maxGuests = (int) ($settings['MAX_GUESTS'] ?? 10);
+            $variables['checkin_time'] = $settings['DEFAULT_CHECKIN_TIME'] ?? null;
+            $variables['checkout_time'] = $settings['DEFAULT_CHECKOUT_TIME'] ?? null;
+            $variables['checkin_at'] = date('d/m/Y', strtotime($reservation['checkin'])) . ' ' . $variables['checkin_time'];
+            $variables['checkout_at'] = date('d/m/Y', strtotime($reservation['checkout'])) . ' ' . $variables['checkout_time'];
+            $variables['max_guests'] = $maxGuests;
+            $preCheckin = new PreCheckinService($this->db);
+            $preCheckin->ensure((int) $source['reservation_id']);
+            $pre = $preCheckin->load((int) $source['reservation_id']);
+            $variables['guest_rows'] = ContractTemplateService::guestRows($pre['guests'], $maxGuests);
             unset($variables['contract_number'], $variables['contract_version'], $variables['document_hash']);
             $variables['contract_date_long'] = (new DateTimeImmutable('now'))->format('d/m/Y');
+
+            $template = (new ContractTemplateService($this->db))->activeVersion();
 
             $versionStatement = $this->db->prepare('SELECT COALESCE(MAX(version_no),0)+1 FROM reservation_contracts WHERE reservation_id=? FOR UPDATE');
             $versionStatement->execute([(int) $source['reservation_id']]);
@@ -53,10 +69,10 @@ final class ContractRevisionService
             $variables['contract_version'] = (string) $newVersion;
             $variables['document_hash'] = hash(
                 'sha256',
-                (string) $source['template_content_hash'] . '|' . json_encode($variables, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
+                (string) $template['content_hash'] . '|' . json_encode($variables, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
             );
 
-            $html = (new ContractTemplateService($this->db))->render((string) $source['template_body_html'], $variables);
+            $html = (new ContractTemplateService($this->db))->render((string) $template['body_html'], $variables);
             $contentHash = hash('sha256', $html);
             $insert = $this->db->prepare(
                 "INSERT INTO reservation_contracts (reservation_id,template_version_id,version_no,status,contract_number,variables_snapshot_json,html_snapshot,content_hash,ready_at,generated_by) "
@@ -64,7 +80,7 @@ final class ContractRevisionService
             );
             $insert->execute([
                 $source['reservation_id'],
-                $source['template_version_id'],
+                $template['id'],
                 $newVersion,
                 $contractNumber,
                 json_encode($variables, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
@@ -77,7 +93,7 @@ final class ContractRevisionService
             $signer = $this->db->prepare('INSERT INTO contract_signers (contract_id,signer_role,name,cpf,email,phone) VALUES (?,?,?,?,?,?)');
             $signer->execute([$newContractId, 'GUEST', $variables['guest_full_name'], $variables['guest_cpf'], $variables['guest_email'], $variables['guest_phone']]);
             $signer->execute([$newContractId, 'OWNER', $variables['owner_full_name'], $variables['owner_cpf'], $variables['owner_email'], $variables['owner_phone']]);
-            $metadata = json_encode(['template_version_id' => (int) $source['template_version_id'], 'revises_contract_id' => $sourceContractId], JSON_THROW_ON_ERROR);
+            $metadata = json_encode(['template_version_id' => (int) $template['id'], 'revises_contract_id' => $sourceContractId], JSON_THROW_ON_ERROR);
             $this->db->prepare("INSERT INTO contract_events (contract_id,event_type,metadata_json,document_hash) VALUES (?,'CONTRACT_READY',?,?)")
                 ->execute([$newContractId, $metadata, $contentHash]);
 

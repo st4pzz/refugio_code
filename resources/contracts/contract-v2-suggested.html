@@ -11,7 +11,7 @@
 <p>2.3. Permanência não autorizada após o checkout: 10% de uma diária por hora ou fração, limitada a uma diária, sem prejuízo de despesas comprovadas.</p>
 <p>2.4. O imóvel deverá ser desocupado e os itens de acesso devolvidos conforme orientação.</p>
 <h2>3. OCUPAÇÃO E VISITANTES</h2>
-<p>3.1. A ocupação máxima é, de forma estrita, de <strong>10 (dez) pessoas</strong>, incluindo crianças. Todos devem constar no Anexo II; qualquer aumento exige alteração formal da reserva sem ultrapassar esse limite.</p>
+<p>3.1. A ocupação máxima é, de forma estrita, de <strong>{{max_guests}} pessoas</strong>, incluindo crianças. Todos devem constar no Anexo II; qualquer aumento exige alteração formal da reserva sem ultrapassar esse limite.</p>
 <p>3.2. O LOCATÁRIO responde pelos atos, omissões e danos do grupo, visitantes, prestadores e animais.</p>
 <p>3.3. Pessoa não cadastrada depende de autorização prévia. Descumprimento poderá gerar rescisão, desocupação, cobrança de {{unauthorized_visitor_fee}} por pessoa/dia e danos efetivos.</p>
 <p>3.4. Crianças e adolescentes permanecerão sob supervisão contínua de adulto.</p>
@@ -106,12 +106,12 @@
 <p>Imóvel: {{property_name}} · {{property_full_address}}</p>
 <table><thead><tr><th>Ambiente / item</th><th>Qtd.</th><th>Estado</th><th>Valor</th><th>Observações / foto</th></tr></thead><tbody>{{inventory_rows}}</tbody></table>
 <h2>ANEXO II — LISTA DE HÓSPEDES E VEÍCULOS</h2>
-<p>Somente as pessoas abaixo estão autorizadas, respeitado o limite absoluto de 10.</p>
+<p>Somente as pessoas abaixo estão autorizadas, respeitado o limite absoluto de {{max_guests}}.</p>
 <table><thead><tr><th>#</th><th>Nome completo</th><th>CPF/documento</th><th>Nascimento</th><th>Telefone</th></tr></thead><tbody>{{guest_rows}}</tbody></table>
 <h3>Veículos autorizados</h3>
 <table><thead><tr><th>Proprietário/condutor</th><th>Marca/modelo</th><th>Cor</th><th>Placa</th></tr></thead><tbody>{{vehicle_rows}}</tbody></table>
 <h2>ANEXO III — REGRAS ESSENCIAIS</h2>
-<p><strong>Capacidade:</strong> 10 pessoas, incluindo crianças. <strong>Horários:</strong> {{checkin_time}} / {{checkout_time}}. <strong>Sossego:</strong> {{quiet_hours}}. <strong>Eventos:</strong> proibidos sem autorização. <strong>Piscina:</strong> sem vidro, crianças acompanhadas. <strong>Fumo:</strong> proibido em áreas internas. <strong>Animais:</strong> {{pets_policy}}. <strong>Emergência:</strong> {{emergency_contact}}; Bombeiros 193, SAMU 192, Polícia 190.</p>
+<p><strong>Capacidade:</strong> {{max_guests}} pessoas, incluindo crianças. <strong>Horários:</strong> {{checkin_time}} / {{checkout_time}}. <strong>Sossego:</strong> {{quiet_hours}}. <strong>Eventos:</strong> proibidos sem autorização. <strong>Piscina:</strong> sem vidro, crianças acompanhadas. <strong>Fumo:</strong> proibido em áreas internas. <strong>Animais:</strong> {{pets_policy}}. <strong>Emergência:</strong> {{emergency_contact}}; Bombeiros 193, SAMU 192, Polícia 190.</p>
 <h2>ANEXO IV — VISTORIA DE SAÍDA E CAUÇÃO</h2>
 <p>Caução: {{security_deposit_amount}} · deduções comprovadas: {{security_deductions}} · saldo: {{security_balance}} · devolução prevista: {{security_return_date}}.</p>
 <p class="document-hash">Contrato {{contract_number}} · versão {{contract_version}} · hash {{document_hash}}</p>
