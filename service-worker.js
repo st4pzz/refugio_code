@@ -4,7 +4,7 @@
  * Network First para HTML
  */
 
-const CACHE_VERSION = 'v1-refugio-20260807-cookie-consent';
+const CACHE_VERSION = 'v1-refugio-20260811-city-seo';
 const CACHE_IMAGES = CACHE_VERSION + '-images';
 const CACHE_STATIC = CACHE_VERSION + '-static';
 const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';
@@ -12,6 +12,7 @@ const CACHE_DYNAMIC = CACHE_VERSION + '-dynamic';
 const STATIC_ASSETS = [
     '/style.css',
     '/assets/css/reviews-public.css',
+    '/assets/css/seo-content.css',
     '/assets/js/reviews-carousel.js',
     '/assets/js/videos-carousel.js',
     '/assets/js/register-sw.js',

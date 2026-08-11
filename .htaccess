@@ -7,6 +7,18 @@ RewriteEngine On
 RewriteRule ^(?:app|config|database|docs|scripts|storage|tests|resources|tmp|output|\.git)(?:/|$) - [F,L,NC]
 RewriteRule ^\.env(?:\.|$) - [F,L,NC]
 
+# Conteudo editorial e landing pages SEO, renderizados no servidor.
+RewriteRule ^sitemap\.xml$ seo/sitemap.php [L]
+RewriteRule ^robots\.txt$ seo/robots.php [L]
+RewriteRule ^alugar-chacara/perto-de-sao-paulo/?$ /chacara-perto-de/sao-paulo/ [R=301,L,NE]
+RewriteRule ^alugar-chacara/?$ seo/index.php?route=alugar-chacara [L,QSA]
+RewriteRule ^alugar-chacara/(interior-de-sp|analandia|final-de-semana|para-familia|perto-de-sao-paulo)/?$ seo/index.php?route=alugar-chacara/$1 [L,QSA]
+RewriteRule ^analandia/?$ seo/index.php?route=analandia [L,QSA]
+RewriteRule ^chacara-perto-de/?$ seo/index.php?route=chacara-perto-de [L,QSA]
+RewriteRule ^chacara-perto-de/([a-z0-9-]+)/?$ seo/index.php?route=chacara-perto-de/$1 [L,QSA]
+RewriteRule ^blog/?$ seo/index.php?route=blog [L,QSA]
+RewriteRule ^blog/([a-z0-9-]+)/?$ seo/index.php?route=blog/$1 [L,QSA]
+
 # URLs permanentes para as secoes da landing page.
 RewriteRule ^(a-chacara|avaliacoes-dos-hospedes|comodidades|galeria-de-fotos|videos-do-refugio|conheca-analandia|reserva-direta|localizacao)/?$ index.php?landing_section=$1 [L,QSA]
 

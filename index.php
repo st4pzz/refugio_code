@@ -64,12 +64,19 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
     <meta name="color-scheme" content="light">
     <base href="/">
     <meta name="description" content="<?= $escape($pageDescription) ?>">
-    <meta name="keywords" content="chácara, aluguel, temporada, Analândia, piscina, refúgio">
+    <meta name="robots" content="index,follow,max-image-preview:large">
     <meta property="og:title" content="<?= $escape($pageTitle) ?>">
     <meta property="og:description" content="<?= $escape($pageDescription) ?>">
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?= $escape($canonicalUrl) ?>">
     <meta property="og:image" content="https://www.refugiodocuscuzeiro.com.br/assets/images/logo_refugio.webp">
+    <meta property="og:image:alt" content="Refúgio do Cuscuzeiro em Analândia">
+    <meta property="og:site_name" content="Refúgio do Cuscuzeiro">
+    <meta property="og:locale" content="pt_BR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= $escape($pageTitle) ?>">
+    <meta name="twitter:description" content="<?= $escape($pageDescription) ?>">
+    <meta name="twitter:image" content="https://www.refugiodocuscuzeiro.com.br/assets/images/logo_refugio.webp">
     <link rel="canonical" href="<?= $escape($canonicalUrl) ?>">
     <link rel="icon" type="image/png" href="assets/images/logo_refugio.png">
     <meta name="facebook-domain-verification" content="sm11y3l28i1v2s2g36avcu3z3vejtg" />
@@ -289,6 +296,16 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <!-- Preload do logo; o vídeo da hero carrega apenas os metadados inicialmente -->
     <link rel="preload" as="image" href="assets/images/logo_crema.webp" type="image/webp">
+    <script type="application/ld+json"><?php
+        echo json_encode([
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                ['@type' => 'Organization', '@id' => 'https://www.refugiodocuscuzeiro.com.br/#organization', 'name' => 'Refúgio do Cuscuzeiro', 'url' => 'https://www.refugiodocuscuzeiro.com.br/', 'logo' => 'https://www.refugiodocuscuzeiro.com.br/assets/images/logo_refugio.webp'],
+                ['@type' => 'WebSite', '@id' => 'https://www.refugiodocuscuzeiro.com.br/#website', 'url' => 'https://www.refugiodocuscuzeiro.com.br/', 'name' => 'Refúgio do Cuscuzeiro', 'inLanguage' => 'pt-BR', 'publisher' => ['@id' => 'https://www.refugiodocuscuzeiro.com.br/#organization']],
+                ['@type' => ['LodgingBusiness', 'VacationRental'], '@id' => 'https://www.refugiodocuscuzeiro.com.br/#lodging', 'name' => 'Refúgio do Cuscuzeiro', 'url' => 'https://www.refugiodocuscuzeiro.com.br/', 'image' => 'https://www.refugiodocuscuzeiro.com.br/assets/images/imagens_a_rotacionar/Noturno.webp', 'description' => 'Chácara para aluguel por temporada em Analândia, no interior de São Paulo.', 'address' => ['@type' => 'PostalAddress', 'addressLocality' => 'Analândia', 'addressRegion' => 'SP', 'addressCountry' => 'BR']],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
+    ?></script>
 </head>
 <body data-landing-section="<?= $escape($landingSectionSlug) ?>"<?= $showCookieBanner ? ' class="cookie-consent-visible"' : '' ?>>
     <!-- HEADER STICKY -->
@@ -313,7 +330,8 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                     <li><a href="/a-chacara" class="nav-link"<?= $landingSectionSlug === 'a-chacara' ? ' aria-current="page"' : '' ?>>A Chácara</a></li>
                     <li><a href="/galeria-de-fotos" class="nav-link"<?= $landingSectionSlug === 'galeria-de-fotos' ? ' aria-current="page"' : '' ?>>Fotos</a></li>
                     <li><a href="/videos-do-refugio" class="nav-link"<?= $landingSectionSlug === 'videos-do-refugio' ? ' aria-current="page"' : '' ?>>Vídeos</a></li>
-                    <li><a href="/conheca-analandia" class="nav-link"<?= $landingSectionSlug === 'conheca-analandia' ? ' aria-current="page"' : '' ?>>Analândia</a></li>
+                    <li><a href="/analandia/" class="nav-link">Analândia</a></li>
+                    <li><a href="/blog/" class="nav-link">Blog</a></li>
                     <li><a href="/localizacao" class="nav-link"<?= $landingSectionSlug === 'localizacao' ? ' aria-current="page"' : '' ?>>Localização</a></li>
                     <li><a href="/reserva/solicitar" class="nav-link nav-reserva">Reserva direta</a></li>
                 </ul>
@@ -341,7 +359,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">
-            <h2 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h2>
+            <h1 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h1>
             <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
             <div class="hero-actions">
                 <a class="cta-button cta-reserva" href="/reserva/solicitar">Solicitar reserva direta</a>
@@ -793,7 +811,8 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         <div class="section-container">
             <p>&copy; 2026 Refúgio do Cuscuzeiro. Todos os direitos reservados.</p>
             <p>Desenvolvido com <i class="fas fa-heart"></i> para sua comodidade</p>
-            <p class="footer-legal"><a href="/a-chacara">A chácara</a> · <a href="/avaliacoes-dos-hospedes">Avaliações</a> · <a href="/comodidades">Comodidades</a> · <a href="/galeria-de-fotos">Fotos</a> · <a href="/videos-do-refugio">Vídeos</a> · <a href="/conheca-analandia">Analândia</a> · <a href="/reserva-direta">Reserva direta</a> · <a href="/localizacao">Localização</a></p>
+            <p class="footer-legal"><a href="/a-chacara">A chácara</a> · <a href="/galeria-de-fotos">Fotos</a> · <a href="/alugar-chacara/analandia/">Chácara em Analândia</a> · <a href="/alugar-chacara/interior-de-sp/">Interior de SP</a> · <a href="/chacara-perto-de/">Planeje pela sua cidade</a> · <a href="/analandia/">Conheça Analândia</a> · <a href="/blog/">Blog</a> · <a href="/reserva-direta">Reserva direta</a></p>
+            <p class="footer-legal"><a href="/blog/o-que-fazer-em-analandia/">O que fazer</a> · <a href="/blog/pedra-do-cuscuzeiro-analandia/">Pedra do Cuscuzeiro</a> · <a href="/blog/cachoeiras-em-analandia/">Cachoeiras</a> · <a href="/blog/onde-ficar-em-analandia/">Onde ficar</a></p>
             <p class="footer-legal"><a href="politicas/privacidade">Privacidade</a> · <a href="politicas/termos">Termos de serviço</a> · <a href="politicas/exclusao-de-dados">Exclusão de dados</a> · <a href="politicas/cancelamento">Cancelamento</a> · <a href="politicas/regras">Regras</a></p>
         </div>
     </footer>
@@ -816,7 +835,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
     <!-- BOTÕES FLUTUANTES (CALL TO ACTION) -->
    <div class="floating-buttons-container">
     <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
-        <a href="https://wa.me/5516997376487"
+        <a href="/contato/whatsapp"
            onclick="trackOutboundClick('Lead')"
            target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
             <span class="float-ping"></span>
