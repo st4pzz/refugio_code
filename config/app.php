@@ -18,7 +18,7 @@ return [
     'whatsapp_media_max_bytes' => max(1, Env::int('WHATSAPP_MEDIA_MAX_MB', 20)) * 1024 * 1024,
     'conversations_realtime_interval_seconds' => max(5, min(60, Env::int('CONVERSATIONS_REALTIME_INTERVAL_SECONDS', 10))),
     'keep_receipt_after_expiry' => Env::bool('KEEP_RECEIPT_AFTER_EXPIRY', true),
-    'contact_whatsapp' => Env::get('CONTACT_WHATSAPP', '5516996212350'),
+    'contact_whatsapp' => Env::get('CONTACT_WHATSAPP', '5516997376487'),
     'admin_email' => Env::get('ADMIN_EMAIL', ''),
     'review_expiration_days' => max(1, Env::int('REVIEW_INVITATION_EXPIRATION_DAYS', 90)),
     'review_delay_hours' => max(0, Env::int('REVIEW_INVITATION_DELAY_HOURS', 24)),
