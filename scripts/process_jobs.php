@@ -20,6 +20,7 @@ while ($processed < $limit && ($job = $queue->reserve($worker))) {
     try {
         $result = match ($job['tipo']) {
             'WHATSAPP_WEBHOOK' => (new Refugio\Services\WhatsAppWebhookService($db))->process((int) $job['payload']['event_id']),
+            'CONVERSATION_EMAIL_ALERT' => (new Refugio\Services\ConversationAlertService($db))->send((int) $job['payload']['message_id']),
             'WHATSAPP_MEDIA' => (new Refugio\Services\WhatsAppWebhookService($db))->downloadMedia((int) $job['payload']['message_id']),
             'MARKETING_SYNC' => (new Refugio\Services\MarketingSyncService($db))->sync((int) $job['payload']['integration_id'], (string) $job['payload']['start'], (string) $job['payload']['end'], isset($job['payload']['user_id']) ? (int) $job['payload']['user_id'] : null),
             'MARKETING_AI_ANALYSIS' => (new Refugio\Services\MarketingAiAnalysisJobService($db))->process($job, $queue),

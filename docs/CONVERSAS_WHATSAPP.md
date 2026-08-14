@@ -33,8 +33,9 @@ Referências oficiais: [componentes de webhook da Cloud API](https://developers.
 2. Persiste o payload em `whatsapp_webhook_eventos`, único por SHA-256.
 3. Cria um job `WHATSAPP_WEBHOOK` com chave única e responde `EVENT_RECEIVED`.
 4. `scripts/process_jobs.php` normaliza telefone, procura cliente/lead/reserva, cria ou atualiza conversa e persiste a mensagem por `external_message_id` único.
-5. Mídias criam um segundo job e são baixadas para `storage/conversas`, nunca para uma URL pública.
-6. Status `sent`, `delivered`, `read` e `failed` atualizam a mesma mensagem sem regredir o status.
+5. Somente a primeira mensagem de entrada de uma conversa cria um job idempotente de alerta por e-mail. Mensagens posteriores, inclusive após finalizar ou arquivar a conversa, não enviam um novo aviso. O destinatário é definido por `CONVERSATION_ALERT_EMAIL` (padrão: `refugiodocuscuzeiro@gmail.com`), e falhas temporárias usam as retentativas da fila sem bloquear a conversa.
+6. Mídias criam um segundo job e são baixadas para `storage/conversas`, nunca para uma URL pública.
+7. Status `sent`, `delivered`, `read` e `failed` atualizam a mesma mensagem sem regredir o status.
 
 Tipos preservados: texto, imagem, documento, áudio, vídeo, localização, contato, botão, interativa, template, sticker e desconhecida. O payload original da mensagem é mantido enquanto a política de retenção permitir; a interface nunca reduz tudo a texto.
 

@@ -116,13 +116,27 @@ final class WhatsAppWebhookService
         }
         $stmt = $this->db->prepare("INSERT IGNORE INTO mensagens (conversa_id,external_message_id,direcao,tipo,texto,media_id,media_mime,media_nome,payload_json,status,respondendo_a_id,recebida_em) VALUES (?,?,'ENTRADA',?,?,?,?,?,?, 'RECEBIDA',?,?)");
         $stmt->execute([$conversationId,$externalId,$type,$text,$mediaId,$mime,$filename,json_encode($message, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),$replyId,$timestamp]);
-        if ($stmt->rowCount() > 0) {
+        $inserted = $stmt->rowCount() > 0;
+        if ($inserted) {
             $messageId = (int) $this->db->lastInsertId();
             $preview = mb_substr($text ?: '[' . ucfirst(strtolower($type)) . ']', 0, 255);
             $this->db->prepare("UPDATE conversas SET primeira_mensagem_em=COALESCE(primeira_mensagem_em,?),ultima_mensagem_em=?,ultima_mensagem_preview=?,nao_lidas=nao_lidas+1,janela_atendimento_ate=DATE_ADD(?,INTERVAL 24 HOUR),status=IF(status IN ('FINALIZADA','ARQUIVADA'),'NOVA',status) WHERE id=?")
                 ->execute([$timestamp,$timestamp,$preview,$timestamp,$conversationId]);
             if ($mediaId) (new JobQueueService($this->db))->enqueue('WHATSAPP_MEDIA', ['message_id' => $messageId], 'whatsapp-media:' . $externalId, 30, 6);
             (new AuditService($this->db))->record('CONVERSAS','MENSAGEM_RECEBIDA','mensagens',$messageId,null,['conversa_id'=>$conversationId,'tipo'=>$type]);
+        } else {
+            $existing = $this->db->prepare('SELECT id FROM mensagens WHERE external_message_id=?');
+            $existing->execute([$externalId]);
+            $messageId = (int) $existing->fetchColumn();
+        }
+        if ($messageId > 0 && $this->isFirstIncomingMessage($conversationId, $messageId)) {
+            (new JobQueueService($this->db))->enqueue(
+                'CONVERSATION_EMAIL_ALERT',
+                ['message_id' => $messageId],
+                'conversation-email-alert:' . $conversationId,
+                20,
+                8
+            );
         }
     }
 
@@ -143,6 +157,13 @@ final class WhatsAppWebhookService
         $stmt = $this->db->prepare("INSERT INTO conversas (telefone,telefone_normalizado,wa_id,nome_contato,cliente_id,lead_id,reserva_id,origem) VALUES (?,?,?,?,?,?,?,'WHATSAPP') ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id),telefone=VALUES(telefone),wa_id=VALUES(wa_id),nome_contato=COALESCE(NULLIF(VALUES(nome_contato),''),nome_contato),cliente_id=COALESCE(VALUES(cliente_id),cliente_id),lead_id=COALESCE(VALUES(lead_id),lead_id),reserva_id=COALESCE(VALUES(reserva_id),reserva_id)");
         $stmt->execute([$phone,$phone,$waId,$name,$clientId,$leadId,$reservationId]);
         return (int) $this->db->lastInsertId();
+    }
+
+    private function isFirstIncomingMessage(int $conversationId, int $messageId): bool
+    {
+        $stmt = $this->db->prepare("SELECT id FROM mensagens WHERE conversa_id=? AND direcao='ENTRADA' ORDER BY id LIMIT 1");
+        $stmt->execute([$conversationId]);
+        return (int) $stmt->fetchColumn() === $messageId;
     }
 
     private function ensureWhatsAppAttribution(int $conversationId, ?int $clientId, ?int $leadId, ?int $reservationId): void
