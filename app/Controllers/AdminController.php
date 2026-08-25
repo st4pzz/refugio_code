@@ -146,7 +146,7 @@ final class AdminController
         $this->boot();
         $month = preg_match('/^\d{4}-\d{2}$/', (string) ($_GET['mes'] ?? '')) ? $_GET['mes'] : date('Y-m');
         $start = new DateTimeImmutable($month . '-01'); $end = $start->modify('first day of next month');
-        $stmt = $this->db->prepare('SELECT id,codigo,nome_cliente,checkin,checkout,status,origem FROM reservas WHERE checkin<? AND checkout>? ORDER BY checkin');
+        $stmt = $this->db->prepare("SELECT id,codigo,nome_cliente,checkin,checkout,status,origem FROM reservas WHERE checkin<? AND checkout>? AND status<>'CANCELADA' ORDER BY checkin");
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $events = $stmt->fetchAll();
         $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? ORDER BY data_inicio');
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();

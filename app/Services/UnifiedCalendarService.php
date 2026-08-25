@@ -18,7 +18,7 @@ final class UnifiedCalendarService
     {
         $items = [];
         $queries = [
-            ['reservation', 'SELECT id,codigo AS title,checkin AS starts_at,checkout AS ends_at,status,origem AS source FROM reservas WHERE checkin<? AND checkout>?', [$end,$start]],
+            ['reservation', "SELECT id,codigo AS title,checkin AS starts_at,checkout AS ends_at,status,origem AS source FROM reservas WHERE checkin<? AND checkout>? AND status<>'CANCELADA'", [$end,$start]],
             ['block', "SELECT id,motivo AS title,data_inicio AS starts_at,data_fim AS ends_at,'BLOCKED' AS status,origem AS source FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>?", [$end,$start]],
             ['external', "SELECT e.id,COALESCE(e.summary,'Reserva externa') AS title,e.starts_at,e.ends_at,e.status,s.provider AS source FROM calendar_external_events e JOIN calendar_sources s ON s.id=e.source_id WHERE e.starts_at<? AND e.ends_at>? AND e.status<>'CANCELLED' AND e.deleted_at IS NULL AND s.ativo=1", [$end,$start]],
             ['hold', "SELECT id,CONCAT('Retenção ',purpose) AS title,checkin AS starts_at,checkout AS ends_at,status,purpose AS source FROM calendar_holds WHERE checkin<? AND checkout>? AND status='ACTIVE' AND expires_at>NOW()", [$end,$start]],
