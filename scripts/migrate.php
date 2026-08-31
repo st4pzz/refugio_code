@@ -28,7 +28,11 @@ foreach ($files as $file) {
     foreach ($statements as $statement) {
         $statement = trim($statement);
         if ($statement === '' || preg_match('/^--[^\n]*$/', $statement)) continue;
-        $db->exec($statement);
+        try {
+            $db->exec($statement);
+        } catch (Throwable $error) {
+            throw new RuntimeException('Falha na migration ' . $name . ': ' . $error->getMessage(), 0, $error);
+        }
         $executed++;
     }
     $record = $db->prepare('INSERT INTO schema_migrations (migration,checksum) VALUES (?,?)');

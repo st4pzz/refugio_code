@@ -39,7 +39,7 @@ error_reporting(E_ALL);
 set_exception_handler(static function (Throwable $error) use ($config): void {
     error_log(sprintf('[reservas] %s em %s:%d', $error->getMessage(), $error->getFile(), $error->getLine()));
     if (PHP_SAPI === 'cli') {
-        fwrite(STDERR, ($config['debug'] ? (string) $error : 'Falha interna.') . PHP_EOL);
+        fwrite(STDERR, ($config['debug'] ? (string) $error : $error->getMessage()) . PHP_EOL);
         exit(1);
     }
     http_response_code(500);
