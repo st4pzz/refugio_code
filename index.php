@@ -212,11 +212,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
 
             window.gtag_report_conversion = function () {
                 if (!hasMarketingConsent()) return false;
-                window.gtag('event', 'conversion', {
-                    send_to: googleConversionId,
-                    value: 1.0,
-                    currency: 'BRL'
-                });
+              
                 return true;
             };
 
