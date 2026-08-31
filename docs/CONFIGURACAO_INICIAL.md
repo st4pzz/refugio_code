@@ -3,7 +3,7 @@
 ## Checklist bloqueante
 
 - [ ] Backup lógico e teste de restauração concluídos.
-- [ ] Migrações 007 e 008 aplicadas primeiro em homologação.
+- [ ] Migrações 007 a 013 aplicadas primeiro em homologação.
 - [ ] `APP_KEY` forte e `PORTAL_TOKEN_ENCRYPTION_KEY` com 32 bytes Base64.
 - [ ] `composer2 install --no-dev --optimize-autoloader` concluído e extensões PHP `dom`, `mbstring`, `fileinfo` e `gd` ativas.
 - [ ] Dados completos do locador, endereço/CEP do imóvel, comarca, contatos e emergência.

@@ -406,5 +406,102 @@ test('painel de analise com IA renderiza resposta escapada',function(){
     expect(str_contains($html,'&lt;script&gt;alert(1)&lt;/script&gt; Resumo'));
 });
 
+test('post do precheckin chega ao metodo de gravacao',function(){
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    $front=file_get_contents(BASE_PATH.'/minha-reserva/index.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/guest-portal/precheckin.php');
+    expect(str_contains($routes,'RewriteCond %{REQUEST_METHOD} =POST'));
+    expect(str_contains($routes,'action=precheckin-save'));
+    expect(str_contains($front,"'precheckin-save'=>\$controller->savePrecheckin"));
+    expect(str_contains($view,"'/pre-checkin'"));
+});
+
+test('jornada pos pagamento consulta a tabela contratual correta',function(){
+    $service=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php');
+    expect(str_contains($service,'SELECT id FROM reservation_contracts'));
+    expect(!str_contains($service,'SELECT id FROM contracts WHERE reservation_id'));
+});
+
+test('pagina de obrigado da avaliacao encerra a requisicao',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/PublicReviewController.php');
+    expect(str_contains($controller,'public function success(): never'));
+    $success=substr($controller,strpos($controller,'public function success(): never'));
+    expect(str_contains($success,'require BASE_PATH'));
+    expect(str_contains($success,'exit;'));
+});
+
+test('contrato so e marcado como visualizado ao baixar o pdf',function(){
+    $portal=file_get_contents(BASE_PATH.'/app/Services/GuestPortalService.php');
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/GuestPortalController.php');
+    expect(str_contains($portal,"'action','PDF_DOWNLOAD'"));
+    expect(str_contains($portal,'pdf_path IS NOT NULL'));
+    expect(str_contains($controller,'$portal->markContractViewed'));
+    expect(!str_contains($portal,"if(\$paid&&isset(\$contracts[0])"));
+});
+
+test('precheckin preserva aceites mostra regras e bloqueia estados finais',function(){
+    $service=file_get_contents(BASE_PATH.'/app/Services/PreCheckinService.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/guest-portal/precheckin.php');
+    $migration=file_get_contents(BASE_PATH.'/database/migrations/013_create_guest_journey_fixes.sql');
+    expect(str_contains($service,"['NOT_STARTED','IN_PROGRESS','CORRECTION_REQUESTED']"));
+    expect(str_contains($service,"['IN_PROGRESS','CORRECTION_REQUESTED']"));
+    expect(str_contains($service,'approvedHouseRules'));
+    expect(!str_contains($service,'accepted_items_json=VALUES(accepted_items_json)'));
+    expect(str_contains($view,"\$houseRuleVersion['rules']"));
+    expect(str_contains($view,'name="pets['));
+    expect(str_contains($view,'Os dados estão bloqueados'));
+    expect(str_contains($migration,'DROP INDEX uk_house_rule_acceptance'));
+});
+
+test('rotas diretas do portal repetem as liberacoes progressivas',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/GuestPortalController.php');
+    expect(substr_count($controller,'assertPrecheckinAvailable')>=3);
+    expect(substr_count($controller,'assertContractAvailable')>=4);
+});
+
+test('administrador recebe link copiavel e resultado real do convite',function(){
+    $invite=file_get_contents(BASE_PATH.'/app/Services/ReviewInviteService.php');
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/AdminReviewController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/review-invitation.php');
+    expect(str_contains($invite,"'link'=>\$link"));
+    expect(str_contains($controller,"flash('review_invite_url'"));
+    expect(str_contains($controller,'nenhum canal confirmou a entrega'));
+    expect(str_contains($view,'data-copy-target="review-invite-url"'));
+});
+
+test('portal pode ser regenerado sem contrato e volta para a reserva',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');
+    $contracts=file_get_contents(BASE_PATH.'/app/Views/admin/contracts.php');
+    $detail=file_get_contents(BASE_PATH.'/app/Views/admin/detail.php');
+    expect(str_contains($controller,'portal_token_prefix'));
+    expect(str_contains($controller,"preg_match('#^admin/reservas/"));
+    expect(str_contains($contracts,'Gere um link mesmo antes de existir contrato'));
+    expect(str_contains($detail,'return_to'));
+    expect(str_contains($detail,'data-copy-target="guest-portal-url"'));
+});
+
+test('automacao generica nao envia avaliacao sem token',function(){
+    $migration=file_get_contents(BASE_PATH.'/database/migrations/013_create_guest_journey_fixes.sql');
+    $automation=file_get_contents(BASE_PATH.'/app/Services/ReservationAutomationService.php');
+    expect(str_contains($migration,"code='REVIEW_INVITATION'"));
+    expect(str_contains($migration,'SET ativo=0'));
+    expect(!str_contains($automation,"'review_link'=>''"));
+    expect(str_contains($automation,'variáveis não resolvidas'));
+});
+
+test('encerramento invalida acessos e documentos pendentes',function(){
+    $reservation=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php');
+    $portal=file_get_contents(BASE_PATH.'/app/Services/GuestPortalService.php');
+    $migration=file_get_contents(BASE_PATH.'/database/migrations/013_create_guest_journey_fixes.sql');
+    expect(str_contains($reservation,"revoked_reason='RESERVATION_TERMINATED'"));
+    expect(str_contains($reservation,"revoked_reason='RESERVATION_EXPIRED'"));
+    expect(str_contains($reservation,"status='CANCELLED'"));
+    expect(str_contains($reservation,"status='REVOGADO'"));
+    expect(str_contains($portal,"r.status NOT IN ('RECUSADA','EXPIRADA','CANCELADA')"));
+    expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=token.reservation_id"));
+    expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=contrato.reservation_id"));
+    expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=convite.reserva_id"));
+});
+
 fwrite(STDOUT, "\n{$passed} teste(s) passaram; {$failed} falharam.\n");
 exit($failed ? 1 : 0);

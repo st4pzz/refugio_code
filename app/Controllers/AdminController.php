@@ -100,6 +100,8 @@ final class AdminController
         $reviewExisting = $reviewRepository->reviewByReservation($id);
         $reviewEligibility = (new ReviewEligibilityService($this->db, $this->config))->check($reservation, $reviewExisting);
         $reviewWindow = (new ReviewEligibilityService($this->db, $this->config))->invitationWindow($reservation);
+        $portalToken=$this->db->prepare("SELECT token_prefix,created_at,last_used_at,use_count FROM guest_portal_tokens WHERE reservation_id=? AND status='ACTIVE' AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at>NOW()) ORDER BY id DESC LIMIT 1");
+        $portalToken->execute([$id]);$portalToken=$portalToken->fetch()?:null;
         require BASE_PATH . '/app/Views/admin/detail.php';
     }
 

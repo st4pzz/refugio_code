@@ -66,13 +66,22 @@ final class AdminReviewController
             Csrf::verify($_POST['_csrf'] ?? null);
             $service = new ReviewInviteService($this->db, $this->config);
             $userId = (int) $_SESSION['admin_id'];
-            match ($action) {
+            $result = match ($action) {
                 'enviar-convite-avaliacao' => $service->send($reservationId, false, false, $userId),
                 'reenviar-convite-avaliacao' => $service->send($reservationId, true, false, $userId),
                 'revogar-convite-avaliacao' => $service->revoke($reservationId, $userId),
                 default => throw new RuntimeException('Ação de convite inválida.'),
             };
-            flash('success', $action === 'revogar-convite-avaliacao' ? 'Convite revogado.' : 'Convite de avaliação processado.');
+            if ($action === 'revogar-convite-avaliacao') {
+                flash('success', 'Convite revogado.');
+            } elseif (!empty($result['skipped'])) {
+                flash('error', 'Já existe um convite válido em processamento. Use “Reenviar com novo link” se precisar rotacioná-lo.');
+            } else {
+                flash('review_invite_url', (string) $result['link']);
+                $channels=[];if(!empty($result['email']))$channels[]='e-mail';if(!empty($result['whatsapp']))$channels[]='WhatsApp';
+                if($channels!==[])flash('success','Convite enviado por '.implode(' e ',$channels).'. O link também pode ser copiado nesta página.');
+                else flash('error','O convite foi criado, mas nenhum canal confirmou a entrega. Copie o link exibido nesta página e revise SMTP/WhatsApp.');
+            }
         } catch (Throwable $e) {
             flash('error', $e->getMessage());
         }

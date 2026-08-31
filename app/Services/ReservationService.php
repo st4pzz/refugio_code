@@ -368,6 +368,9 @@ final class ReservationService
                 $this->db->prepare("UPDATE reservas SET status='EXPIRADA' WHERE id=?")->execute([$id]);
                 $this->db->prepare("UPDATE pagamentos SET status='EXPIRADO' WHERE reserva_id=? AND status IN {$paymentStatuses}")->execute([$id]);
                 $this->db->prepare('DELETE FROM datas_bloqueadas WHERE reserva_id=?')->execute([$id]);
+                $this->db->prepare("UPDATE guest_portal_tokens SET status='REVOKED',revoked_at=NOW(),revoked_reason='RESERVATION_EXPIRED' WHERE reservation_id=? AND status='ACTIVE'")->execute([$id]);
+                $this->db->prepare("UPDATE reservation_contracts SET status='EXPIRED' WHERE reservation_id=? AND status NOT IN ('SUPERSEDED','CANCELLED','EXPIRED','FULLY_SIGNED')")->execute([$id]);
+                $this->db->prepare("UPDATE convites_avaliacao SET status='REVOGADO',revogado_em=NOW() WHERE reserva_id=? AND status IN ('PENDENTE','ENVIADO')")->execute([$id]);
                 $this->history->log((int) $id, 'PAGAMENTO_EXPIRADO', $r['status'], ReservationStatus::EXPIRADA->value);
                 $this->db->commit();
                 $this->emitAutomation('PAYMENT_EXPIRED',(int)$id);
@@ -407,7 +410,7 @@ final class ReservationService
             (new PreCheckinService($this->db))->ensure($reservationId);
             $this->emitAutomation('PRECHECKIN_AVAILABLE',$reservationId,[],'precheckin-available');
 
-            $contract=$this->db->prepare('SELECT id FROM contracts WHERE reservation_id=? LIMIT 1');
+            $contract=$this->db->prepare("SELECT id FROM reservation_contracts WHERE reservation_id=? AND status NOT IN ('SUPERSEDED','CANCELLED','EXPIRED') LIMIT 1");
             $contract->execute([$reservationId]);
             if(!$contract->fetchColumn()&&($reservation=$this->reservations->find($reservationId))){
                 $missing=(new PropertySettingsService($this->db))->missing(PropertySettingsService::REQUIRED_FOR_CONTRACT);
@@ -427,6 +430,11 @@ final class ReservationService
             $current = ReservationStatus::from($r['status']); $current->assertTransitionTo($next);
             $this->db->prepare('UPDATE reservas SET status=? WHERE id=?')->execute([$next->value, $id]);
             if ($releaseBlock) $this->db->prepare('DELETE FROM datas_bloqueadas WHERE reserva_id=?')->execute([$id]);
+            if(in_array($next,[ReservationStatus::RECUSADA,ReservationStatus::CANCELADA],true)){
+                $this->db->prepare("UPDATE guest_portal_tokens SET status='REVOKED',revoked_at=NOW(),revoked_reason='RESERVATION_TERMINATED' WHERE reservation_id=? AND status='ACTIVE'")->execute([$id]);
+                $this->db->prepare("UPDATE reservation_contracts SET status='CANCELLED' WHERE reservation_id=? AND status NOT IN ('SUPERSEDED','CANCELLED','EXPIRED','FULLY_SIGNED')")->execute([$id]);
+                $this->db->prepare("UPDATE convites_avaliacao SET status='REVOGADO',revogado_em=NOW() WHERE reserva_id=? AND status IN ('PENDENTE','ENVIADO')")->execute([$id]);
+            }
             $this->history->log($id, $action, $current->value, $next->value, $details, $userId);
             $this->db->commit();
         } catch (Throwable $e) { if ($this->db->inTransaction()) $this->db->rollBack(); throw $e; }

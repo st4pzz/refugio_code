@@ -53,11 +53,12 @@ final class PublicReviewController
         }
     }
 
-    public function success(): void
+    public function success(): never
     {
         if (empty($_SESSION['_review_success'])) redirect(base_url());
         unset($_SESSION['_review_success']);
         require BASE_PATH.'/app/Views/reviews/success.php';
+        exit;
     }
 
     public function approved(): never

@@ -4,7 +4,9 @@
 
 A aprovação administrativa é uma exceção de baixa latência: o e-mail com a cobrança é enviado imediatamente depois do commit da reserva. O painel só confirma “e-mail enviado” quando o SMTP realmente aceita a mensagem. Se o SMTP falhar, a reserva e a cobrança permanecem salvas, a falha aparece em `notificacoes`, uma tentativa de cobrança entra na fila e o administrador pode usar **Reenviar e-mail**. O lembrete anterior ao vencimento continua sendo agendado pela regra `PAYMENT_REMINDER`.
 
-Jornadas incluídas: solicitação, aprovação/orçamento, Pix, lembrete de vencimento, pagamento, contrato, lembrete de assinatura, pré-check-in, lembrete, confirmação, check-in em três dias, check-in em um dia, dia do check-in, véspera do checkout, checkout, agradecimento e avaliação. Todos os offsets ficam em `automation_rules`.
+Jornadas incluídas: solicitação, aprovação/orçamento, Pix, lembrete de vencimento, pagamento, contrato, lembrete de assinatura, pré-check-in, lembrete, confirmação, check-in em três dias, check-in em um dia, dia do check-in, véspera do checkout, checkout e agradecimento. Todos os offsets ficam em `automation_rules`.
+
+Convites de avaliação são uma exceção deliberada: `ReviewInviteService` cria e rotaciona o token secreto, registra a entrega e é executado por `scripts/enviar_convites_avaliacao.php`. A regra legada `REVIEW_INVITATION` permanece desativada porque uma automação genérica não pode fabricar um `review_link` recuperável com segurança.
 
 Execute a cada minuto:
 

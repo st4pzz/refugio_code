@@ -10,7 +10,7 @@ final class EncryptionService
 {
     private string $key;
 
-    public function __construct(?string $encodedKey = null)
+    public function __construct(?string $encodedKey = null, string $keyName = 'MARKETING_ENCRYPTION_KEY')
     {
         if (!function_exists('openssl_encrypt') || !function_exists('openssl_decrypt')) {
             throw new RuntimeException('A extensao OpenSSL do PHP e obrigatoria para proteger credenciais.');
@@ -18,7 +18,7 @@ final class EncryptionService
         $encodedKey ??= Env::get('MARKETING_ENCRYPTION_KEY');
         $key = base64_decode($encodedKey, true);
         if ($key === false || strlen($key) !== 32) {
-            throw new RuntimeException('MARKETING_ENCRYPTION_KEY deve conter 32 bytes em Base64.');
+            throw new RuntimeException($keyName . ' deve conter 32 bytes em Base64.');
         }
         $this->key = $key;
     }

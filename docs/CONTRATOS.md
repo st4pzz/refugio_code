@@ -8,6 +8,8 @@ Pontos obrigatórios para revisão administrativa/jurídica: cancelamento; multa
 
 `contract_template_versions` guarda status, resumo, notas, hash do conteúdo e hash do PDF-fonte. Cada `reservation_contracts` contém snapshot de variáveis, HTML, versão e SHA-256. Regenerar cria nova versão; a anterior passa a `SUPERSEDED`. `contract_documents` registra caminho, tamanho e hash. Placeholders ausentes ou editoriais `«…»` impedem geração.
 
+A geração exige pagamento confirmado e pré-check-in enviado, em análise ou aprovado. Assim, o Anexo II nasce com a lista de hóspedes efetivamente informada, em vez de congelar linhas vazias antes do preenchimento da jornada.
+
 ## PDF
 
 `ContractPdfService` renderiza o snapshot HTML com `dompdf/dompdf` dentro do próprio processo PHP. Instale o `composer.lock` com `composer2 install --no-dev --optimize-autoloader`; não há variável de ambiente nem runtime Python. O renderizador bloqueia conteúdo remoto, PHP e JavaScript, valida assinatura `%PDF-`, tamanho e SHA-256 antes de registrar. O PDF inclui hash e paginação no rodapé. Faça QA renderizando todas as páginas com Poppler.

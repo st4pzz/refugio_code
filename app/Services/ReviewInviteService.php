@@ -79,10 +79,10 @@ final class ReviewInviteService
         $delivery = $this->notifications->reviewInvitation($reservation, $link, $window['expires_at']->format('Y-m-d H:i:s'), $reminder);
         $this->repository->recordDelivery($inviteId, $delivery['email'], $delivery['whatsapp'], $reminder);
         $this->history->log($reservationId, $reminder ? 'LEMBRETE_AVALIACAO_ENVIADO' : 'CONVITE_AVALIACAO_ENVIADO', $reservation['status'], $reservation['status'], ['email'=>$delivery['email'],'whatsapp'=>$delivery['whatsapp']], $userId);
-        return ['skipped'=>false,'invite_id'=>$inviteId,'email'=>$delivery['email'],'whatsapp'=>$delivery['whatsapp'],'expires_at'=>$window['expires_at']->format('Y-m-d H:i:s')];
+        return ['skipped'=>false,'invite_id'=>$inviteId,'email'=>$delivery['email'],'whatsapp'=>$delivery['whatsapp'],'expires_at'=>$window['expires_at']->format('Y-m-d H:i:s'),'link'=>$link];
     }
 
-    public function revoke(int $reservationId, int $userId): void
+    public function revoke(int $reservationId, int $userId): array
     {
         $this->db->beginTransaction();
         try {
@@ -92,6 +92,7 @@ final class ReviewInviteService
             $this->db->prepare("UPDATE convites_avaliacao SET status='REVOGADO',revogado_em=NOW() WHERE id=?")->execute([$invite['id']]);
             $this->history->log($reservationId, 'CONVITE_AVALIACAO_REVOGADO', $reservation['status'], $reservation['status'], ['convite_id'=>$invite['id']], $userId);
             $this->db->commit();
+            return ['revoked'=>true];
         } catch (Throwable $e) { if ($this->db->inTransaction()) $this->db->rollBack(); throw $e; }
     }
 

@@ -10,6 +10,7 @@ use Refugio\Services\ContractSignatureWorkflowService;
 use Refugio\Services\GuestPortalService;
 use Refugio\Services\NotificationService;
 use Refugio\Services\PreCheckinService;
+use Refugio\Services\PropertySettingsService;
 use Refugio\Services\RateLimiter;
 use Refugio\Services\ReservationAutomationService;
 use Refugio\Services\UploadService;
@@ -41,10 +42,16 @@ final class GuestPortalController
             $db = Database::connection();
             $portalService = new GuestPortalService($db, $this->config);
             $portal = $portalService->resolve($token);
+            $this->assertPrecheckinAvailable($portal);
             $reservationId = $portalService->reservationId($token);
             $service = new PreCheckinService($db);
             $service->ensure($reservationId);
             $precheckin = $service->load($reservationId);
+            $houseRuleVersion = $service->approvedHouseRules();
+            $settings = (new PropertySettingsService($db))->values();
+            $maxGuests = max(1, min(10, (int) ($settings['MAX_GUESTS'] ?? 10)));
+            $petsAllowed = !empty($settings['PETS_ALLOWED']);
+            $maxPets = $petsAllowed ? max(0, min(10, (int) ($settings['MAX_PETS'] ?? 0))) : 0;
             require BASE_PATH . '/app/Views/guest-portal/precheckin.php';
         } catch (Throwable $error) {
             $this->error($error);
@@ -58,6 +65,8 @@ final class GuestPortalController
             $db = Database::connection();
             (new RateLimiter($db))->assertAllowed('precheckin|' . Security::clientIp() . '|' . hash('sha256', $token), 20, 3600);
             $portal = new GuestPortalService($db, $this->config);
+            $portalData = $portal->resolve($token);
+            $this->assertPrecheckinAvailable($portalData);
             $reservationId = $portal->reservationId($token);
             $service = new PreCheckinService($db);
             $service->save($reservationId, $_POST);
@@ -83,6 +92,8 @@ final class GuestPortalController
             $db = Database::connection();
             (new RateLimiter($db))->assertAllowed('contract-upload|' . Security::clientIp() . '|' . hash('sha256', $token), 10, 3600);
             $portal = new GuestPortalService($db, $this->config);
+            $portalData = $portal->resolve($token);
+            $this->assertContractAvailable($portalData);
             $reservationId = $portal->reservationId($token);
             $contract = $this->contract($db, $reservationId);
             $workflow = $this->workflow($db);
@@ -124,6 +135,8 @@ final class GuestPortalController
         try {
             $db = Database::connection();
             $portal = new GuestPortalService($db, $this->config);
+            $portalData = $portal->resolve($token);
+            $this->assertContractAvailable($portalData);
             $reservationId = $portal->reservationId($token);
             $contract = $this->contract($db, $reservationId);
             $path = realpath(BASE_PATH . '/' . (string) $contract['pdf_path']);
@@ -131,6 +144,7 @@ final class GuestPortalController
             if (!$path || !$storage || !str_starts_with(str_replace('\\', '/', $path), rtrim(str_replace('\\', '/', $storage), '/') . '/') || !is_file($path)) {
                 throw new RuntimeException('PDF ainda não está disponível.');
             }
+            $portal->markContractViewed((int) $contract['id'], $reservationId);
             $this->streamPdf($path, 'contrato-' . $contract['contract_number'] . '-para-assinar.pdf', false);
         } catch (Throwable $error) {
             $this->error($error);
@@ -143,6 +157,8 @@ final class GuestPortalController
         try {
             $db = Database::connection();
             $portal = new GuestPortalService($db, $this->config);
+            $portalData = $portal->resolve($token);
+            $this->assertContractAvailable($portalData);
             $reservationId = $portal->reservationId($token);
             $contract = $this->contract($db, $reservationId);
             $workflow = $this->workflow($db);
@@ -166,6 +182,16 @@ final class GuestPortalController
     private function workflow(PDO $db): ContractSignatureWorkflowService
     {
         return new ContractSignatureWorkflowService($db, new UploadService((int) $this->config['upload_max_bytes']));
+    }
+
+    private function assertPrecheckinAvailable(array $portal): void
+    {
+        if (empty($portal['payment_confirmed'])) throw new RuntimeException('O pré-check-in será liberado após a confirmação do pagamento.');
+    }
+
+    private function assertContractAvailable(array $portal): void
+    {
+        if ($portal['contract'] === null) throw new RuntimeException('O contrato ainda não está liberado para esta reserva.');
     }
 
     private function assertUploadRequestWasParsed(): void

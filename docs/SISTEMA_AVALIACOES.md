@@ -93,7 +93,7 @@ O script:
 - envia no máximo um lembrete, após o prazo configurado;
 - registra eventos no histórico e resultados em `notificacoes`.
 
-Um convite expirado ou revogado não é recriado automaticamente. O administrador pode gerar um novo link conscientemente; como o token original nunca é armazenado, qualquer reenvio rotaciona e invalida o link anterior.
+Um convite expirado ou revogado não é recriado automaticamente. O administrador pode gerar um novo link conscientemente; como o token original nunca é armazenado, qualquer reenvio rotaciona e invalida o link anterior. Depois da geração manual, o painel exibe o endereço completo uma única vez para cópia. O feedback diferencia entrega confirmada por e-mail/WhatsApp de convite criado sem entrega, permitindo o envio manual sem afirmar um sucesso inexistente.
 
 ## E-mail e WhatsApp
 

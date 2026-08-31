@@ -67,7 +67,7 @@ final class ReservationAutomationService
             'first_name'=>explode(' ',trim((string)$run['nome_cliente']))[0]??'','reservation_code'=>$run['codigo'],'checkin'=>date('d/m/Y',strtotime($run['checkin'])),'checkout'=>date('d/m/Y',strtotime($run['checkout'])),'guests'=>$run['quantidade_hospedes'],
             'total'=>money($run['valor_total']??0),'payment_due'=>!empty($payment['data_vencimento'])?date('d/m/Y H:i',strtotime($payment['data_vencimento'])):'','payment_link'=>base_url('reserva/'.$run['token_publico']),
             'portal_link'=>base_url('minha-reserva/'.$token),'contract_link'=>base_url('minha-reserva/'.$token.'#contrato'),'precheckin_link'=>base_url('minha-reserva/'.$token.'/pre-checkin'),
-            'checkin_time'=>$settings['DEFAULT_CHECKIN_TIME']??'','checkout_time'=>$settings['DEFAULT_CHECKOUT_TIME']??'','review_link'=>'',
+            'checkin_time'=>$settings['DEFAULT_CHECKIN_TIME']??'','checkout_time'=>$settings['DEFAULT_CHECKOUT_TIME']??'',
         ];
         $subject=$this->render((string)$run['subject_template'],$values);$body=$this->render((string)$run['body_template'],$values);$channels=json_decode((string)$run['channels_json'],true);$channels=is_array($channels)?$channels:['EMAIL'];
         $template=$this->whatsAppTemplate((string)$run['code']);
@@ -75,7 +75,7 @@ final class ReservationAutomationService
         try{
             (new NotificationService($this->db))->automation($run,$run['event_name'],$subject,$body,$channels,$template,array_values($values));
             if($run['event_name']==='CONTRACT_READY'&&!empty($contract['id'])){$this->db->prepare("UPDATE reservation_contracts SET status='SENT',sent_at=NOW() WHERE id=? AND status='READY'")->execute([$contract['id']]);$this->emit('CONTRACT_SENT',(int)$run['reservation_id'],[],'contract-sent:'.$contract['id']);}
-            $safeValues=$values;foreach(['payment_link','portal_link','contract_link','precheckin_link'] as $key)$safeValues[$key]='[protected-link]';
+            $safeValues=$values;foreach(['payment_link','portal_link','contract_link','precheckin_link','review_link'] as $key)if(array_key_exists($key,$safeValues))$safeValues[$key]='[protected-link]';
             $this->db->prepare("UPDATE automation_runs SET status='SENT',rendered_payload_json=?,executed_at=NOW(),error_message=NULL WHERE id=?")->execute([json_encode(['subject'=>$subject,'variables'=>$safeValues],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$runId]);
         }catch(Throwable $error){$this->db->prepare("UPDATE automation_runs SET status='FAILED',error_message=? WHERE id=?")->execute([mb_substr($error->getMessage(),0,4000),$runId]);throw $error;}
     }
@@ -91,7 +91,13 @@ final class ReservationAutomationService
         };
         $minutes=(int)$rule['offset_minutes'];$scheduled=$minutes===0?$base:$base->modify(($minutes>0?'+':'').$minutes.' minutes');return $scheduled<new DateTimeImmutable()?new DateTimeImmutable():$scheduled;
     }
-    private function render(string $template,array $values):string{$replace=[];foreach($values as $key=>$value)$replace['{{'.$key.'}}']=(string)$value;return strtr($template,$replace);}
+    private function render(string $template,array $values):string
+    {
+        $replace=[];foreach($values as $key=>$value)$replace['{{'.$key.'}}']=(string)$value;
+        $rendered=strtr($template,$replace);
+        if(preg_match('/\{\{\s*[a-zA-Z0-9_]+\s*\}\}/',$rendered))throw new RuntimeException('A automação possui variáveis não resolvidas e não será enviada.');
+        return $rendered;
+    }
     private function first(string $sql,array $params):array{$stmt=$this->db->prepare($sql);$stmt->execute($params);return $stmt->fetch()?:[];}
     private function mark(int $id,string $status):void{$this->db->prepare('UPDATE automation_runs SET status=?,executed_at=NOW() WHERE id=?')->execute([$status,$id]);}
     private function whatsAppTemplate(string $code):?string

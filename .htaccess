@@ -28,6 +28,8 @@ RewriteRule ^reserva/(?:pagamento/)?([A-Za-z0-9_-]{40,80})/?$ reserva/index.php?
 RewriteRule ^api/reservas/solicitar/?$ api/reservas/solicitar.php [L,QSA]
 RewriteRule ^api/reservas/([A-Za-z0-9_-]{40,80})/comprovante/?$ api/reservas/comprovante.php?token=$1 [L,QSA]
 RewriteRule ^api/orcamentos/calcular/?$ api/orcamentos/calcular.php [L,QSA]
+RewriteCond %{REQUEST_METHOD} =POST
+RewriteRule ^minha-reserva/([a-f0-9]{64})/pre-checkin/?$ minha-reserva/index.php?token=$1&action=precheckin-save [L,QSA]
 RewriteRule ^minha-reserva/([a-f0-9]{64})/pre-checkin/?$ minha-reserva/index.php?token=$1&action=precheckin [L,QSA]
 RewriteRule ^minha-reserva/([a-f0-9]{64})/contrato/enviar-assinado/?$ minha-reserva/index.php?token=$1&action=contract-upload [L,QSA]
 RewriteRule ^minha-reserva/([a-f0-9]{64})/contrato/assinado\.pdf/?$ minha-reserva/index.php?token=$1&action=signed-contract-pdf [L,QSA]

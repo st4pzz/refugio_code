@@ -14,7 +14,7 @@ final class GuestPortalService
 
     public function __construct(private PDO $db, private array $appConfig = [], ?EncryptionService $encryption = null)
     {
-        $this->encryption=$encryption??new EncryptionService(Env::get('PORTAL_TOKEN_ENCRYPTION_KEY'));
+        $this->encryption=$encryption??new EncryptionService(Env::get('PORTAL_TOKEN_ENCRYPTION_KEY'),'PORTAL_TOKEN_ENCRYPTION_KEY');
     }
 
     public function regenerate(int $reservationId, ?int $userId = null, ?DateTimeImmutable $expiresAt = null): string
@@ -41,7 +41,7 @@ final class GuestPortalService
     public function resolve(string $token): array
     {
         if(!preg_match('/^[a-f0-9]{64}$/',$token))throw new RuntimeException('Link da reserva inválido.');
-        $stmt=$this->db->prepare("SELECT t.id token_record_id,t.reservation_id,r.* FROM guest_portal_tokens t JOIN reservas r ON r.id=t.reservation_id WHERE t.token_hash=? AND t.status='ACTIVE' AND t.revoked_at IS NULL AND (t.expires_at IS NULL OR t.expires_at>NOW())");
+        $stmt=$this->db->prepare("SELECT t.id token_record_id,t.reservation_id,r.* FROM guest_portal_tokens t JOIN reservas r ON r.id=t.reservation_id WHERE t.token_hash=? AND t.status='ACTIVE' AND t.revoked_at IS NULL AND (t.expires_at IS NULL OR t.expires_at>NOW()) AND r.status NOT IN ('RECUSADA','EXPIRADA','CANCELADA')");
         $stmt->execute([hash('sha256',$token)]);$reservation=$stmt->fetch();
         if(!$reservation)throw new RuntimeException('Este link expirou ou foi revogado. Solicite um novo ao atendimento.');
         $this->db->prepare('UPDATE guest_portal_tokens SET last_used_at=NOW(),use_count=use_count+1 WHERE id=?')->execute([$reservation['token_record_id']]);
@@ -51,7 +51,7 @@ final class GuestPortalService
     public function reservationId(string $token):int
     {
         if(!preg_match('/^[a-f0-9]{64}$/',$token))throw new RuntimeException('Link da reserva inválido.');
-        $stmt=$this->db->prepare("SELECT reservation_id FROM guest_portal_tokens WHERE token_hash=? AND status='ACTIVE' AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at>NOW())");
+        $stmt=$this->db->prepare("SELECT t.reservation_id FROM guest_portal_tokens t JOIN reservas r ON r.id=t.reservation_id WHERE t.token_hash=? AND t.status='ACTIVE' AND t.revoked_at IS NULL AND (t.expires_at IS NULL OR t.expires_at>NOW()) AND r.status NOT IN ('RECUSADA','EXPIRADA','CANCELADA')");
         $stmt->execute([hash('sha256',$token)]);$id=$stmt->fetchColumn();if(!$id)throw new RuntimeException('Este link expirou ou foi revogado.');return (int)$id;
     }
 
@@ -60,11 +60,7 @@ final class GuestPortalService
         $reservationId=(int)$reservation['reservation_id'];
         $payments=$this->rows('SELECT tipo,valor,status,data_vencimento,data_confirmacao,pix_copia_cola FROM pagamentos WHERE reserva_id=? ORDER BY created_at',[$reservationId]);
         $paid=(bool)array_filter($payments,static fn(array $payment):bool=>$payment['status']==='CONFIRMADO');
-        $contracts=$this->rows('SELECT id,contract_number,status,ready_at,sent_at,fully_signed_at,pdf_path,pdf_hash FROM reservation_contracts WHERE reservation_id=? AND status<>\'SUPERSEDED\' ORDER BY version_no DESC',[$reservationId]);
-        if($paid&&isset($contracts[0])&&in_array($contracts[0]['status'],['READY','SENT'],true)){
-            $stmt=$this->db->prepare("UPDATE reservation_contracts SET status='VIEWED' WHERE id=? AND status IN ('READY','SENT')");$stmt->execute([$contracts[0]['id']]);
-            if($stmt->rowCount()===1){$contracts[0]['status']='VIEWED';$this->db->prepare("INSERT INTO contract_events (contract_id,event_type,metadata_json,document_hash) SELECT id,'CONTRACT_VIEWED',JSON_OBJECT('channel','GUEST_PORTAL'),content_hash FROM reservation_contracts WHERE id=?")->execute([$contracts[0]['id']]);try{(new ReservationAutomationService($this->db,$this->appConfig))->emit('CONTRACT_VIEWED',$reservationId,[],'contract-viewed:'.$contracts[0]['id']);}catch(\Throwable $error){error_log('[portal-contract-viewed] '.$error->getMessage());}}
-        }
+        $contracts=$this->rows("SELECT id,contract_number,status,ready_at,sent_at,fully_signed_at,pdf_path,pdf_hash FROM reservation_contracts WHERE reservation_id=? AND status NOT IN ('SUPERSEDED','CANCELLED','EXPIRED') ORDER BY version_no DESC",[$reservationId]);
         if(isset($contracts[0])){
             $contracts[0]['guest_signed_document']=$this->row("SELECT id,revision_no,original_name,byte_size,sha256,created_at FROM contract_signature_documents WHERE contract_id=? AND stage='GUEST_SIGNED' ORDER BY revision_no DESC LIMIT 1",[(int)$contracts[0]['id']]);
             $contracts[0]['fully_signed_document']=$this->row("SELECT id,revision_no,original_name,byte_size,sha256,created_at FROM contract_signature_documents WHERE contract_id=? AND stage='FULLY_SIGNED' ORDER BY revision_no DESC LIMIT 1",[(int)$contracts[0]['id']]);
@@ -88,9 +84,9 @@ final class GuestPortalService
         return [
             'code'=>$reservation['codigo'],'guest_first_name'=>explode(' ',trim($reservation['nome_cliente']))[0]??'',
             'status'=>$reservation['status'],'checkin'=>$reservation['checkin'],'checkout'=>$reservation['checkout'],'guests'=>(int)$reservation['quantidade_hospedes'],
-            'total'=>$reservation['valor_total'],'payments'=>$payments,'timeline'=>$timeline,
+            'total'=>$reservation['valor_total'],'payments'=>$payments,'payment_confirmed'=>$paid,'timeline'=>$timeline,
             'contract'=>($paid||empty($settings['PAYMENT_REQUIRED_BEFORE_CONTRACT']))?($contracts[0]??null):null,
-            'precheckin'=>$paid?$precheckin:null,'precheckin_path'=>'/minha-reserva/'.$token.'/pre-checkin',
+            'precheckin'=>$paid?($precheckin??['status'=>'NOT_STARTED','submitted_at'=>null,'reviewed_at'=>null,'correction_message'=>null]):null,'precheckin_path'=>'/minha-reserva/'.$token.'/pre-checkin',
             'rules_available'=>$paid,'sensitive_released'=>$releaseSensitive,
             'arrival'=>$releaseSensitive?[
                 'address'=>$settings['PROPERTY_FULL_ADDRESS']??null,'directions'=>$settings['ARRIVAL_DIRECTIONS']??null,'access'=>$settings['ACCESS_INSTRUCTIONS']??null,
@@ -98,6 +94,16 @@ final class GuestPortalService
             ]:null,
             'contact'=>['whatsapp'=>$settings['OWNER_PHONE']??($this->appConfig['contact_whatsapp']??null),'email'=>$settings['OWNER_EMAIL']??($this->appConfig['admin_email']??null)],
         ];
+    }
+
+    public function markContractViewed(int $contractId,int $reservationId):void
+    {
+        $stmt=$this->db->prepare("UPDATE reservation_contracts SET status='VIEWED' WHERE id=? AND reservation_id=? AND status IN ('READY','SENT') AND pdf_path IS NOT NULL");
+        $stmt->execute([$contractId,$reservationId]);
+        if($stmt->rowCount()!==1)return;
+        $this->db->prepare("INSERT INTO contract_events (contract_id,event_type,metadata_json,document_hash) SELECT id,'CONTRACT_VIEWED',JSON_OBJECT('channel','GUEST_PORTAL','action','PDF_DOWNLOAD'),content_hash FROM reservation_contracts WHERE id=?")
+            ->execute([$contractId]);
+        try{(new ReservationAutomationService($this->db,$this->appConfig))->emit('CONTRACT_VIEWED',$reservationId,[],'contract-viewed:'.$contractId);}catch(\Throwable $error){error_log('[portal-contract-viewed] '.$error->getMessage());}
     }
 
     private function rows(string $sql,array $params):array{$stmt=$this->db->prepare($sql);$stmt->execute($params);return $stmt->fetchAll();}

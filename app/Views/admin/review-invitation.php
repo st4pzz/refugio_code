@@ -1,3 +1,5 @@
+<?php $reviewInviteUrl=flash('review_invite_url'); ?>
+<?php if($reviewInviteUrl):?><div class="export-link-card" role="status"><strong>Link privado da avaliação. Copie agora.</strong><p>O endereço completo não será armazenado nem exibido novamente. Gerar outro convite revoga este link.</p><div class="copy-link-row"><input id="review-invite-url" type="text" readonly value="<?= e($reviewInviteUrl) ?>" aria-label="Link privado da avaliação"><button class="admin-secondary" type="button" data-copy-target="review-invite-url" data-copy-feedback="review-invite-copy-feedback">Copiar link</button><a class="admin-secondary" href="<?= e($reviewInviteUrl) ?>" target="_blank" rel="noopener">Abrir formulário</a></div><small id="review-invite-copy-feedback" class="copy-feedback" aria-live="polite"></small></div><?php endif;?>
 <section class="admin-panel">
     <div class="panel-heading"><h2>Avaliação verificada</h2><?php if ($reviewInvitation): ?><span class="admin-status status-<?= strtolower($reviewInvitation['status']) ?>"><?= e($reviewInvitation['status']) ?></span><?php endif; ?></div>
     <?php if ($reviewExisting): ?>

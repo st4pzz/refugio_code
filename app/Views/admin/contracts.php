@@ -23,6 +23,15 @@ require __DIR__ . '/_top.php';
     </div>
 <?php endif; ?>
 
+<?php if(can('guest_portal.manage')):?><section class="admin-panel">
+    <div class="panel-heading"><div><p class="eyebrow">Acesso privado</p><h2>Portal do hóspede</h2></div></div>
+    <p>Gere um link mesmo antes de existir contrato. Um novo link revoga imediatamente o anterior e será exibido apenas uma vez.</p>
+    <form class="admin-form" method="post" action="<?= e(base_url('admin/operacoes/portal-regenerate')) ?>"><?= csrf_field() ?>
+        <label>Reserva<select name="reservation_id" required><option value="">Selecione a reserva</option><?php foreach($approvedReservations as $reservation):?><option value="<?= (int)$reservation['id'] ?>"><?= e($reservation['codigo']) ?> · <?= e($reservation['nome_cliente']) ?> · <?= $reservation['portal_token_prefix']?'link ativo '.$reservation['portal_token_prefix'].'…':'sem link ativo' ?></option><?php endforeach;?></select></label>
+        <button class="admin-primary">Gerar novo link do portal</button>
+    </form>
+</section><?php endif;?>
+
 <div class="detail-grid">
     <section class="admin-panel">
         <h2>Templates</h2>
@@ -32,8 +41,8 @@ require __DIR__ . '/_top.php';
 
     <section class="admin-panel">
         <h2>Gerar contrato</h2>
-        <p>Selecione uma reserva aprovada. O sistema impedirá a geração e listará variáveis ausentes. A política de cancelamento deve estar aprovada.</p>
-        <form class="admin-form" method="post" action="<?= e(base_url('admin/operacoes/contract-generate')) ?>"><?= csrf_field() ?><label>Reserva aprovada<select name="reservation_id" required><option value="">Selecione a reserva</option><?php foreach($approvedReservations as $reservation):?><option value="<?= (int)$reservation['id'] ?>"><?= e($reservation['codigo']) ?> · <?= e($reservation['nome_cliente']) ?> · <?= date('d/m/Y',strtotime($reservation['checkin'])) ?>–<?= date('d/m/Y',strtotime($reservation['checkout'])) ?> · <?= e(\Refugio\Models\ReservationStatus::from($reservation['status'])->label()) ?></option><?php endforeach;?></select></label><?php if(!$approvedReservations):?><small>Nenhuma reserva aprovada disponível para contrato.</small><?php endif;?><label>Nacionalidade do responsável<input name="guest_nationality" required></label><label>Estado civil<input name="guest_marital_status" required></label><label>Profissão<input name="guest_profession" required></label><label>CPF<input name="guest_cpf" inputmode="numeric" maxlength="14" required></label><label>Endereço completo<input name="guest_address" required></label><label>Vencimento do saldo<input name="balance_due_at" placeholder="dd/mm/aaaa HH:mm" required></label><button class="admin-primary">Gerar snapshot e enfileirar PDF</button></form>
+        <p>O pagamento e o envio do pré-check-in são obrigatórios para que o contrato registre a lista correta de hóspedes. A política de cancelamento também deve estar aprovada.</p>
+        <form class="admin-form" method="post" action="<?= e(base_url('admin/operacoes/contract-generate')) ?>"><?= csrf_field() ?><label>Reserva pronta para contrato<select name="reservation_id" required><option value="">Selecione a reserva</option><?php foreach($contractReservations as $reservation):?><option value="<?= (int)$reservation['id'] ?>"><?= e($reservation['codigo']) ?> · <?= e($reservation['nome_cliente']) ?> · <?= date('d/m/Y',strtotime($reservation['checkin'])) ?>–<?= date('d/m/Y',strtotime($reservation['checkout'])) ?> · <?= e(\Refugio\Models\ReservationStatus::from($reservation['status'])->label()) ?></option><?php endforeach;?></select></label><?php if(!$contractReservations):?><small>Nenhuma reserva com pagamento confirmado e pré-check-in enviado está disponível.</small><?php endif;?><label>Nacionalidade do responsável<input name="guest_nationality" required></label><label>Estado civil<input name="guest_marital_status" required></label><label>Profissão<input name="guest_profession" required></label><label>CPF<input name="guest_cpf" inputmode="numeric" maxlength="14" required></label><label>Endereço completo<input name="guest_address" required></label><label>Vencimento do saldo<input name="balance_due_at" placeholder="dd/mm/aaaa HH:mm" required></label><button class="admin-primary">Gerar snapshot e enfileirar PDF</button></form>
     </section>
 </div>
 
@@ -51,7 +60,7 @@ require __DIR__ . '/_top.php';
             <div class="document-actions">
                 <?php if ($contract['pdf_path']): ?><a class="admin-secondary" href="<?= e(base_url('admin/contratos/' . $contract['id'] . '/pdf')) ?>" target="_blank" rel="noopener">Abrir original</a><?php endif; ?>
                 <?php if (!$guestDocument && $contract['pdf_path'] && in_array($contract['status'],['READY','SENT','VIEWED'],true)): ?><form method="post" action="<?= e(base_url('admin/operacoes/contract-revise')) ?>"><?= csrf_field() ?><input type="hidden" name="contract_id" value="<?= (int) $contract['id'] ?>"><button class="admin-secondary">Gerar nova revisão com data de hoje</button></form><?php endif; ?>
-                <form method="post" action="<?= e(base_url('admin/operacoes/portal-regenerate')) ?>"><?= csrf_field() ?><input type="hidden" name="reservation_id" value="<?= (int) $contract['reservation_id'] ?>"><button class="admin-secondary">Novo link portal</button></form>
+                <?php if(can('guest_portal.manage')):?><form method="post" action="<?= e(base_url('admin/operacoes/portal-regenerate')) ?>"><?= csrf_field() ?><input type="hidden" name="reservation_id" value="<?= (int) $contract['reservation_id'] ?>"><button class="admin-secondary">Novo link portal</button></form><?php endif;?>
                 <?php if($guestDocument):?><a class="admin-primary" href="<?= e(base_url('admin/contratos/'.$contract['id'].'/documentos/hospede.pdf')) ?>">Baixar PDF do hóspede</a><?php endif;?>
                 <?php if($finalDocument):?><a class="admin-primary" href="<?= e(base_url('admin/contratos/'.$contract['id'].'/documentos/final.pdf')) ?>">Baixar PDF final</a><?php endif;?>
             </div>

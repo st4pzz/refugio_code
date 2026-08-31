@@ -132,6 +132,7 @@ Exemplo para uma instalação em `/var/www/refugio`:
 ```cron
 */5 * * * * /usr/bin/php /var/www/refugio/scripts/process_jobs.php --limit=50 >> /var/log/refugio-jobs.log 2>&1
 */5 * * * * /usr/bin/php /var/www/refugio/scripts/expirar_reservas.php >> /var/log/refugio-reservas.log 2>&1
+15 1 * * * /usr/bin/php /var/www/refugio/scripts/schedule_reservation_automations.php >> /var/log/refugio-automacoes.log 2>&1
 20 2 * * * /usr/bin/php /var/www/refugio/scripts/gerar_recorrencias_financeiras.php >> /var/log/refugio-financeiro.log 2>&1
 15 * * * * /usr/bin/php /var/www/refugio/scripts/enviar_convites_avaliacao.php >> /var/log/refugio-avaliacoes.log 2>&1
 10 3 * * * /usr/bin/php /var/www/refugio/scripts/aplicar_retencao.php >> /var/log/refugio-retencao.log 2>&1
@@ -211,4 +212,4 @@ O painel inclui calendário unificado/iCal, retenções e conflitos, configuraç
 
 Comece por [Configuração inicial](docs/CONFIGURACAO_INICIAL.md). Documentação por domínio: [calendário](docs/CALENDARIO_UNIFICADO.md), [preços](docs/MOTOR_DE_PRECOS.md), [orçamentos](docs/ORCAMENTOS.md), [portal](docs/PORTAL_HOSPEDE.md), [contratos](docs/CONTRATOS.md), [pré-check-in](docs/PRE_CHECKIN.md) e [automações](docs/AUTOMACOES_RESERVA.md).
 
-As migrações novas são `007_create_calendar_pricing_quotes.sql` e `008_create_guest_journey.sql`. O preço público nasce desativado e o contrato sugerido nasce pendente de aprovação.
+As migrações da operação integrada começam em `007_create_calendar_pricing_quotes.sql`; a correção de integridade da jornada está em `013_create_guest_journey_fixes.sql`. O preço público nasce desativado e o contrato sugerido nasce pendente de aprovação.
