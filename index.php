@@ -212,14 +212,18 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
 
             window.gtag_report_conversion = function () {
                 if (!hasMarketingConsent()) return false;
-              
+                window.gtag('event', 'conversion', {
+                    send_to: googleConversionId,
+                    value: 1.0,
+                    currency: 'BRL'
+                });
                 return true;
             };
 
             window.trackOutboundClick = function (metaEvent) {
                 if (!hasMarketingConsent()) return true;
                 loadMarketingTags();
-                if (metaEvent && typeof window.fbq === 'function') {
+                if (metaEvent  && typeof window.fbq === 'function') {
                     window.fbq('track', metaEvent);
                 }
                 window.gtag_report_conversion();
