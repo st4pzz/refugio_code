@@ -7,6 +7,7 @@ use Refugio\Config\Database;
 use Refugio\Repositories\ConversationRepository;
 use Refugio\Services\AuthorizationService;
 use Refugio\Services\ConversationService;
+use Refugio\Services\WhatsAppWebhookService;
 use Refugio\Support\Csrf;
 use RuntimeException;
 use Throwable;
@@ -76,7 +77,11 @@ final class ConversationController
     public function media(int $messageId): never
     {
         AuthorizationService::requirePermission('conversas.view'); $this->boot();
-        $stmt=$this->db->prepare('SELECT media_path,media_mime,media_nome FROM mensagens WHERE id=?'); $stmt->execute([$messageId]); $media=$stmt->fetch();
+        $stmt=$this->db->prepare('SELECT media_id,media_path,media_mime,media_nome FROM mensagens WHERE id=?'); $stmt->execute([$messageId]); $media=$stmt->fetch();
+        if($media&&!empty($media['media_id'])&&empty($media['media_path'])){
+            try{(new WhatsAppWebhookService($this->db))->downloadMedia($messageId);}catch(Throwable){http_response_code(404);exit;}
+            $stmt->execute([$messageId]); $media=$stmt->fetch();
+        }
         if(!$media||empty($media['media_path'])){http_response_code(404);exit;}
         $path=realpath(BASE_PATH.'/'.ltrim((string)$media['media_path'],'/')); $root=realpath(BASE_PATH.'/storage/conversas');
         if(!$path||!$root||!str_starts_with($path,$root.DIRECTORY_SEPARATOR)||!is_file($path)){http_response_code(404);exit;}
@@ -89,7 +94,7 @@ final class ConversationController
 
     private function messageData(array $m): array
     {
-        return ['id'=>(int)$m['id'],'direcao'=>$m['direcao'],'tipo'=>$m['tipo'],'texto'=>$m['texto'],'status'=>$m['status'],'erro'=>$m['erro'],'usuario_nome'=>$m['usuario_nome']??null,'created_at'=>$m['recebida_em']?:$m['enviada_em']?:$m['created_at'],'media_url'=>!empty($m['media_path'])?base_url('admin/conversas/midia/'.$m['id']):null,'media_mime'=>$m['media_mime'],'media_nome'=>$m['media_nome']];
+        return ['id'=>(int)$m['id'],'direcao'=>$m['direcao'],'tipo'=>$m['tipo'],'texto'=>$m['texto'],'status'=>$m['status'],'erro'=>$m['erro'],'usuario_nome'=>$m['usuario_nome']??null,'created_at'=>$m['recebida_em']?:$m['enviada_em']?:$m['created_at'],'media_url'=>(!empty($m['media_path'])||!empty($m['media_id']))?base_url('admin/conversas/midia/'.$m['id']):null,'media_mime'=>$m['media_mime'],'media_nome'=>$m['media_nome']];
     }
 
     private function boot():void{if(isset($this->db))return;$this->db=Database::connection();$this->repository=new ConversationRepository($this->db);$this->service=new ConversationService($this->db,$this->config);}

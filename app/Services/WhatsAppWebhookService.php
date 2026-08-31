@@ -199,8 +199,16 @@ final class WhatsAppWebhookService
 
     public static function messageData(array $message): array
     {
-        $sourceType = strtolower((string) ($message['type'] ?? 'unknown'));
         $map = ['text'=>'TEXTO','image'=>'IMAGEM','document'=>'DOCUMENTO','audio'=>'AUDIO','video'=>'VIDEO','location'=>'LOCALIZACAO','contacts'=>'CONTATO','button'=>'BOTAO','interactive'=>'INTERATIVA','sticker'=>'STICKER'];
+        $sourceType = strtolower(trim((string) ($message['type'] ?? 'unknown')));
+        if (!isset($map[$sourceType])) {
+            foreach (array_keys($map) as $candidate) {
+                if (isset($message[$candidate]) && is_array($message[$candidate])) {
+                    $sourceType = $candidate;
+                    break;
+                }
+            }
+        }
         $type = $map[$sourceType] ?? 'DESCONHECIDA';
         $text = null; $mediaId = null; $mime = null; $filename = null;
         if ($sourceType === 'text') $text = (string) ($message['text']['body'] ?? '');

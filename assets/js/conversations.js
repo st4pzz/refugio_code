@@ -33,12 +33,33 @@
             article.append(paragraph);
         }
         if (message.media_url) {
-            const link = document.createElement('a');
-            link.href = message.media_url;
-            link.target = '_blank';
-            link.rel = 'noopener';
-            link.append(textNode(message.media_nome || 'Abrir anexo'));
-            article.append(link);
+            const isImage = ['IMAGEM', 'STICKER'].includes(message.tipo) || message.media_mime?.startsWith('image/');
+            const isAudio = message.tipo === 'AUDIO' || message.media_mime?.startsWith('audio/');
+            if (isImage) {
+                const link = document.createElement('a');
+                const image = document.createElement('img');
+                link.href = message.media_url;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                image.src = message.media_url;
+                image.alt = 'Imagem recebida';
+                image.loading = 'lazy';
+                link.append(image);
+                article.append(link);
+            } else if (isAudio) {
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.preload = 'metadata';
+                audio.src = message.media_url;
+                article.append(audio);
+            } else {
+                const link = document.createElement('a');
+                link.href = message.media_url;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.append(textNode(message.media_nome || 'Abrir anexo'));
+                article.append(link);
+            }
         }
 
         const footer = document.createElement('footer');
