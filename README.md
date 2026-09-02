@@ -103,6 +103,8 @@ Configure no aplicativo Meta:
 
 O `GET` confirma o challenge e o `POST` valida HMAC antes de persistir o evento. O endpoint responde rapidamente e a fila processa mensagens/status de forma idempotente. Texto livre só é oferecido dentro da janela de 24 horas; fora dela o operador deve usar template aprovado.
 
+Na central de Conversas, a OpenAI pode gerar um rascunho baseado no histórico, nos dados públicos da propriedade, no calendário unificado e no motor de preços. Períodos e valores exatos são verificados por ferramentas locais antes de aparecerem no texto; o atendente sempre revisa e envia manualmente.
+
 O link público `/contato/whatsapp` captura UTMs/clids, cria uma referência `REF-*` e redireciona para `wa.me`. A resposta que contém a referência liga lead, conversa e atribuição.
 
 Detalhes de templates, tipos de mensagem, mídias, retenção, webhook e testes estão em [docs/CONVERSAS_WHATSAPP.md](docs/CONVERSAS_WHATSAPP.md).

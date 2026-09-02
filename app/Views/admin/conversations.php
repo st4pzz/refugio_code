@@ -33,6 +33,11 @@
         </div>
         <?php if(can('conversas.reply')): ?><div class="conversation-composer">
             <?php if(Refugio\Services\ConversationService::freeTextAllowed($conversation['janela_atendimento_ate'])): ?>
+            <div class="conversation-ai-tools">
+                <button class="admin-secondary" type="button" data-ai-suggest data-ai-url="<?= e(base_url('admin/conversas/'.$conversation['id'].'/sugerir-ia')) ?>" data-ai-csrf="<?= e(Refugio\Support\Csrf::token()) ?>" aria-controls="conversation-text" <?= empty($conversationAiConfigured)?'disabled':'' ?>>Sugerir resposta com IA</button>
+                <span data-ai-feedback role="status" aria-live="polite"><?= empty($conversationAiConfigured)?'Configure OPENAI_API_KEY para habilitar.':'A IA usa calendário, preços e dados atuais. Revise antes de enviar.' ?></span>
+                <?php if(!empty($conversationAiConfigured)): ?><small><?= e($conversationAiModel??'') ?></small><?php endif; ?>
+            </div>
             <form action="<?= e(base_url('admin/conversas/'.$conversation['id'].'/enviar')) ?>" method="post" class="composer-form"><?= csrf_field() ?><input type="hidden" name="respondendo_a_id" data-reply-input><label class="sr-only" for="conversation-text">Mensagem</label><textarea id="conversation-text" name="texto" rows="2" maxlength="4096" required placeholder="Digite uma mensagem"></textarea><button class="admin-primary" type="submit">Enviar</button></form>
             <details><summary>Enviar mídia</summary><form action="<?= e(base_url('admin/conversas/'.$conversation['id'].'/midia')) ?>" method="post" enctype="multipart/form-data" class="admin-form"><?= csrf_field() ?><input type="file" name="arquivo" accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,audio/ogg,audio/mpeg,video/mp4" required><input name="legenda" maxlength="1024" placeholder="Legenda opcional"><button class="admin-secondary">Enviar mídia</button></form></details>
             <?php else: ?><div class="admin-alert warning">A janela de 24 horas encerrou. Use um template aprovado para retomar o contato.</div><?php endif; ?>
@@ -54,5 +59,5 @@
     </aside>
     <?php else: ?><div class="conversation-empty empty-state"><h2>Selecione uma conversa</h2><p>O histórico e os dados do contato aparecerão aqui.</p></div><?php endif; ?>
 </section>
-<script src="<?= e(base_url('assets/js/conversations.js?v=2')) ?>" defer></script>
+<script src="<?= e(base_url('assets/js/conversations.js?v=3')) ?>" defer></script>
 <?php require BASE_PATH.'/app/Views/admin/_bottom.php'; ?>

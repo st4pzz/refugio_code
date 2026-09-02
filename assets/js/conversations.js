@@ -87,6 +87,54 @@
     document.querySelectorAll('[data-reply-message]').forEach(bindReply);
     if (stream) stream.scrollTop = stream.scrollHeight;
 
+    const aiButton = document.querySelector('[data-ai-suggest]');
+    const aiFeedback = document.querySelector('[data-ai-feedback]');
+    aiButton?.addEventListener('click', async () => {
+        const textarea = document.querySelector('#conversation-text');
+        if (!textarea || !aiButton.dataset.aiUrl) return;
+        const originalLabel = aiButton.textContent;
+        aiButton.disabled = true;
+        aiButton.setAttribute('aria-busy', 'true');
+        aiButton.textContent = 'Consultando dados…';
+        if (aiFeedback) {
+            aiFeedback.className = '';
+            aiFeedback.textContent = 'Lendo a conversa e verificando calendário e preços atuais.';
+        }
+        try {
+            const response = await fetch(aiButton.dataset.aiUrl, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                },
+                credentials: 'same-origin',
+                body: new URLSearchParams({ _csrf: aiButton.dataset.aiCsrf || '' }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.ok || !data.draft) {
+                throw new Error(data.error || 'Não foi possível gerar o rascunho.');
+            }
+            textarea.value = data.draft;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.focus();
+            if (aiFeedback) {
+                aiFeedback.className = data.needs_human_review ? 'warning' : 'success';
+                aiFeedback.textContent = data.needs_human_review && data.review_reason
+                    ? `Revise com atenção: ${data.review_reason}`
+                    : 'Rascunho gerado. Revise antes de clicar em Enviar.';
+            }
+        } catch (error) {
+            if (aiFeedback) {
+                aiFeedback.className = 'error';
+                aiFeedback.textContent = error instanceof Error ? error.message : 'Não foi possível gerar o rascunho.';
+            }
+        } finally {
+            aiButton.disabled = false;
+            aiButton.removeAttribute('aria-busy');
+            aiButton.textContent = originalLabel;
+        }
+    });
+
     const poll = async () => {
         if (!pollUrl || document.hidden) return;
         try {

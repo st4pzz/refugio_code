@@ -8,7 +8,7 @@ $active = static fn(string $path): string => ($path === '/admin' ? rtrim($reques
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
     <title><?= e($title ?? 'Painel') ?> | Refúgio</title>
-    <link rel="stylesheet" href="<?= e(base_url('assets/css/admin.css?v=5')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/admin-operations.css?v=6')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/admin-calendar.css?v=1')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/reviews-admin.css?v=1')) ?>">
+    <link rel="stylesheet" href="<?= e(base_url('assets/css/admin.css?v=5')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/admin-operations.css?v=7')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/admin-calendar.css?v=1')) ?>"><link rel="stylesheet" href="<?= e(base_url('assets/css/reviews-admin.css?v=1')) ?>">
 </head>
 <body class="admin-app">
 <div class="admin-shell">

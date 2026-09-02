@@ -22,6 +22,7 @@ use Refugio\Services\ContractPdfTemplate;
 use Refugio\Services\PdfRenderer;
 use Refugio\Services\ReservationPdfTemplate;
 use Refugio\Services\OpenAiMarketingAnalysisService;
+use Refugio\Services\OpenAiConversationReplyService;
 use Refugio\Services\OpenAiResponsesClient;
 use Refugio\Services\GoogleAdsScriptImportService;
 use Refugio\Services\GoogleAdsScriptTemplate;
@@ -328,6 +329,51 @@ test('cliente da Responses API extrai texto sem presumir primeiro item',function
     expect(OpenAiResponsesClient::isPending(['status'=>'queued']));
     expect(OpenAiResponsesClient::isPending(['status'=>'in_progress']));
     expect(!OpenAiResponsesClient::isPending(['status'=>'completed']));
+});
+
+test('prompt de conversas protege contexto e exige verificacao exata',function(){
+    $prompt=OpenAiConversationReplyService::instructions();
+    foreach(['português do Brasil','check_availability','calculate_quote','Festas e eventos não são permitidos','dados de outros hóspedes','nunca confirma uma reserva']as$rule){
+        expect(str_contains($prompt,$rule),'Regra ausente no prompt de conversas: '.$rule);
+    }
+    $schema=OpenAiConversationReplyService::responseSchema();
+    expect(($schema['additionalProperties']??true)===false);
+    foreach(['reply','needs_human_review','review_reason','facts_used']as$key)expect(isset($schema['properties'][$key]),'Campo ausente: '.$key);
+    $tools=OpenAiConversationReplyService::tools();
+    expect(array_column($tools,'name')===['check_availability','calculate_quote']);
+    expect(($tools[0]['parameters']['additionalProperties']??true)===false);
+});
+
+test('calendario para IA une bloqueios adjacentes e calcula lacunas',function(){
+    $ranges=OpenAiConversationReplyService::availabilityRanges('2026-09-01','2026-09-10',[
+        ['start'=>'2026-09-03','end'=>'2026-09-05'],
+        ['start'=>'2026-09-05','end'=>'2026-09-07'],
+        ['start'=>'2026-08-20','end'=>'2026-09-02'],
+    ]);
+    expect($ranges['unavailable_ranges']===[['checkin'=>'2026-09-01','checkout'=>'2026-09-02'],['checkin'=>'2026-09-03','checkout'=>'2026-09-07']]);
+    expect($ranges['available_ranges']===[['checkin'=>'2026-09-02','checkout'=>'2026-09-03'],['checkin'=>'2026-09-07','checkout'=>'2026-09-10']]);
+});
+
+test('conversas geram rascunho com csrf sem envio automatico',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/ConversationController.php');
+    $service=file_get_contents(BASE_PATH.'/app/Services/OpenAiConversationReplyService.php');
+    $route=file_get_contents(BASE_PATH.'/.htaccess');
+    $front=file_get_contents(BASE_PATH.'/admin/index.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/conversations.php');
+    $script=file_get_contents(BASE_PATH.'/assets/js/conversations.js');
+    $migration=file_get_contents(BASE_PATH.'/database/migrations/015_create_conversation_ai.sql');
+    expect(str_contains($controller,"requirePermission('conversas.reply')"));
+    expect(str_contains($controller,"Csrf::verify(\$_POST['_csrf']"));
+    expect(str_contains($route,'sugerir-ia'));
+    expect(str_contains($front,'conversa-sugerir-ia'));
+    expect(str_contains($view,'Sugerir resposta com IA'));
+    expect(str_contains($view,'Revise antes de enviar'));
+    expect(str_contains($script,'textarea.value = data.draft'));
+    expect(!str_contains($service,'sendText('));
+    expect(str_contains($service,"'store' => false"));
+    expect(str_contains($service,'AvailabilityService'));
+    expect(str_contains($service,'QuoteService'));
+    expect(str_contains($migration,'CREATE TABLE IF NOT EXISTS conversation_ai_drafts'));
 });
 
 test('analise de marketing com IA e protegida e nao altera campanhas',function(){

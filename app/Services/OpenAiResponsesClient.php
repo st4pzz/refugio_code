@@ -98,7 +98,7 @@ final class OpenAiResponsesClient
                 CURLOPT_HTTPHEADER => $headers,
                 CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_SSL_VERIFYHOST => 2,
-                CURLOPT_USERAGENT => 'RefugioCuscuzeiro/1.0 marketing-analysis',
+                CURLOPT_USERAGENT => 'RefugioCuscuzeiro/1.0 openai-responses',
                 CURLOPT_HEADERFUNCTION => static function ($handle, string $line) use (&$responseHeaders): int {
                     $length = strlen($line);
                     $parts = explode(':', $line, 2);

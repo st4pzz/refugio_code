@@ -54,6 +54,34 @@ O worker faz retry com backoff e máximo de tentativas. A retenção remove some
 
 Somente perfis com `conversas.view` veem conteúdo. `conversas.reply` envia; `conversas.manage` atribui, etiqueta, vincula e escreve notas.
 
+## Respostas assistidas pela OpenAI
+
+Dentro da janela de 24 horas, atendentes com `conversas.reply` podem usar **Sugerir resposta com IA**. A resposta é colocada no campo de texto para revisão; ela nunca é enviada automaticamente.
+
+Antes de gerar cada rascunho, o servidor monta um contexto novo com:
+
+- até 40 mensagens recentes da conversa;
+- dados públicos da propriedade, capacidade, comodidades, regras aprovadas e restrição de festas/eventos;
+- diária base, taxa de limpeza, adicionais, temporadas e datas especiais configuradas;
+- períodos disponíveis e indisponíveis do calendário unificado, incluindo reservas bloqueantes, bloqueios manuais, fontes iCal ativas e retenções ainda válidas.
+
+Quando o lead informa um período exato, o modelo precisa chamar a ferramenta interna de disponibilidade. Para um valor exato, precisa chamar o calculador oficial, que verifica novamente o calendário e usa o mesmo `QuoteService` do site. A IA não cria bloqueio, orçamento, reserva nem confirmação.
+
+O contexto não inclui nomes de outros hóspedes, motivos internos dos bloqueios, credenciais, endereço completo, dados do proprietário, Wi-Fi ou instruções de acesso. Mensagens de leads são tratadas como dados não confiáveis, para impedir que instruções escritas na conversa substituam as regras do atendimento.
+
+Execute a migration `015_create_conversation_ai.sql` e reutilize a mesma `OPENAI_API_KEY` já configurada para Marketing:
+
+```dotenv
+OPENAI_CONVERSATIONS_ENABLED=true
+OPENAI_CONVERSATIONS_MODEL=gpt-5.6-luna
+OPENAI_CONVERSATIONS_REASONING_EFFORT=low
+OPENAI_CONVERSATIONS_MAX_OUTPUT_TOKENS=1200
+OPENAI_CONVERSATIONS_MIN_INTERVAL_SECONDS=10
+OPENAI_CONVERSATIONS_CALENDAR_DAYS=365
+```
+
+Cada rascunho concluído guarda modelo, identificador da resposta, hash do contexto, texto sugerido, uso de tokens e necessidade de revisão em `conversation_ai_drafts`. O histórico completo enviado à OpenAI não é duplicado nessa tabela. As chamadas usam `store=false`.
+
 ## Regra de 24 horas e templates
 
 Cada mensagem recebida define `janela_atendimento_ate = recebida_em + 24h`.

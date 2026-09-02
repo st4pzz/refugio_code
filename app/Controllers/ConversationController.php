@@ -7,8 +7,10 @@ use Refugio\Config\Database;
 use Refugio\Repositories\ConversationRepository;
 use Refugio\Services\AuthorizationService;
 use Refugio\Services\ConversationService;
+use Refugio\Services\OpenAiConversationReplyService;
 use Refugio\Services\WhatsAppWebhookService;
 use Refugio\Support\Csrf;
+use Refugio\Support\Env;
 use RuntimeException;
 use Throwable;
 
@@ -33,8 +35,25 @@ final class ConversationController
         $notes=$conversation ? $this->repository->notes($selectedId) : [];
         $assignedTags=$conversation ? $this->repository->assignedTagIds($selectedId) : [];
         $tags=$this->repository->tags(); $agents=$this->repository->agents(); $templates=$this->repository->templates();
+        $conversationAiConfigured=Env::bool('OPENAI_CONVERSATIONS_ENABLED',true)&&trim(Env::get('OPENAI_API_KEY'))!=='';
+        $conversationAiModel=Env::get('OPENAI_CONVERSATIONS_MODEL','gpt-5.6-luna');
         if ($conversation) $this->service->markRead($selectedId);
         require BASE_PATH . '/app/Views/admin/conversations.php';
+    }
+
+    public function suggest(int $id): never
+    {
+        AuthorizationService::requirePermission('conversas.reply'); $this->boot();
+        try {
+            Csrf::verify($_POST['_csrf']??null);
+            $result=(new OpenAiConversationReplyService($this->db,$this->config))->suggest($id,(int)$_SESSION['admin_id']);
+            $this->json(['ok'=>true]+$result);
+        } catch (RuntimeException $error) {
+            $this->json(['ok'=>false,'error'=>$error->getMessage()],422);
+        } catch (Throwable $error) {
+            error_log('[conversation-ai] '.$error->getMessage());
+            $this->json(['ok'=>false,'error'=>'Não foi possível gerar o rascunho agora. Tente novamente.'],502);
+        }
     }
 
     public function action(int $id, string $action): never

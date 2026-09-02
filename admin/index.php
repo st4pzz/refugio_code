@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($route === 'review-invite') $reviews->invitation((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'conversa-acao') $conversations->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'conversa-templates') $conversations->syncTemplates();
+    if ($route === 'conversa-sugerir-ia') $conversations->suggest((int) ($_GET['id'] ?? 0));
     if ($route === 'financeiro-acao') $financial->action((string) ($_GET['action'] ?? ''));
     if ($route === 'marketing-conectar') $marketing->connect((string) ($_GET['provider'] ?? ''));
     if ($route === 'marketing-conta') $marketing->selectAccount((int) ($_GET['id'] ?? 0));
