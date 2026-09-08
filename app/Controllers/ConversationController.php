@@ -35,6 +35,7 @@ final class ConversationController
         $notes=$conversation ? $this->repository->notes($selectedId) : [];
         $assignedTags=$conversation ? $this->repository->assignedTagIds($selectedId) : [];
         $tags=$this->repository->tags(); $agents=$this->repository->agents(); $templates=$this->repository->templates();
+        $relationshipOptions=$conversation&&can('conversas.manage')?$this->repository->relationshipOptions(!empty($conversation['cliente_id'])?(int)$conversation['cliente_id']:null,!empty($conversation['reserva_id'])?(int)$conversation['reserva_id']:null):['clients'=>[],'reservations'=>[]];
         $conversationAiConfigured=Env::bool('OPENAI_CONVERSATIONS_ENABLED',true)&&trim(Env::get('OPENAI_API_KEY'))!=='';
         $conversationAiModel=Env::get('OPENAI_CONVERSATIONS_MODEL','gpt-5.6-luna');
         if ($conversation) $this->service->markRead($selectedId);

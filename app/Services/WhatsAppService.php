@@ -116,20 +116,17 @@ final class WhatsAppService
             'name' => $name,
             'language' => $language,
             'category' => 'UTILITY',
-            'allow_category_change' => true,
             'components' => [
-                ['type' => 'HEADER', 'format' => 'TEXT', 'text' => 'Resumo de reservas'],
+                ['type' => 'HEADER', 'format' => 'TEXT', 'text' => 'Resumo mensal de reservas'],
                 [
                     'type' => 'BODY',
-                    'text' => "Resumo das reservas de {{1}}, atualizado em {{2}}.\n\n{{3}}\n\nTotal de estadias no mês: {{4}}.",
+                    'text' => "Este é o resumo administrativo de reservas referente a {{1}}.\n\nDados consolidados: {{2}}\n\nUse estas informações para acompanhar a ocupação do Refúgio do Cuscuzeiro.",
                     'example' => ['body_text' => [[
                         'setembro de 2026',
-                        '08/09/2026 às 08:00',
-                        "Diretas (1):\n- 12-15/09 - RFG-EXEMPLO\nAirbnb (1):\n- 20-22/09",
-                        '2',
+                        "Atualizado em 08/09/2026 às 08:00.\nDiretas (1):\n- 12-15/09 - RFG-EXEMPLO\nAirbnb (1):\n- 20-22/09\nTotal de estadias no mês: 2.",
                     ]]],
                 ],
-                ['type' => 'FOOTER', 'text' => 'Refúgio do Cuscuzeiro - uso administrativo'],
+                ['type' => 'FOOTER', 'text' => 'Atualização automática de reservas'],
             ],
         ];
         $template = $this->requestJson('POST', $this->baseUrl() . '/' . rawurlencode($waba) . '/message_templates', $payload);
@@ -172,9 +169,17 @@ final class WhatsAppService
         $decoded = json_decode($response, true);
         if (!is_array($decoded)) throw new RuntimeException('Resposta invalida da API do WhatsApp.');
         if ($status >= 300 || !empty($decoded['error'])) {
-            $code = (string) ($decoded['error']['code'] ?? $status);
-            $message = mb_substr((string) ($decoded['error']['message'] ?? 'requisicao recusada'), 0, 500);
-            throw new RuntimeException("WhatsApp recusou a requisicao ({$code}): {$message}");
+            $apiError = is_array($decoded['error'] ?? null) ? $decoded['error'] : [];
+            $code = (string) ($apiError['code'] ?? $status);
+            $subcode = !empty($apiError['error_subcode']) ? '/' . (string) $apiError['error_subcode'] : '';
+            $messages = array_filter([
+                (string) ($apiError['message'] ?? 'requisicao recusada'),
+                (string) ($apiError['error_user_title'] ?? ''),
+                (string) ($apiError['error_user_msg'] ?? ''),
+                is_string($apiError['error_data']['details'] ?? null) ? $apiError['error_data']['details'] : '',
+            ]);
+            $message = mb_substr(implode(' | ', array_values(array_unique($messages))), 0, 1500);
+            throw new RuntimeException("WhatsApp recusou a requisicao ({$code}{$subcode}): {$message}");
         }
         return $decoded;
     }

@@ -72,9 +72,8 @@ final class MonthlyReservationSummaryService
         $now = $this->now();
         $this->whatsApp->sendTemplate($recipient, $template, [
             $this->monthLabel($month),
-            $now->format('d/m/Y') . ' às ' . $now->format('H:i'),
-            $summary['details'],
-            (string) $summary['total'],
+            'Atualizado em ' . $now->format('d/m/Y') . ' às ' . $now->format('H:i') . ".\n"
+                . $summary['details'] . "\nTotal de estadias no mês: " . $summary['total'] . '.',
         ]);
     }
 
@@ -114,7 +113,7 @@ final class MonthlyReservationSummaryService
             $lines[] = $labels[$provider] . ' (' . count($items) . '):';
             foreach ($items as $item) {
                 $candidate = '- ' . $item;
-                if (mb_strlen(implode("\n", [...$lines, $candidate])) <= 780) $lines[] = $candidate;
+                if (mb_strlen(implode("\n", [...$lines, $candidate])) <= 620) $lines[] = $candidate;
                 else $omitted++;
             }
         }

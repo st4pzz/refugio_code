@@ -59,6 +59,29 @@ final class ConversationRepository
     public function templates(): array { return $this->db->query("SELECT * FROM whatsapp_templates WHERE status='APPROVED' ORDER BY nome,idioma")->fetchAll(); }
     public function notes(int $id): array { $s=$this->db->prepare('SELECT n.*,u.nome usuario_nome FROM conversa_notas n LEFT JOIN usuarios_admin u ON u.id=n.usuario_id WHERE n.conversa_id=? ORDER BY n.created_at DESC LIMIT 30'); $s->execute([$id]); return $s->fetchAll(); }
 
+    public function relationshipOptions(?int $includeClientId = null, ?int $includeReservationId = null, int $limit = 500): array
+    {
+        $limit = max(50, min(1000, $limit));
+        $clients = $this->db->query("SELECT c.id,c.nome,c.email,c.telefone_normalizado,
+            (SELECT r.id FROM reserva_contatos rc JOIN reservas r ON r.id=rc.reserva_id WHERE rc.cliente_id=c.id AND r.status NOT IN ('CANCELADA','RECUSADA','EXPIRADA') ORDER BY CASE WHEN r.checkout>=CURDATE() THEN 0 ELSE 1 END,CASE WHEN r.checkout>=CURDATE() THEN r.checkin END,r.created_at DESC,r.id DESC LIMIT 1) reserva_id,
+            (SELECT r.codigo FROM reserva_contatos rc JOIN reservas r ON r.id=rc.reserva_id WHERE rc.cliente_id=c.id AND r.status NOT IN ('CANCELADA','RECUSADA','EXPIRADA') ORDER BY CASE WHEN r.checkout>=CURDATE() THEN 0 ELSE 1 END,CASE WHEN r.checkout>=CURDATE() THEN r.checkin END,r.created_at DESC,r.id DESC LIMIT 1) reserva_codigo
+            FROM clientes c WHERE c.status='ATIVO' ORDER BY c.nome,c.id LIMIT {$limit}")->fetchAll();
+        $reservations = $this->db->query("SELECT r.id,r.codigo,r.nome_cliente,r.status,r.checkin,r.checkout,rc.cliente_id,c.nome cliente_nome
+            FROM reservas r LEFT JOIN reserva_contatos rc ON rc.reserva_id=r.id LEFT JOIN clientes c ON c.id=rc.cliente_id
+            ORDER BY r.created_at DESC,r.id DESC LIMIT {$limit}")->fetchAll();
+        if ($includeClientId && !in_array($includeClientId, array_map('intval', array_column($clients, 'id')), true)) {
+            $stmt = $this->db->prepare("SELECT c.id,c.nome,c.email,c.telefone_normalizado,NULL reserva_id,NULL reserva_codigo FROM clientes c WHERE c.id=? AND c.status='ATIVO'");
+            $stmt->execute([$includeClientId]);
+            if ($current = $stmt->fetch()) array_unshift($clients, $current);
+        }
+        if ($includeReservationId && !in_array($includeReservationId, array_map('intval', array_column($reservations, 'id')), true)) {
+            $stmt = $this->db->prepare('SELECT r.id,r.codigo,r.nome_cliente,r.status,r.checkin,r.checkout,rc.cliente_id,c.nome cliente_nome FROM reservas r LEFT JOIN reserva_contatos rc ON rc.reserva_id=r.id LEFT JOIN clientes c ON c.id=rc.cliente_id WHERE r.id=?');
+            $stmt->execute([$includeReservationId]);
+            if ($current = $stmt->fetch()) array_unshift($reservations, $current);
+        }
+        return ['clients' => $clients, 'reservations' => $reservations];
+    }
+
     public function candidates(string $query): array
     {
         $needle = '%' . trim($query) . '%';

@@ -566,7 +566,8 @@ test('resumo mensal do whatsapp usa template aprovado e fila idempotente',functi
     $worker=file_get_contents(BASE_PATH.'/scripts/process_jobs.php');
     $env=file_get_contents(BASE_PATH.'/.env.example');
     foreach(['RESERVATION_MONTHLY_SUMMARY','reservation-summary:','WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS',"s.provider IN ('AIRBNB','BOOKING')","status IN ('RESERVA_CONFIRMADA','FINALIZADA')"]as$needle)expect(str_contains($summary,$needle));
-    foreach(['message_templates','UTILITY','allow_category_change','body_text','Resumo de reservas']as$needle)expect(str_contains($whatsapp,$needle));
+    foreach(['message_templates','UTILITY','body_text','Resumo mensal de reservas','error_data']as$needle)expect(str_contains($whatsapp,$needle));
+    expect(!str_contains($whatsapp,"'allow_category_change'"));
     expect(str_contains($worker,"'RESERVATION_MONTHLY_SUMMARY'"));
     expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015'));
 });
@@ -580,6 +581,23 @@ test('confirmacoes diretas e externas atualizam o resumo mensal',function(){
     expect(str_contains($ical,'enqueueForConfirmedExternalEvents($newlyConfirmed)'));
     expect(str_contains($ical,"\$event['status'] === 'CONFIRMED'"));
     expect(str_contains($cron,"date('N') !== 1"));
+});
+
+test('conversa usa seletor unico para vincular cliente e reserva',function(){
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/ConversationController.php');
+    $repository=file_get_contents(BASE_PATH.'/app/Repositories/ConversationRepository.php');
+    $service=file_get_contents(BASE_PATH.'/app/Services/ConversationService.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/conversations.php');
+    expect(str_contains($controller,'relationshipOptions'));
+    expect(str_contains($repository,'function relationshipOptions'));
+    expect(str_contains($view,'<select name="vinculo">'));
+    expect(str_contains($view,'reservation:'));
+    expect(str_contains($view,'client:'));
+    expect(!str_contains($view,'Cliente ID<input'));
+    expect(!str_contains($view,'Reserva ID<input'));
+    expect(str_contains($service,'resolveRelationship'));
+    expect(str_contains($service,'syncFromReservation'));
+    expect(str_contains($view,'próxima reserva válida'));
 });
 
 fwrite(STDOUT, "\n{$passed} teste(s) passaram; {$failed} falharam.\n");

@@ -1,6 +1,6 @@
 # Resumo mensal de reservas por WhatsApp
 
-O template `resumo_reservas_mensal` e de categoria `UTILITY`, idioma `pt_BR`, e recebe quatro parametros: mes, data/hora da atualizacao, lista resumida e total. A lista inclui:
+O template `resumo_reservas_mensal` e de categoria `UTILITY`, idioma `pt_BR`, e recebe dois parametros: mes e bloco consolidado com data/hora da atualizacao, lista resumida e total. A lista inclui:
 
 - reservas diretas com status `RESERVA_CONFIRMADA` ou `FINALIZADA` que cruzam o mes;
 - eventos iCal confirmados de fontes ativas configuradas como `AIRBNB` ou `BOOKING` que cruzam o mes.

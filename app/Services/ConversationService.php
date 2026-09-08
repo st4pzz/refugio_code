@@ -151,17 +151,50 @@ final class ConversationService
         $status = in_array($input['status'] ?? '', $statuses, true) ? $input['status'] : $before['status'];
         $priority = in_array($input['prioridade'] ?? '', $priorities, true) ? $input['prioridade'] : $before['prioridade'];
         $agentId = !empty($input['atendente_id']) ? (int) $input['atendente_id'] : null;
-        $clientId = !empty($input['cliente_id']) ? (int) $input['cliente_id'] : null;
-        $reservationId = !empty($input['reserva_id']) ? (int) $input['reserva_id'] : null;
+        $clientId = !empty($before['cliente_id']) ? (int) $before['cliente_id'] : null;
+        $reservationId = !empty($before['reserva_id']) ? (int) $before['reserva_id'] : null;
         $this->db->beginTransaction();
         try {
+            if (array_key_exists('vinculo', $input)) {
+                [$clientId, $reservationId] = $this->resolveRelationship((string) $input['vinculo']);
+            }
             $this->db->prepare('UPDATE conversas SET status=?,prioridade=?,atendente_id=?,cliente_id=?,reserva_id=? WHERE id=?')->execute([$status,$priority,$agentId,$clientId,$reservationId,$id]);
+            if ($clientId !== null && $reservationId !== null) {
+                $this->db->prepare('INSERT INTO reserva_contatos (reserva_id,cliente_id) VALUES (?,?) ON DUPLICATE KEY UPDATE cliente_id=VALUES(cliente_id)')->execute([$reservationId,$clientId]);
+            }
             $this->db->prepare('DELETE FROM conversa_tag_vinculos WHERE conversa_id=?')->execute([$id]);
             $tagStmt = $this->db->prepare('INSERT IGNORE INTO conversa_tag_vinculos (conversa_id,tag_id,usuario_id) VALUES (?,?,?)');
             foreach (array_unique(array_map('intval', (array) ($input['tags'] ?? []))) as $tagId) if ($tagId > 0) $tagStmt->execute([$id,$tagId,$userId]);
             $this->db->commit();
             (new AuditService($this->db))->record('CONVERSAS','ATUALIZAR','conversas',$id,$before,['status'=>$status,'prioridade'=>$priority,'atendente_id'=>$agentId,'cliente_id'=>$clientId,'reserva_id'=>$reservationId]);
         } catch (Throwable $error) { if ($this->db->inTransaction()) $this->db->rollBack(); throw $error; }
+    }
+
+    private function resolveRelationship(string $relationship): array
+    {
+        $relationship = trim($relationship);
+        if ($relationship === '') return [null, null];
+        if (!preg_match('/^(client|reservation):([1-9][0-9]*)$/', $relationship, $match)) {
+            throw new RuntimeException('Selecione um cliente ou uma reserva valida.');
+        }
+        $entityId = (int) $match[2];
+        if ($match[1] === 'reservation') {
+            $stmt = $this->db->prepare('SELECT r.*,rc.cliente_id FROM reservas r LEFT JOIN reserva_contatos rc ON rc.reserva_id=r.id WHERE r.id=? LIMIT 1 FOR UPDATE');
+            $stmt->execute([$entityId]);
+            $reservation = $stmt->fetch() ?: throw new RuntimeException('A reserva selecionada nao existe.');
+            $clientId = !empty($reservation['cliente_id'])
+                ? (int) $reservation['cliente_id']
+                : (new CustomerRepository($this->db))->syncFromReservation($reservation);
+            return [$clientId, $entityId];
+        }
+
+        $stmt = $this->db->prepare("SELECT id FROM clientes WHERE id=? AND status='ATIVO' LIMIT 1 FOR UPDATE");
+        $stmt->execute([$entityId]);
+        if (!$stmt->fetchColumn()) throw new RuntimeException('O cliente selecionado nao existe ou esta inativo.');
+        $stmt = $this->db->prepare("SELECT r.id FROM reserva_contatos rc JOIN reservas r ON r.id=rc.reserva_id WHERE rc.cliente_id=? AND r.status NOT IN ('CANCELADA','RECUSADA','EXPIRADA') ORDER BY CASE WHEN r.checkout>=CURDATE() THEN 0 ELSE 1 END,CASE WHEN r.checkout>=CURDATE() THEN r.checkin END,r.created_at DESC,r.id DESC LIMIT 1");
+        $stmt->execute([$entityId]);
+        $latestReservationId = $stmt->fetchColumn();
+        return [$entityId, $latestReservationId !== false ? (int) $latestReservationId : null];
     }
 
     public function retry(int $messageId,int $userId):void
