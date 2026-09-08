@@ -165,6 +165,15 @@ test('motor de precos calcula diarias limpeza e hospedes extras em centavos',fun
 });
 test('motor publico falha fechado sem parametros comerciais',function(){try{(new PricingEngine())->calculate(['checkin'=>'2026-08-10','checkout'=>'2026-08-12','guests'=>2],['base_daily_rate'=>'800.00','cleaning_fee'=>'280.00','extra_guest_fee'=>'100.00','max_guests'=>10,'public_pricing_enabled'=>1]);}catch(DomainException $error){expect(str_contains($error->getMessage(),'GUESTS_INCLUDED_IN_BASE_RATE'));return;}throw new RuntimeException('Preço público incompleto foi calculado.');});
 test('data especial substitui diaria base sem float',function(){$result=(new PricingEngine())->calculate(['checkin'=>'2026-12-24','checkout'=>'2026-12-26','guests'=>2],['base_daily_rate'=>'800.00','cleaning_fee'=>'0','guests_included_in_base_rate'=>2,'extra_guest_fee'=>'0','extra_guest_fee_mode'=>'PER_STAY','max_guests'=>10,'public_pricing_enabled'=>1],[],[['id'=>1,'nome'=>'Natal','starts_on'=>'2026-12-24','ends_on'=>'2026-12-25','daily_rate'=>'1200.00','priority'=>1,'ativo'=>1]]);expect($result['total']==='2400.00');});
+test('calendario gerencia e exibe precos especiais com seguranca',function(){
+    $admin=file_get_contents(BASE_PATH.'/app/Controllers/AdminController.php');
+    $operations=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/calendar.php');
+    foreach(['$specialPrices','$specialPricePeriods','pricing_special_dates']as$needle)expect(str_contains($admin,$needle));
+    foreach(['calendar-special-price-save','calendar-special-price-toggle','pricing.manage','assertNoSpecialPriceOverlap','Money::normalize']as$needle)expect(str_contains($operations,$needle));
+    foreach(['Diárias por período','calendar-special-price-save','calendar-special-price-toggle','calendar-special-price']as$needle)expect(str_contains($view,$needle));
+    expect(str_contains($view,'Data final (inclusive)'));
+});
 test('parser ical desdobra linhas trata dia inteiro e cancelamento',function(){$reflection=new ReflectionClass(ICalendarService::class);$service=$reflection->newInstanceWithoutConstructor();$property=$reflection->getProperty('defaultTimezone');$property->setValue($service,'America/Sao_Paulo');$events=$service->parse("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:abc-1\r\nDTSTART;VALUE=DATE:20260810\r\nDTEND;VALUE=DATE:20260812\r\nSUMMARY:Reserva\r\n externa\r\nSTATUS:CANCELLED\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n");expect(count($events)===1);expect($events[0]['uid']==='abc-1');expect($events[0]['all_day']);expect($events[0]['status']==='CANCELLED');expect($events[0]['summary']==='Reservaexterna');});
 test('importador ical aceita redirecionamento relativo sem expor a fila no botao manual',function(){$reflection=new ReflectionClass(ICalendarService::class);$service=$reflection->newInstanceWithoutConstructor();$method=$reflection->getMethod('resolveRedirectUrl');$url=$method->invoke($service,'https://calendar.example.com/export/feed.ics?token=secret','../v2/calendar.ics?key=opaque');expect($url==='https://calendar.example.com/v2/calendar.ics?key=opaque');$controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');$start=strpos($controller,'private function calendarSourceSync');$end=strpos($controller,'private function calendarExportCreate',$start);$manual=substr($controller,$start,$end-$start);expect(str_contains($manual,'new ICalendarService'));expect(!str_contains($manual,'enqueue'));});
 test('falha de url ical e registrada antes da tentativa de download',function(){$source=file_get_contents(BASE_PATH.'/app/Services/ICalendarService.php');$log=strpos($source,'INSERT INTO calendar_sync_logs');$fetch=strpos($source,'$this->fetch(');expect($log!==false&&$fetch!==false&&$log<$fetch);expect(str_contains($source,'MAX_REDIRECTS'));});
@@ -549,6 +558,28 @@ test('encerramento invalida acessos e documentos pendentes',function(){
     expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=token.reservation_id"));
     expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=contrato.reservation_id"));
     expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=convite.reserva_id"));
+});
+
+test('resumo mensal do whatsapp usa template aprovado e fila idempotente',function(){
+    $summary=file_get_contents(BASE_PATH.'/app/Services/MonthlyReservationSummaryService.php');
+    $whatsapp=file_get_contents(BASE_PATH.'/app/Services/WhatsAppService.php');
+    $worker=file_get_contents(BASE_PATH.'/scripts/process_jobs.php');
+    $env=file_get_contents(BASE_PATH.'/.env.example');
+    foreach(['RESERVATION_MONTHLY_SUMMARY','reservation-summary:','WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS',"s.provider IN ('AIRBNB','BOOKING')","status IN ('RESERVA_CONFIRMADA','FINALIZADA')"]as$needle)expect(str_contains($summary,$needle));
+    foreach(['message_templates','UTILITY','allow_category_change','body_text','Resumo de reservas']as$needle)expect(str_contains($whatsapp,$needle));
+    expect(str_contains($worker,"'RESERVATION_MONTHLY_SUMMARY'"));
+    expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015'));
+});
+
+test('confirmacoes diretas e externas atualizam o resumo mensal',function(){
+    $reservation=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php');
+    $ical=file_get_contents(BASE_PATH.'/app/Services/ICalendarService.php');
+    $cron=file_get_contents(BASE_PATH.'/scripts/schedule_monthly_reservation_summary.php');
+    expect(str_contains($reservation,'enqueueMonthlySummary($reservationId)'));
+    expect(str_contains($reservation,'enqueueForConfirmedReservation'));
+    expect(str_contains($ical,'enqueueForConfirmedExternalEvents($newlyConfirmed)'));
+    expect(str_contains($ical,"\$event['status'] === 'CONFIRMED'"));
+    expect(str_contains($cron,"date('N') !== 1"));
 });
 
 fwrite(STDOUT, "\n{$passed} teste(s) passaram; {$failed} falharam.\n");

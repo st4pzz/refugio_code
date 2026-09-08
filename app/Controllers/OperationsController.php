@@ -21,6 +21,7 @@ use Refugio\Services\UploadService;
 use Refugio\Models\ReservationStatus;
 use Refugio\Support\Csrf;
 use Refugio\Support\Env;
+use Refugio\Support\Money;
 use Refugio\Support\Security;
 use RuntimeException;
 use Throwable;
@@ -106,6 +107,8 @@ final class OperationsController
                 'calendar-source-sync'=>$this->calendarSourceSync(),
                 'calendar-export-create'=>$this->calendarExportCreate($userId),
                 'calendar-export-revoke'=>$this->calendarExportRevoke(),
+                'calendar-special-price-save'=>$this->calendarSpecialPriceSave($userId),
+                'calendar-special-price-toggle'=>$this->calendarSpecialPriceToggle(),
                 'contract-bootstrap'=>$this->contractBootstrap($userId),
                 'contract-approve'=>$this->contractApprove($userId),
                 'contract-generate'=>$this->contractGenerate($userId),
@@ -120,6 +123,8 @@ final class OperationsController
                 default=>throw new RuntimeException('Ação operacional inválida.'),
             };
             $redirect=match(true){str_starts_with($action,'property-')=>'admin/configuracoes/propriedade',str_starts_with($action,'pricing-')=>'admin/precos',str_starts_with($action,'quote-')=>'admin/orcamentos',str_starts_with($action,'calendar-')=>'admin/calendario',str_starts_with($action,'contract-')||str_starts_with($action,'portal-')=>'admin/contratos',str_starts_with($action,'precheckin-')||str_starts_with($action,'rules-')=>'admin/pre-checkins',str_starts_with($action,'automation-')=>'admin/automacoes',default=>'admin'};
+            $returnMonth=(string)($_POST['return_month']??'');
+            if(str_starts_with($action,'calendar-special-price-')&&preg_match('/^\d{4}-\d{2}$/',$returnMonth))$redirect='admin/calendario?mes='.$returnMonth;
             $returnTo=(string)($_POST['return_to']??'');
             if($action==='portal-regenerate'&&preg_match('#^admin/reservas/[1-9][0-9]*$#',$returnTo))$redirect=$returnTo;
             if(!isset($_SESSION['_flash']['success']))flash('success','Operação concluída.');
@@ -135,6 +140,64 @@ final class OperationsController
         $enabled=isset($_POST['public_pricing_enabled'])?1:0;if($enabled&&($included===''||$mode===''))throw new RuntimeException('Defina hóspedes incluídos e modo da taxa extra antes de liberar o preço público.');
         $stmt=$this->db->prepare('UPDATE property_pricing_settings SET base_daily_rate=?,cleaning_fee=?,guests_included_in_base_rate=?,extra_guest_fee=?,extra_guest_fee_mode=?,minimum_nights=?,maximum_nights=?,public_pricing_enabled=?,updated_by=? WHERE id=1');
         $stmt->execute([$this->money($_POST['base_daily_rate']??''),$this->money($_POST['cleaning_fee']??'0'),$included!==''?(int)$included:null,$this->money($_POST['extra_guest_fee']??'0'),$mode?:null,$_POST['minimum_nights']!==''?(int)$_POST['minimum_nights']:null,$_POST['maximum_nights']!==''?(int)$_POST['maximum_nights']:null,$enabled,$userId]);
+    }
+    private function calendarSpecialPriceSave(int $userId):void
+    {
+        AuthorizationService::requirePermission('pricing.manage');
+        $id=(int)($_POST['special_price_id']??0);
+        $name=mb_substr(trim(strip_tags((string)($_POST['name']??''))),0,120);
+        $start=$this->inputDate($_POST['starts_on']??'','início');
+        $end=$this->inputDate($_POST['ends_on']??'','fim');
+        $dailyRate=Money::normalize((string)($_POST['daily_rate']??''));
+        if($name==='')throw new RuntimeException('Informe um nome para o preço especial.');
+        if($end<$start)throw new RuntimeException('A data final deve ser igual ou posterior à data inicial.');
+        if(Money::toCents($dailyRate)<=0)throw new RuntimeException('A diária especial deve ser maior que zero.');
+
+        $active=1;
+        if($id>0){
+            $current=$this->db->prepare('SELECT ativo FROM pricing_special_dates WHERE id=?');
+            $current->execute([$id]);
+            $active=$current->fetchColumn();
+            if($active===false)throw new RuntimeException('Preço especial não encontrado.');
+            $active=(int)$active;
+        }
+        if($active===1)$this->assertNoSpecialPriceOverlap($start->format('Y-m-d'),$end->format('Y-m-d'),$id);
+
+        if($id>0){
+            $stmt=$this->db->prepare('UPDATE pricing_special_dates SET nome=?,starts_on=?,ends_on=?,daily_rate=? WHERE id=?');
+            $stmt->execute([$name,$start->format('Y-m-d'),$end->format('Y-m-d'),$dailyRate,$id]);
+        }else{
+            $stmt=$this->db->prepare('INSERT INTO pricing_special_dates (nome,starts_on,ends_on,daily_rate,priority,ativo,created_by) VALUES (?,?,?,?,10,1,?)');
+            $stmt->execute([$name,$start->format('Y-m-d'),$end->format('Y-m-d'),$dailyRate,$userId]);
+        }
+        flash('success','Preço especial salvo e aplicado ao cálculo das diárias.');
+    }
+    private function calendarSpecialPriceToggle():void
+    {
+        AuthorizationService::requirePermission('pricing.manage');
+        $id=(int)($_POST['special_price_id']??0);
+        $active=(int)($_POST['active']??0)===1?1:0;
+        $stmt=$this->db->prepare('SELECT starts_on,ends_on FROM pricing_special_dates WHERE id=?');
+        $stmt->execute([$id]);
+        $period=$stmt->fetch();
+        if(!$period)throw new RuntimeException('Preço especial não encontrado.');
+        if($active===1)$this->assertNoSpecialPriceOverlap((string)$period['starts_on'],(string)$period['ends_on'],$id);
+        $this->db->prepare('UPDATE pricing_special_dates SET ativo=? WHERE id=?')->execute([$active,$id]);
+        flash('success',$active===1?'Preço especial ativado.':'Preço especial desativado.');
+    }
+    private function assertNoSpecialPriceOverlap(string $start,string $end,int $exceptId=0):void
+    {
+        $stmt=$this->db->prepare('SELECT nome,starts_on,ends_on FROM pricing_special_dates WHERE ativo=1 AND id<>? AND starts_on<=? AND ends_on>=? ORDER BY starts_on LIMIT 1');
+        $stmt->execute([$exceptId,$end,$start]);
+        $overlap=$stmt->fetch();
+        if($overlap)throw new RuntimeException('O período se sobrepõe ao preço especial “'.$overlap['nome'].'” ('.$overlap['starts_on'].' a '.$overlap['ends_on'].'). Edite ou desative esse período primeiro.');
+    }
+    private function inputDate(mixed $value,string $label):DateTimeImmutable
+    {
+        $raw=trim((string)$value);
+        $date=DateTimeImmutable::createFromFormat('!Y-m-d',$raw);
+        if(!$date||$date->format('Y-m-d')!==$raw)throw new RuntimeException('Informe uma data válida para '.$label.'.');
+        return $date;
     }
     private function quoteCreate(int $userId):void{AuthorizationService::requirePermission('quotes.manage');$service=new QuoteService($this->db);$calculation=$service->calculate(['checkin'=>$_POST['checkin']??'','checkout'=>$_POST['checkout']??'','guests'=>$_POST['guests']??'','pets'=>$_POST['pets']??0,'coupon'=>$_POST['coupon']??''],false);$hours=(int)((new PropertySettingsService($this->db))->get('DEFAULT_QUOTE_EXPIRATION_HOURS',24));$quote=$service->create(['name'=>$_POST['customer_name']??null,'email'=>$_POST['customer_email']??null,'phone'=>$_POST['customer_phone']??null],$calculation,$hours?:24,$userId);flash('success','Orçamento '.$quote['code'].' criado com snapshot.');}
     private function calendarSourceCreate(int $userId):void

@@ -153,6 +153,12 @@ final class AdminController
         $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? ORDER BY data_inicio');
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();
         $unifiedEvents=(new \Refugio\Services\UnifiedCalendarService($this->db))->events($start->format('Y-m-d'),$end->format('Y-m-d'));
+        $gridStart=$start->modify('-'.$start->format('w').' days');
+        $gridEnd=$gridStart->modify('+41 days');
+        $stmt=$this->db->prepare('SELECT * FROM pricing_special_dates WHERE ativo=1 AND starts_on<=? AND ends_on>=? ORDER BY priority,id');
+        $stmt->execute([$gridEnd->format('Y-m-d'),$gridStart->format('Y-m-d')]);
+        $specialPrices=$stmt->fetchAll();
+        $specialPricePeriods=$this->db->query('SELECT * FROM pricing_special_dates ORDER BY ativo DESC,starts_on DESC,id DESC LIMIT 80')->fetchAll();
         $calendarSources=$this->db->query("SELECT s.*,
             (SELECT COUNT(*) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status<>'CANCELLED' AND e.deleted_at IS NULL) active_event_count,
             (SELECT MIN(e.starts_at) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status<>'CANCELLED' AND e.deleted_at IS NULL) first_event_at,

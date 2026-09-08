@@ -97,6 +97,45 @@ final class WhatsAppService
         return $templates;
     }
 
+    public function ensureMonthlyReservationSummaryTemplate(string $name): array
+    {
+        $name = strtolower(trim($name));
+        if (!preg_match('/^[a-z0-9_]{1,512}$/', $name)) {
+            throw new RuntimeException('Nome invalido para o template mensal do WhatsApp.');
+        }
+        $language = Env::get('WHATSAPP_TEMPLATE_LANGUAGE', 'pt_BR');
+        foreach ($this->listTemplates(100) as $template) {
+            if (($template['name'] ?? null) === $name && ($template['language'] ?? null) === $language) {
+                return ['created' => false, 'template' => $template];
+            }
+        }
+
+        $waba = Env::get('WHATSAPP_BUSINESS_ACCOUNT_ID');
+        if ($waba === '') throw new RuntimeException('WHATSAPP_BUSINESS_ACCOUNT_ID nao configurado.');
+        $payload = [
+            'name' => $name,
+            'language' => $language,
+            'category' => 'UTILITY',
+            'allow_category_change' => true,
+            'components' => [
+                ['type' => 'HEADER', 'format' => 'TEXT', 'text' => 'Resumo de reservas'],
+                [
+                    'type' => 'BODY',
+                    'text' => "Resumo das reservas de {{1}}, atualizado em {{2}}.\n\n{{3}}\n\nTotal de estadias no mês: {{4}}.",
+                    'example' => ['body_text' => [[
+                        'setembro de 2026',
+                        '08/09/2026 às 08:00',
+                        "Diretas (1):\n- 12-15/09 - RFG-EXEMPLO\nAirbnb (1):\n- 20-22/09",
+                        '2',
+                    ]]],
+                ],
+                ['type' => 'FOOTER', 'text' => 'Refúgio do Cuscuzeiro - uso administrativo'],
+            ],
+        ];
+        $template = $this->requestJson('POST', $this->baseUrl() . '/' . rawurlencode($waba) . '/message_templates', $payload);
+        return ['created' => true, 'template' => $template];
+    }
+
     private function sendPayload(array $body): string
     {
         $decoded = $this->requestJson('POST', $this->baseUrl() . '/' . rawurlencode($this->phoneId()) . '/messages', $body);

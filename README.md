@@ -75,6 +75,7 @@ Todas as opções e exemplos estão em `.env.example`:
 - e-mail: `SMTP_*` e `ADMIN_EMAIL`;
 - avaliações: `REVIEW_INVITATION_*` e `REVIEW_REMINDER_*`;
 - conversas: `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_API_VERSION`, templates, limite de mídia e retenção;
+- resumo mensal: `WHATSAPP_MONTHLY_SUMMARY_ENABLED`, `WHATSAPP_MONTHLY_SUMMARY_TEMPLATE` e `WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS`;
 - marketing: `META_*`, `GOOGLE_ADS_*`, `TIKTOK_ADS_*` e `OPENAI_*` para análises assistidas;
 - financeiro: `FINANCIAL_DEFAULT_ACCOUNT_ID`.
 
@@ -107,6 +108,8 @@ Na central de Conversas, a OpenAI pode gerar um rascunho baseado no histórico, 
 
 O link público `/contato/whatsapp` captura UTMs/clids, cria uma referência `REF-*` e redireciona para `wa.me`. A resposta que contém a referência liga lead, conversa e atribuição.
 
+O resumo administrativo mensal reúne reservas diretas confirmadas/finalizadas e eventos confirmados das fontes iCal marcadas como `AIRBNB` ou `BOOKING`. Antes do primeiro envio, submeta o template à Meta com `php scripts/configure_whatsapp_monthly_summary_template.php` e aguarde o status `APPROVED`. Cada confirmação cria um job por destinatário, com chave idempotente; o worker normal de jobs faz o envio.
+
 Detalhes de templates, tipos de mensagem, mídias, retenção, webhook e testes estão em [docs/CONVERSAS_WHATSAPP.md](docs/CONVERSAS_WHATSAPP.md).
 
 ## Marketing
@@ -133,6 +136,7 @@ Exemplo para uma instalação em `/var/www/refugio`:
 
 ```cron
 */5 * * * * /usr/bin/php /var/www/refugio/scripts/process_jobs.php --limit=50 >> /var/log/refugio-jobs.log 2>&1
+0 8 * * 1 /usr/bin/php /var/www/refugio/scripts/schedule_monthly_reservation_summary.php >> /var/log/refugio-resumo-reservas.log 2>&1
 */5 * * * * /usr/bin/php /var/www/refugio/scripts/expirar_reservas.php >> /var/log/refugio-reservas.log 2>&1
 15 1 * * * /usr/bin/php /var/www/refugio/scripts/schedule_reservation_automations.php >> /var/log/refugio-automacoes.log 2>&1
 20 2 * * * /usr/bin/php /var/www/refugio/scripts/gerar_recorrencias_financeiras.php >> /var/log/refugio-financeiro.log 2>&1

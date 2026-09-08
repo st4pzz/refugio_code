@@ -6,6 +6,8 @@ Ordem por noite: diária base → data especial (substitui a base) ou temporada 
 
 Configuração principal: `property_pricing_settings`. Temporadas, datas especiais, regras e cupons ficam, respectivamente, em `pricing_seasons`, `pricing_special_dates`, `pricing_rules` e `pricing_coupons`.
 
+Datas especiais são gerenciadas em **Admin → Calendário → Diárias por período**. O administrador informa nome, data inicial, data final inclusiva e diária por noite. O calendário destaca cada dia afetado e o valor passa a substituir a diária base nos cálculos públicos e administrativos. Períodos especiais ativos não podem se sobrepor; edite ou desative o período existente antes de cadastrar outro sobre as mesmas datas.
+
 O cálculo público permanece bloqueado até que o administrador defina:
 
 - `GUESTS_INCLUDED_IN_BASE_RATE` / `guests_included_in_base_rate`;

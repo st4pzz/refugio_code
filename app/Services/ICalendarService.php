@@ -120,6 +120,7 @@ final class ICalendarService
     {
         $seen = [];
         $created = 0; $updated = 0; $cancelled = 0;
+        $newlyConfirmed = [];
         $this->db->beginTransaction();
         try {
             $find = $this->db->prepare('SELECT id,raw_checksum,status FROM calendar_external_events WHERE source_id=? AND external_uid=? FOR UPDATE');
@@ -134,9 +135,11 @@ final class ICalendarService
                 if (!$existing) {
                     $insert->execute([$sourceId,$event['uid'],$event['summary'],$event['starts_at'],$event['ends_at'],$event['all_day'] ? 1 : 0,$event['status'],$event['sequence'],$event['checksum'],$json]);
                     $created++;
+                    if ($event['status'] === 'CONFIRMED') $newlyConfirmed[] = (int) $this->db->lastInsertId();
                 } elseif (!hash_equals((string) $existing['raw_checksum'], (string) $event['checksum'])) {
                     $update->execute([$event['summary'],$event['starts_at'],$event['ends_at'],$event['all_day'] ? 1 : 0,$event['status'],$event['sequence'],$event['checksum'],$json,$existing['id']]);
                     $updated++;
+                    if ($event['status'] === 'CONFIRMED' && $existing['status'] !== 'CONFIRMED') $newlyConfirmed[] = (int) $existing['id'];
                 } else {
                     $touch->execute([$existing['id']]);
                 }
@@ -149,6 +152,11 @@ final class ICalendarService
                 $this->db->prepare("UPDATE calendar_external_events SET deleted_at=NOW() WHERE source_id=? AND external_uid NOT IN ({$marks}) AND deleted_at IS NULL")->execute([$sourceId, ...$seen]);
             }
             $this->db->commit();
+            if ($newlyConfirmed !== []) try {
+                (new MonthlyReservationSummaryService($this->db))->enqueueForConfirmedExternalEvents($newlyConfirmed);
+            } catch (Throwable $error) {
+                error_log('[monthly-reservation-summary-external] source #' . $sourceId . ': ' . $error->getMessage());
+            }
             return ['seen' => count($events), 'created' => $created, 'updated' => $updated, 'cancelled' => $cancelled];
         } catch (Throwable $error) {
             if ($this->db->inTransaction()) $this->db->rollBack();

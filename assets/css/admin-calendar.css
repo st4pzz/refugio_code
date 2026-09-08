@@ -62,8 +62,130 @@
     color: #135f2c;
 }
 
+.calendar-day-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.calendar-day.has-special-price {
+    box-shadow: inset 0 3px #b77b19;
+}
+
+.calendar-special-price {
+    padding: 3px 5px;
+    border-radius: 5px;
+    background: #fff0cf;
+    color: #704800;
+    font-size: .61rem;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.special-pricing-panel .panel-heading {
+    align-items: flex-start;
+}
+
+.special-pricing-panel .panel-heading h2 {
+    margin-bottom: 5px;
+}
+
+.special-pricing-panel .panel-heading p:last-child {
+    max-width: 720px;
+    margin: 0;
+    color: #66675c;
+    font-size: .84rem;
+    line-height: 1.5;
+}
+
+.special-price-form {
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid #e4d2ae;
+    border-radius: 10px;
+    background: #fffbf2;
+}
+
+.special-price-submit {
+    display: flex;
+    align-items: flex-end;
+}
+
+.special-price-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.special-price-row {
+    padding: 14px;
+    border: 1px solid #e1dfd7;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.special-price-row.is-inactive {
+    opacity: .66;
+    background: #f6f5f2;
+}
+
+.special-price-row > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.special-price-row > header div {
+    display: grid;
+    gap: 4px;
+}
+
+.special-price-row > header small {
+    color: #68695f;
+    font-size: .78rem;
+}
+
+.special-price-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.special-price-actions details {
+    flex: 1;
+    margin: 0;
+}
+
+.special-price-actions summary {
+    width: fit-content;
+    color: var(--olive);
+    font-size: .82rem;
+}
+
+.special-price-edit {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #f6f5f2;
+}
+
 @media (max-width: 650px) {
     .copy-link-row {
         flex-direction: column;
+    }
+
+    .special-pricing-panel .panel-heading,
+    .special-price-row > header,
+    .special-price-actions {
+        flex-direction: column;
+    }
+
+    .special-price-submit,
+    .special-price-submit .admin-primary {
+        width: 100%;
     }
 }

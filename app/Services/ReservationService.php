@@ -263,6 +263,7 @@ final class ReservationService
             throw $e;
         }
         $this->syncFinancials($reservationId, $userId);
+        $this->enqueueMonthlySummary($reservationId);
         $this->emitAutomation('PAYMENT_CONFIRMED',$reservationId,[],'payment:'.$paymentId);
         $this->releasePostPaymentJourney($reservationId);
         $this->scheduleMilestones($reservationId);
@@ -392,6 +393,11 @@ final class ReservationService
     private function emitAutomation(string $event,int $reservationId,array $context=[],?string $eventKey=null):void
     {
         try{(new ReservationAutomationService($this->db,$this->config))->emit($event,$reservationId,$context,$eventKey);}catch(Throwable $error){error_log('[automation-reservation] '.$event.' #'.$reservationId.': '.$error->getMessage());}
+    }
+
+    private function enqueueMonthlySummary(int $reservationId):void
+    {
+        try{(new MonthlyReservationSummaryService($this->db))->enqueueForConfirmedReservation($reservationId);}catch(Throwable $error){error_log('[monthly-reservation-summary] #'.$reservationId.': '.$error->getMessage());}
     }
 
     private function emitAutomationRule(string $ruleCode,string $event,int $reservationId,array $context=[],?string $eventKey=null):void
