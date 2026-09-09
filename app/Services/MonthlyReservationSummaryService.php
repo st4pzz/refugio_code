@@ -79,10 +79,11 @@ final class MonthlyReservationSummaryService
         $summary = $this->summary($month);
         $template = Env::get('WHATSAPP_MONTHLY_SUMMARY_TEMPLATE', 'resumo_reservas_mensal');
         $now = $this->now();
+        $details = preg_replace('/\R+/u', ' | ', (string) $summary['details']) ?? (string) $summary['details'];
         $this->whatsApp->sendTemplate($recipient, $template, [
             $this->monthLabel($month),
-            'Atualizado em ' . $now->format('d/m/Y') . ' às ' . $now->format('H:i') . ".\n"
-                . $summary['details'] . "\nTotal de estadias no mês: " . $summary['total'] . '.',
+            'Atualizado em ' . $now->format('d/m/Y') . ' às ' . $now->format('H:i') . '. | '
+                . $details . ' | Total de estadias no mês: ' . $summary['total'] . '.',
         ]);
     }
 

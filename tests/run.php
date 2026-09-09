@@ -587,6 +587,12 @@ test('resumo mensal do whatsapp usa template aprovado e fila idempotente',functi
     expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015'));
 });
 
+test('parametros de template do whatsapp nao contem quebras ou espacos repetidos',function(){
+    $service=(new ReflectionClass(Refugio\Services\WhatsAppService::class))->newInstanceWithoutConstructor();
+    $method=new ReflectionMethod($service,'normalizeTemplateTextParameter');
+    expect($method->invoke($service,"  Linha 1\nLinha 2\t    fim  ")==='Linha 1 Linha 2 fim');
+});
+
 test('confirmacoes diretas e externas atualizam o resumo mensal',function(){
     $reservation=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php');
     $ical=file_get_contents(BASE_PATH.'/app/Services/ICalendarService.php');

@@ -25,9 +25,22 @@ final class WhatsAppService
             'template' => ['name' => $template, 'language' => ['code' => Env::get('WHATSAPP_TEMPLATE_LANGUAGE', 'pt_BR')]],
         ];
         if ($parameters) {
-            $body['template']['components'] = [['type' => 'body', 'parameters' => array_map(static fn($value) => ['type' => 'text', 'text' => (string) $value], $parameters)]];
+            $body['template']['components'] = [[
+                'type' => 'body',
+                'parameters' => array_map(
+                    fn($value): array => ['type' => 'text', 'text' => $this->normalizeTemplateTextParameter($value)],
+                    $parameters
+                ),
+            ]];
         }
         return $this->sendPayload($body);
+    }
+
+    private function normalizeTemplateTextParameter(mixed $value): string
+    {
+        $text = preg_replace('/[\r\n\t]+/u', ' ', (string) $value) ?? (string) $value;
+        $text = preg_replace('/ {2,}/u', ' ', $text) ?? $text;
+        return trim($text);
     }
 
     public function sendMedia(string $to, string $type, string $mediaId, ?string $caption = null, ?string $filename = null): string
