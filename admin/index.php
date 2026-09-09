@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($route === 'configuracao-perfil') $settings->assignProfile();
     if ($route === 'operacao') $operations->action((string) ($_GET['action'] ?? ''));
     if ($route === 'pedido-whatsapp-acao') $whatsAppReservations->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
+    if ($route === 'reservation-summary-send') $admin->sendMonthlyReservationSummary();
     $admin->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
 }
 

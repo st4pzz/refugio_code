@@ -33,4 +33,6 @@ Agende a segunda-feira, por exemplo as 08:00 no fuso da aplicacao:
 
 O `scripts/process_jobs.php` existente deve continuar rodando a cada poucos minutos. O cron semanal apenas agenda um job para cada telefone; o worker envia o template. Para homologar fora de uma segunda-feira, use `php scripts/schedule_monthly_reservation_summary.php --force`.
 
+Usuarios com a permissao `reservas.manage` tambem podem usar o botao **Enviar resumo do mes** no cabecalho da secao administrativa **Reservas**. O botao agenda o mesmo resumo do mes corrente para todos os destinatarios configurados. Cada formulario recebe uma chave unica para impedir duplicacao causada por duplo clique ou reenvio do navegador.
+
 Confirmacoes de reservas diretas agendam o resumo do mes do check-in. Uma nova reserva confirmada encontrada em Airbnb/Booking durante o sync iCal faz o mesmo. Chaves unicas na fila impedem duplicacao em retries; numa primeira importacao com varias reservas, os eventos sao consolidados em um envio por mes e destinatario.

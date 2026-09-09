@@ -614,5 +614,21 @@ test('conversa usa seletor unico para vincular cliente e reserva',function(){
     expect(str_contains($view,'próxima reserva válida'));
 });
 
+test('reservas possuem disparo manual idempotente do resumo mensal',function(){
+    $front=file_get_contents(BASE_PATH.'/admin/index.php');
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/AdminController.php');
+    $service=file_get_contents(BASE_PATH.'/app/Services/MonthlyReservationSummaryService.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/reservations.php');
+    expect(str_contains($routes,'admin/reservas/resumo-mensal/enviar'));
+    expect(str_contains($front,"'reservation-summary-send'"));
+    foreach(['sendMonthlyReservationSummary','reservas.manage','Csrf::verify','enqueueManual']as$needle)expect(str_contains($controller,$needle));
+    expect(str_contains($service,'function enqueueManual'));
+    expect(str_contains($service,"'manual', \$requestKey"));
+    expect(str_contains($view,'Enviar resumo do mês'));
+    expect(str_contains($view,'name="request_key"'));
+    expect(str_contains($view,'data-confirm='));
+});
+
 fwrite(STDOUT, "\n{$passed} teste(s) passaram; {$failed} falharam.\n");
 exit($failed ? 1 : 0);

@@ -3,7 +3,7 @@ $title = 'Reservas';
 $reviewInviteUrl = flash('review_invite_url');
 require __DIR__ . '/_top.php';
 ?>
-<div class="page-heading"><div><p class="eyebrow">Gerenciamento</p><h1>Reservas</h1></div></div>
+<div class="page-heading"><div><p class="eyebrow">Gerenciamento</p><h1>Reservas</h1></div><?php if(can('reservas.manage')):?><form method="post" action="<?= e(base_url('admin/reservas/resumo-mensal/enviar')) ?>" data-confirm="Enviar agora o resumo das reservas do mês pelo WhatsApp para os destinatários configurados?"><?= csrf_field() ?><input type="hidden" name="request_key" value="<?= e(bin2hex(random_bytes(16))) ?>"><button class="admin-primary" type="submit">Enviar resumo do mês</button></form><?php endif;?></div>
 
 <?php if ($reviewInviteUrl): ?>
     <div class="export-link-card" role="status">

@@ -24,6 +24,15 @@ final class MonthlyReservationSummaryService
         return $this->enqueueMonth($now->modify('first day of this month'), 'weekly', $now->format('o-W'));
     }
 
+    public function enqueueManual(string $requestKey, ?DateTimeImmutable $now = null): int
+    {
+        if (!preg_match('/^[a-f0-9]{32}$/', $requestKey)) {
+            throw new RuntimeException('Identificador invalido para o envio manual do resumo.');
+        }
+        $now ??= $this->now();
+        return $this->enqueueMonth($now->modify('first day of this month'), 'manual', $requestKey);
+    }
+
     public function enqueueForConfirmedReservation(int $reservationId): int
     {
         $stmt = $this->db->prepare("SELECT checkin FROM reservas WHERE id=? AND status='RESERVA_CONFIRMADA'");

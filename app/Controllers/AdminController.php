@@ -14,6 +14,7 @@ use Refugio\Services\AuthorizationService;
 use Refugio\Services\AvailabilityService;
 use Refugio\Services\ConflictException;
 use Refugio\Services\NotificationService;
+use Refugio\Services\MonthlyReservationSummaryService;
 use Refugio\Services\ReservationService;
 use Refugio\Services\ReviewEligibilityService;
 use Refugio\Support\Csrf;
@@ -84,6 +85,21 @@ final class AdminController
             ? $this->reviewActionsFor($result['items'])
             : [];
         require BASE_PATH . '/app/Views/admin/reservations.php';
+    }
+
+    public function sendMonthlyReservationSummary(): never
+    {
+        AuthorizationService::requirePermission('reservas.manage');
+        $this->boot();
+        try {
+            Csrf::verify($_POST['_csrf'] ?? null);
+            $count = (new MonthlyReservationSummaryService($this->db))->enqueueManual((string) ($_POST['request_key'] ?? ''));
+            if ($count < 1) throw new RuntimeException('O envio do resumo mensal esta desativado no ambiente.');
+            flash('success', "Resumo do mes agendado para {$count} destinatario(s). O worker fara o envio pelo WhatsApp.");
+        } catch (Throwable $error) {
+            flash('error', $error->getMessage());
+        }
+        redirect(base_url('admin/reservas'));
     }
 
     public function detail(int $id): void
