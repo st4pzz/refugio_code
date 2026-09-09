@@ -148,9 +148,7 @@ final class AdminController
         $this->boot();
         $month = preg_match('/^\d{4}-\d{2}$/', (string) ($_GET['mes'] ?? '')) ? $_GET['mes'] : date('Y-m');
         $start = new DateTimeImmutable($month . '-01'); $end = $start->modify('first day of next month');
-        $stmt = $this->db->prepare("SELECT id,codigo,nome_cliente,checkin,checkout,status,origem FROM reservas WHERE checkin<? AND checkout>? AND status<>'CANCELADA' ORDER BY checkin");
-        $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $events = $stmt->fetchAll();
-        $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? ORDER BY data_inicio');
+        $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? AND reserva_id IS NULL ORDER BY data_inicio');
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();
         $unifiedEvents=(new \Refugio\Services\UnifiedCalendarService($this->db))->events($start->format('Y-m-d'),$end->format('Y-m-d'));
         $gridStart=$start->modify('-'.$start->format('w').' days');
@@ -160,9 +158,9 @@ final class AdminController
         $specialPrices=$stmt->fetchAll();
         $specialPricePeriods=$this->db->query('SELECT * FROM pricing_special_dates ORDER BY ativo DESC,starts_on DESC,id DESC LIMIT 80')->fetchAll();
         $calendarSources=$this->db->query("SELECT s.*,
-            (SELECT COUNT(*) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status<>'CANCELLED' AND e.deleted_at IS NULL) active_event_count,
-            (SELECT MIN(e.starts_at) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status<>'CANCELLED' AND e.deleted_at IS NULL) first_event_at,
-            (SELECT MAX(e.ends_at) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status<>'CANCELLED' AND e.deleted_at IS NULL) last_event_at
+            (SELECT COUNT(*) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status='CONFIRMED' AND e.deleted_at IS NULL) active_event_count,
+            (SELECT MIN(e.starts_at) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status='CONFIRMED' AND e.deleted_at IS NULL) first_event_at,
+            (SELECT MAX(e.ends_at) FROM calendar_external_events e WHERE e.source_id=s.id AND e.status='CONFIRMED' AND e.deleted_at IS NULL) last_event_at
             FROM calendar_sources s ORDER BY s.ativo DESC,s.nome")->fetchAll();
         $exportTokens=$this->db->query('SELECT id,nome,ativo,created_at,last_used_at,revoked_at FROM calendar_export_tokens ORDER BY created_at DESC,id DESC')->fetchAll();
         $syncLogs=$this->db->query('SELECT l.*,s.nome source_name FROM calendar_sync_logs l JOIN calendar_sources s ON s.id=l.source_id ORDER BY l.created_at DESC LIMIT 20')->fetchAll();
