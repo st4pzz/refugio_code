@@ -24,7 +24,11 @@ final class AuthorizationService
         $permissions = [];
         $roles = [];
         foreach ($stmt->fetchAll() as $row) {
-            $roles[] = (string) $row['codigo'];
+            $roleCode = (string) $row['codigo'];
+            $roles[] = $roleCode;
+            if ($roleCode === 'SUPER_ADMIN') {
+                $permissions['*'] = true;
+            }
             $items = json_decode((string) $row['permissoes_json'], true);
             if (is_array($items)) {
                 foreach ($items as $permission) {
@@ -79,6 +83,9 @@ final class AuthorizationService
     {
         if (empty($_SESSION['admin_id'])) {
             return false;
+        }
+        if (in_array('SUPER_ADMIN', (array) ($_SESSION['admin_roles'] ?? []), true)) {
+            return true;
         }
         $permissions = $_SESSION['admin_permissions'] ?? null;
         if (!is_array($permissions)) {
