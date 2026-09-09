@@ -526,6 +526,20 @@ test('administrador recebe link copiavel e resultado real do convite',function()
     expect(str_contains($view,'data-copy-target="review-invite-url"'));
 });
 
+test('listagem de reservas permite disparar convite de avaliacao manualmente',function(){
+    $admin=file_get_contents(BASE_PATH.'/app/Controllers/AdminController.php');
+    $reviewController=file_get_contents(BASE_PATH.'/app/Controllers/AdminReviewController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/reservations.php');
+    expect(str_contains($admin,'reviewActionsFor'));
+    expect(str_contains($admin,"p.status='CONFIRMADO'"));
+    expect(str_contains($admin,"['PENDENTE','ENVIADO']"));
+    expect(str_contains($view,"can('avaliacoes.manage')"));
+    expect(str_contains($view,"'enviar-convite-avaliacao'"));
+    expect(str_contains($view,'name="return_to" value="admin/reservas"'));
+    expect(str_contains($view,'data-confirm="Disparar o template de avaliação'));
+    expect(str_contains($reviewController,"\$returnTo === 'admin/reservas'"));
+});
+
 test('portal pode ser regenerado sem contrato e volta para a reserva',function(){
     $controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');
     $contracts=file_get_contents(BASE_PATH.'/app/Views/admin/contracts.php');

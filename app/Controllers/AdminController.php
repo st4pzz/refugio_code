@@ -80,6 +80,9 @@ final class AdminController
         $filters = array_intersect_key($_GET, array_flip(['q','status','origem','inicio','fim','ordem']));
         $page = max(1, (int) ($_GET['pagina'] ?? 1));
         $result = $this->repository->paginate($filters, $page);
+        $reviewActions = AuthorizationService::currentAllows('avaliacoes.manage')
+            ? $this->reviewActionsFor($result['items'])
+            : [];
         require BASE_PATH . '/app/Views/admin/reservations.php';
     }
 
@@ -226,6 +229,53 @@ final class AdminController
     {
         $value = $this->db->query($sql)->fetchColumn();
         return is_numeric($value) && str_contains((string) $value, '.') ? (float) $value : (int) $value;
+    }
+
+    private function reviewActionsFor(array $reservations): array
+    {
+        $ids = array_values(array_filter(array_map(
+            static fn(array $reservation): int => (int) ($reservation['id'] ?? 0),
+            $reservations
+        )));
+        if ($ids === []) return [];
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $statement = $this->db->prepare(
+            "SELECT r.id,
+                EXISTS(SELECT 1 FROM pagamentos p WHERE p.reserva_id=r.id AND p.status='CONFIRMADO') has_confirmed_payment,
+                (SELECT a.id FROM avaliacoes a WHERE a.reserva_id=r.id LIMIT 1) review_id,
+                (SELECT c.status FROM convites_avaliacao c WHERE c.reserva_id=r.id LIMIT 1) invitation_status
+             FROM reservas r WHERE r.id IN ({$placeholders})"
+        );
+        $statement->execute($ids);
+        $metadata = [];
+        foreach ($statement->fetchAll() as $row) $metadata[(int) $row['id']] = $row;
+
+        $service = new ReviewEligibilityService($this->db, $this->config);
+        $now = new DateTimeImmutable();
+        $actions = [];
+        foreach ($reservations as $reservation) {
+            $id = (int) $reservation['id'];
+            $row = $metadata[$id] ?? [];
+            $eligibility = ReviewEligibilityService::evaluate(
+                $reservation,
+                !empty($row['has_confirmed_payment']),
+                !empty($row['review_id']),
+                $now
+            );
+            $window = $service->invitationWindow($reservation, $now);
+            $invitationStatus = (string) ($row['invitation_status'] ?? '');
+            $activeInvitation = in_array($invitationStatus, ['PENDENTE','ENVIADO'], true);
+            $available = $eligibility['eligible'] && $window['available'] && $invitationStatus !== 'UTILIZADO';
+            $actions[$id] = [
+                'available' => $available,
+                'action' => $activeInvitation ? 'reenviar-convite-avaliacao' : 'enviar-convite-avaliacao',
+                'label' => $activeInvitation ? 'Reenviar convite' : 'Enviar convite de avaliação',
+                'invitation_status' => $invitationStatus,
+                'has_review' => !empty($row['review_id']),
+            ];
+        }
+        return $actions;
     }
 
     private function boot(): void

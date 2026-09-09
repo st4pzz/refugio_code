@@ -75,6 +75,8 @@ Administrativos, todos autenticados e com CSRF nas mutações:
 - `POST /admin/avaliacoes/{id}/{aprovar|rejeitar|ocultar|republicar|responder}`;
 - `POST /admin/reservas/{id}/{enviar-convite-avaliacao|reenviar-convite-avaliacao|revogar-convite-avaliacao}`.
 
+Na listagem **Reservas**, usuários com a permissão `avaliacoes.manage` veem um botão de envio manual somente para hospedagens elegíveis e dentro da janela configurada. Se já houver convite ativo, a ação exibida será de reenvio e rotacionará o link anterior.
+
 ## Convites, cron e lembrete
 
 Execute o processador pelo menos uma vez por hora:

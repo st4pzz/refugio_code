@@ -85,7 +85,8 @@ final class AdminReviewController
         } catch (Throwable $e) {
             flash('error', $e->getMessage());
         }
-        redirect(base_url('admin/reservas/' . $reservationId));
+        $returnTo = (string) ($_POST['return_to'] ?? '');
+        redirect(base_url($returnTo === 'admin/reservas' ? $returnTo : 'admin/reservas/' . $reservationId));
     }
 
     private function boot(): void
