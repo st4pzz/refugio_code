@@ -95,11 +95,11 @@ final class ReviewRepository
     public function upsertExternalReview(array $data, int $userId): int
     {
         $sql = "INSERT INTO avaliacoes (reserva_id,convite_avaliacao_id,origem_plataforma,external_review_id,external_url,avaliacao_em,importada_em,expira_em,nome_exibicao,nota_geral,nota_limpeza,nota_localizacao,nota_conforto,nota_comunicacao,nota_custo_beneficio,comentario,status,autoriza_publicacao,anonima,enviada_em,created_by)
-            VALUES (NULL,NULL,:provider,:external_id,:external_url,:reviewed_at,NOW(),:expires_at,:name,:rating,NULL,NULL,NULL,NULL,NULL,:comment,'PENDENTE',1,0,:reviewed_at,:created_by)
+            VALUES (NULL,NULL,:provider,:external_id,:external_url,:reviewed_at,NOW(),:expires_at,:name,:rating,NULL,NULL,NULL,NULL,NULL,:comment,'PENDENTE',1,0,:submitted_at,:created_by)
             ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id),status=IF(nota_geral<>VALUES(nota_geral) OR comentario<>VALUES(comentario),'PENDENTE',status),aprovada_em=IF(nota_geral<>VALUES(nota_geral) OR comentario<>VALUES(comentario),NULL,aprovada_em),external_url=VALUES(external_url),avaliacao_em=VALUES(avaliacao_em),importada_em=NOW(),expira_em=VALUES(expira_em),nome_exibicao=VALUES(nome_exibicao),nota_geral=VALUES(nota_geral),comentario=VALUES(comentario),updated_at=NOW()";
         $this->db->prepare($sql)->execute([
             'provider'=>$data['provider'],'external_id'=>$data['external_id'],'external_url'=>$data['external_url'],
-            'reviewed_at'=>$data['reviewed_at'],'expires_at'=>$data['expires_at'],'name'=>$data['name'],
+            'reviewed_at'=>$data['reviewed_at'],'submitted_at'=>$data['reviewed_at'],'expires_at'=>$data['expires_at'],'name'=>$data['name'],
             'rating'=>$data['rating'],'comment'=>$data['comment'],'created_by'=>$userId > 0 ? $userId : null,
         ]);
         return (int) $this->db->lastInsertId();

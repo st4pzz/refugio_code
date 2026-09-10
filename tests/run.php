@@ -145,6 +145,8 @@ test('avaliacoes externas manuais possuem origem e idempotencia',function(){
     expect(str_contains($transition,'DROP TABLE IF EXISTS review_integrations'));
     $repository=file_get_contents(BASE_PATH.'/app/Repositories/ReviewRepository.php');
     expect(str_contains($repository,"origem_plataforma<>'GOOGLE'"));
+    expect(substr_count($repository,':reviewed_at')===1);
+    expect(substr_count($repository,':submitted_at')===1);
 });
 test('google places consulta cinco avaliacoes ao vivo sem oauth ou persistencia',function(){
     $service=file_get_contents(BASE_PATH.'/app/Services/ExternalReviewService.php');
