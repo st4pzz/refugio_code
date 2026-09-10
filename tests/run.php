@@ -54,6 +54,29 @@ test('transicao invalida bloqueada', function() { expect(!ReservationStatus::REC
 test('estados que bloqueiam datas', function() { expect(in_array('RESERVA_CONFIRMADA',ReservationStatus::blocking(),true)); expect(!in_array('AGUARDANDO_APROVACAO',ReservationStatus::blocking(),true)); });
 test('formula de sobreposicao presente', function() { $source=file_get_contents(BASE_PATH.'/app/Services/AvailabilityService.php'); expect(str_contains($source,'checkin < ? AND checkout > ?')); });
 test('regra de sobreposicao de intervalos', function() { expect(AvailabilityService::overlaps('2026-08-10','2026-08-15','2026-08-14','2026-08-20')); expect(!AvailabilityService::overlaps('2026-08-10','2026-08-15','2026-08-15','2026-08-20')); });
+test('calendario publico combina intervalos sem expor dados da reserva', function() {
+    $merged=AvailabilityService::mergeRanges([
+        ['start'=>'2026-09-10','end'=>'2026-09-13'],
+        ['start'=>'2026-09-12','end'=>'2026-09-15'],
+        ['start'=>'2026-09-15','end'=>'2026-09-17'],
+        ['start'=>'2026-09-20','end'=>'2026-09-22'],
+    ]);
+    expect($merged===[['start'=>'2026-09-10','end'=>'2026-09-17'],['start'=>'2026-09-20','end'=>'2026-09-22']]);
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/PublicAvailabilityController.php');
+    expect(str_contains($controller,'blockedRanges'));
+    foreach(['nome_cliente','codigo','source_name','motivo'] as $privateField) expect(!str_contains($controller,$privateField));
+});
+test('navbar e rota publica exibem verificacao de disponibilidade', function() {
+    $landing=file_get_contents(BASE_PATH.'/index.php');
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    $view=file_get_contents(BASE_PATH.'/app/Views/public/availability.php');
+    $script=file_get_contents(BASE_PATH.'/assets/js/availability.js');
+    expect(str_contains($landing,'Verificar disponibilidade'));
+    expect(str_contains($routes,'^disponibilidade/?$'));
+    expect(str_contains($routes,'^api/disponibilidade/?$'));
+    foreach(['data-availability-calendar','Indisponível','data-next-month'] as $needle) expect(str_contains($view,$needle));
+    foreach(['unavailable-mark','payload.occupied','cache: \'no-store\'','render(null)'] as $needle) expect(str_contains($script,$needle));
+});
 test('aprovacao usa transacao e mutex', function() { $source=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php'); expect(str_contains($source,'beginTransaction()')); expect(str_contains($source,'lockApprovalMutex()')); $migration=file_get_contents(BASE_PATH.'/database/migrations/001_create_reservas.sql'); expect(str_contains($migration,'reserva_mutex')); });
 test('token publico nao usa id sequencial', function() { $source=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php'); expect(str_contains($source,'random_bytes(32)')); });
 test('rota administrativa exige autorizacao centralizada', function() { $source=file_get_contents(BASE_PATH.'/app/Controllers/AdminController.php'); expect(substr_count($source,'AuthorizationService::requirePermission')>=5); });

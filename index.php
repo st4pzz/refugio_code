@@ -321,7 +321,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
             </div>
             
             <nav class="navigation">
-                <button class="menu-toggle" id="menuToggle">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="Abrir menu">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -333,6 +333,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                     <li><a href="/analandia/" class="nav-link">Analândia</a></li>
                     <li><a href="/blog/" class="nav-link">Blog</a></li>
                     <li><a href="/localizacao" class="nav-link"<?= $landingSectionSlug === 'localizacao' ? ' aria-current="page"' : '' ?>>Localização</a></li>
+                    <li><a href="/disponibilidade/" class="nav-link nav-disponibilidade">Verificar disponibilidade</a></li>
                     <li><a href="/reserva/solicitar" class="nav-link nav-reserva">Reserva direta</a></li>
                 </ul>
             </nav>
@@ -890,6 +891,9 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         menuToggle.addEventListener('click', () => {
             navMenu.classList.toggle('active');
             menuToggle.classList.toggle('active');
+            const isOpen = navMenu.classList.contains('active');
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+            menuToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
         });
 
         // Fechar menu ao clicar em um link
@@ -897,6 +901,8 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
             link.addEventListener('click', () => {
                 navMenu.classList.remove('active');
                 menuToggle.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.setAttribute('aria-label', 'Abrir menu');
             });
         });
 

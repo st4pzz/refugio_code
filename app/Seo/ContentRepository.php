@@ -118,6 +118,7 @@ final class ContentRepository
             ['path' => '/videos-do-refugio', 'lastmod' => null],
             ['path' => '/conheca-analandia', 'lastmod' => null],
             ['path' => '/reserva-direta', 'lastmod' => null],
+            ['path' => '/disponibilidade/', 'lastmod' => null],
             ['path' => '/localizacao', 'lastmod' => null],
         ];
         foreach ($this->landingPages as $page) {

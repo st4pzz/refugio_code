@@ -108,6 +108,7 @@ $isIndexable = ($page['indexable'] ?? true) === true && ($page['type'] ?? '') !=
                 <li><a href="/alugar-chacara/">Hospedagem</a></li>
                 <li><a href="/analandia/">Conheça Analândia</a></li>
                 <li><a href="/blog/">Blog</a></li>
+                <li><a href="/disponibilidade/">Verificar disponibilidade</a></li>
                 <li><a class="seo-nav-cta" href="/reserva/solicitar">Reservar</a></li>
             </ul>
         </nav>

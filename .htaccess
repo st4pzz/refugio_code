@@ -23,9 +23,11 @@ RewriteRule ^blog/([a-z0-9-]+)/?$ seo/index.php?route=blog/$1 [L,QSA]
 RewriteRule ^(a-chacara|avaliacoes-dos-hospedes|comodidades|galeria-de-fotos|videos-do-refugio|conheca-analandia|reserva-direta|localizacao)/?$ index.php?landing_section=$1 [L,QSA]
 
 RewriteRule ^reserva/solicitar/?$ reserva/solicitar.php [L,QSA]
+RewriteRule ^disponibilidade/?$ disponibilidade/index.php [L,QSA]
 RewriteRule ^reserva/sucesso/?$ reserva/sucesso.php [L,QSA]
 RewriteRule ^reserva/(?:pagamento/)?([A-Za-z0-9_-]{40,80})/?$ reserva/index.php?token=$1 [L,QSA]
 RewriteRule ^api/reservas/solicitar/?$ api/reservas/solicitar.php [L,QSA]
+RewriteRule ^api/disponibilidade/?$ api/disponibilidade/index.php [L,QSA]
 RewriteRule ^api/reservas/([A-Za-z0-9_-]{40,80})/comprovante/?$ api/reservas/comprovante.php?token=$1 [L,QSA]
 RewriteRule ^api/orcamentos/calcular/?$ api/orcamentos/calcular.php [L,QSA]
 RewriteCond %{REQUEST_METHOD} =POST

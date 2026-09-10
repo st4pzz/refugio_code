@@ -56,6 +56,57 @@ final class AvailabilityService
         return false;
     }
 
+    /**
+     * Retorna somente intervalos ocupados, sem expor origem ou dados de hóspedes.
+     * As datas seguem a regra de hospedagem: check-in incluso e check-out livre.
+     *
+     * @return array<int,array{start:string,end:string}>
+     */
+    public function blockedRanges(string $start, string $end): array
+    {
+        $conflicts = $this->conflicts($start, $end);
+        $ranges = [];
+
+        foreach (['reservas', 'bloqueios', 'externos', 'holds'] as $type) {
+            foreach ($conflicts[$type] ?? [] as $item) {
+                $rangeStart = substr((string) ($item['checkin'] ?? ''), 0, 10);
+                $rangeEnd = substr((string) ($item['checkout'] ?? ''), 0, 10);
+                if (!self::validDate($rangeStart) || !self::validDate($rangeEnd) || $rangeStart >= $rangeEnd) continue;
+                $ranges[] = [
+                    'start' => max($start, $rangeStart),
+                    'end' => min($end, $rangeEnd),
+                ];
+            }
+        }
+
+        return self::mergeRanges($ranges);
+    }
+
+    /** @param array<int,array{start:string,end:string}> $ranges */
+    public static function mergeRanges(array $ranges): array
+    {
+        usort($ranges, static fn(array $a, array $b): int => [$a['start'], $a['end']] <=> [$b['start'], $b['end']]);
+        $merged = [];
+
+        foreach ($ranges as $range) {
+            if ($range['start'] >= $range['end']) continue;
+            $last = array_key_last($merged);
+            if ($last === null || $range['start'] > $merged[$last]['end']) {
+                $merged[] = $range;
+                continue;
+            }
+            if ($range['end'] > $merged[$last]['end']) $merged[$last]['end'] = $range['end'];
+        }
+
+        return $merged;
+    }
+
+    private static function validDate(string $date): bool
+    {
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        return $parsed !== false && $parsed->format('Y-m-d') === $date;
+    }
+
     public function pendingConflicts(string $checkin, string $checkout, int $exclude): array
     {
         $stmt = $this->db->prepare("SELECT id,codigo,nome_cliente,checkin,checkout FROM reservas WHERE id<>? AND checkin < ? AND checkout > ? AND status='AGUARDANDO_APROVACAO'");
