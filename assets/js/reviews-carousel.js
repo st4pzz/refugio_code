@@ -44,7 +44,21 @@
 
         const identity = element('div', 'reviewer');
         identity.appendChild(element('span', 'reviewer-name', String(item.nome_exibicao || 'Hóspede')));
-        identity.appendChild(element('span', 'review-verified', '✓ Avaliação verificada'));
+        const origins = { GOOGLE: 'Google', BOOKING: 'Booking.com', AIRBNB: 'Airbnb' };
+        const origin = origins[String(item.origem || '')];
+        if (origin) {
+            const sourceUrl = String(item.external_url || '');
+            const source = element(/^https?:\/\//i.test(sourceUrl) ? 'a' : 'span', 'review-verified review-external', `↗ ${origin}`);
+            if (source.tagName === 'A') {
+                source.href = sourceUrl;
+                source.target = '_blank';
+                source.rel = 'noopener noreferrer';
+                source.setAttribute('aria-label', `Ver avaliação original no ${origin}`);
+            }
+            identity.appendChild(source);
+        } else {
+            identity.appendChild(element('span', 'review-verified', '✓ Avaliação verificada'));
+        }
         slide.appendChild(identity);
 
         const period = stayLabel(item.checkout);
@@ -108,7 +122,7 @@
         const average = Number(data.average);
         if (count > 0 && Number.isFinite(average)) {
             summary.querySelector('[data-review-average]').textContent = average.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-            summary.querySelector('[data-review-count]').textContent = `Baseado em ${count} ${count === 1 ? 'avaliação verificada' : 'avaliações verificadas'}`;
+            summary.querySelector('[data-review-count]').textContent = `Baseado em ${count} ${count === 1 ? 'avaliação publicada' : 'avaliações publicadas'}`;
             summary.hidden = false;
         }
         empty.hidden = true;

@@ -67,7 +67,8 @@ final class ReviewService
             $existing=$this->repository->reviewByReservation((int)$reservation['id']);
             if ($existing) throw new ReviewAccessException(true);
             if (!$this->eligibility->check($reservation,$existing)['eligible']) throw new ReviewAccessException();
-            $reviewId=$this->repository->createReview((int)$reservation['id'],(int)$invite['id'],$validated['data']);
+            $origin=in_array((string)($reservation['origem']??''),['AIRBNB','BOOKING'],true)?(string)$reservation['origem']:'SITE_DIRETO';
+            $reviewId=$this->repository->createReview((int)$reservation['id'],(int)$invite['id'],$validated['data']+['origem_plataforma'=>$origin]);
             $this->db->prepare("UPDATE convites_avaliacao SET status='UTILIZADO',utilizado_em=NOW() WHERE id=?")->execute([$invite['id']]);
             $this->history->log((int)$reservation['id'],'AVALIACAO_ENVIADA',$reservation['status'],$reservation['status'],['avaliacao_id'=>$reviewId,'convite_id'=>$invite['id']]);
             $this->db->commit();
@@ -80,12 +81,12 @@ final class ReviewService
     {
         $this->db->beginTransaction();
         try {
-            $stmt=$this->db->prepare('SELECT a.*,r.status reserva_status FROM avaliacoes a JOIN reservas r ON r.id=a.reserva_id WHERE a.id=? FOR UPDATE');
+            $stmt=$this->db->prepare('SELECT a.*,r.status reserva_status FROM avaliacoes a LEFT JOIN reservas r ON r.id=a.reserva_id WHERE a.id=? FOR UPDATE');
             $stmt->execute([$reviewId]); $review=$stmt->fetch() ?: throw new RuntimeException('Avaliacao nao encontrada.');
             if ($action==='responder') {
                 $response=ReviewValidator::cleanText((string)($input['resposta_administrador']??''),1000);
                 $this->db->prepare('UPDATE avaliacoes SET resposta_administrador=? WHERE id=?')->execute([$response?:null,$reviewId]);
-                $this->history->log((int)$review['reserva_id'],'RESPOSTA_ADMINISTRADOR_ADICIONADA',$review['reserva_status'],$review['reserva_status'],['avaliacao_id'=>$reviewId,'resposta_removida'=>$response===''],$userId);
+                $this->logModeration($review,'RESPOSTA_ADMINISTRADOR_ADICIONADA',['avaliacao_id'=>$reviewId,'resposta_removida'=>$response===''],$userId);
                 $this->db->commit(); return;
             }
             $next=match($action){'aprovar','republicar'=>ReviewStatus::APROVADA,'rejeitar'=>ReviewStatus::REJEITADA,'ocultar'=>ReviewStatus::OCULTA,default=>throw new RuntimeException('Acao de moderacao invalida.')};
@@ -96,8 +97,17 @@ final class ReviewService
             $params=$next===ReviewStatus::APROVADA?[$next->value,$reason?:null,$userId,$reviewId]:[$next->value,$reason?:null,$reviewId];
             $this->db->prepare("UPDATE avaliacoes SET status=?,motivo_moderacao=?,{$timestamps} WHERE id=?")->execute($params);
             $event=match($action){'aprovar'=>'AVALIACAO_APROVADA','rejeitar'=>'AVALIACAO_REJEITADA','ocultar'=>'AVALIACAO_OCULTADA','republicar'=>'AVALIACAO_REPUBLICADA'};
-            $this->history->log((int)$review['reserva_id'],$event,$review['reserva_status'],$review['reserva_status'],['avaliacao_id'=>$reviewId,'status_anterior'=>$current->value,'status_novo'=>$next->value,'motivo'=>$reason],$userId);
+            $this->logModeration($review,$event,['avaliacao_id'=>$reviewId,'status_anterior'=>$current->value,'status_novo'=>$next->value,'motivo'=>$reason],$userId);
             $this->db->commit();
         } catch (Throwable $e) { if ($this->db->inTransaction()) $this->db->rollBack(); throw $e; }
+    }
+
+    private function logModeration(array $review, string $event, array $metadata, int $userId): void
+    {
+        if (!empty($review['reserva_id'])) {
+            $this->history->log((int)$review['reserva_id'],$event,(string)$review['reserva_status'],(string)$review['reserva_status'],$metadata,$userId);
+            return;
+        }
+        (new AuditService($this->db))->record('AVALIACOES',$event,'avaliacoes',(int)$review['id'],null,['status'=>$metadata['status_novo']??$review['status']],$metadata,$userId);
     }
 }

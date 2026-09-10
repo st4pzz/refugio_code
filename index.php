@@ -272,7 +272,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
     </script>
     <title><?= $escape($pageTitle) ?></title>
     <link rel="stylesheet" href="style.css?v=20260807-cookie-consent">
-    <link rel="stylesheet" href="assets/css/reviews-public.css?v=1">
+    <link rel="stylesheet" href="assets/css/reviews-public.css?v=2">
     <style>
       
         .cookie-consent-actions{display:grid !important;grid-template-columns:1fr 1fr !important;gap:.6rem !important;align-items:stretch !important;}
@@ -956,7 +956,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         }
     </script>
     <!-- Lazy Loading Script (defer para não bloquear renderização) -->
-    <script defer src="assets/js/reviews-carousel.js?v=2"></script>
+    <script defer src="assets/js/reviews-carousel.js?v=3"></script>
     <script defer src="assets/js/videos-carousel.js?v=1"></script>
     <!-- Service Worker Registration (async pois é não-crítico) -->
     <script async src="assets/js/register-sw.js"></script>

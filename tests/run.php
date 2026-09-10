@@ -136,6 +136,40 @@ test('carrossel cria texto sem inserir html da avaliacao', function() { $source=
 test('estado vazio nao exibe media enganosa', function() { $html=file_get_contents(BASE_PATH.'/index.php'); expect(str_contains($html,'data-review-empty')); expect(!str_contains($html,'0.0 de 5')); $js=file_get_contents(BASE_PATH.'/assets/js/reviews-carousel.js'); expect(str_contains($js,'if (!items.length) return')); });
 test('cron nao recria automaticamente convite expirado ou revogado', function() { $source=file_get_contents(BASE_PATH.'/app/Repositories/ReviewRepository.php'); expect(str_contains($source,"c.id IS NULL OR c.status='PENDENTE'")); expect(str_contains($source,"c.lembrete_enviado_em IS NULL")); });
 test('migrations incluem tabelas e indices de avaliacao', function() { $sql=file_get_contents(BASE_PATH.'/database/migrations/002_create_avaliacoes.sql'); foreach(['convites_avaliacao','avaliacoes','idx_avaliacao_status','idx_avaliacao_nota','uk_convite_token'] as $needle) expect(str_contains($sql,$needle)); });
+test('avaliacoes externas possuem origem idempotencia e credenciais protegidas',function(){
+    $sql=file_get_contents(BASE_PATH.'/database/migrations/016_create_external_reviews.sql');
+    foreach(['review_integrations','origem_plataforma','external_review_id','uk_avaliacao_origem_externa','expira_em','access_token_encrypted','refresh_token_encrypted']as$needle)expect(str_contains($sql,$needle));
+    expect(is_file(BASE_PATH.'/database/migrations/016_drop_external_reviews.sql'));
+    $repository=file_get_contents(BASE_PATH.'/app/Repositories/ReviewRepository.php');
+    expect(str_contains($repository,'new EncryptionService'));
+    expect(str_contains($repository,"origem_plataforma='GOOGLE' AND expira_em"));
+    expect(str_contains($repository,"origem_plataforma<>'GOOGLE'"));
+    expect(str_contains(file_get_contents(BASE_PATH.'/scripts/process_jobs.php'),'purgeExpiredGoogleReviews'));
+});
+test('google business profile importa cinco avaliacoes via oauth e respeita expiracao',function(){
+    $service=file_get_contents(BASE_PATH.'/app/Services/ExternalReviewService.php');
+    foreach(['https://www.googleapis.com/auth/business.manage','mybusiness.googleapis.com/v4/accounts/','\'pageSize\' => 5','+29 days','GOOGLE_BUSINESS_LOCATION_ID']as$needle)expect(str_contains($service,$needle));
+    $env=file_get_contents(BASE_PATH.'/.env.example');
+    foreach(['GOOGLE_BUSINESS_CLIENT_ID','GOOGLE_BUSINESS_CLIENT_SECRET','GOOGLE_BUSINESS_ACCOUNT_ID','GOOGLE_BUSINESS_LOCATION_ID','GOOGLE_BUSINESS_REDIRECT_URI']as$needle)expect(str_contains($env,$needle));
+});
+test('booking e airbnb entram manualmente com autorizacao origem e moderacao',function(){
+    $service=file_get_contents(BASE_PATH.'/app/Services/ExternalReviewService.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/reviews.php');
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    foreach(["['BOOKING','AIRBNB']",'publication_authorized','URL deve pertencer']as$needle)expect(str_contains($service,$needle));
+    foreach(['Cadastrar avaliação do Booking ou Airbnb','publication_authorized','Salvar para moderação','Puxar avaliações']as$needle)expect(str_contains($view,$needle));
+    foreach(['admin/avaliacoes/importar-manual','review-google-sync','review-google-callback']as$needle)expect(str_contains($routes,$needle));
+    $moderation=file_get_contents(BASE_PATH.'/app/Services/ReviewService.php');
+    expect(str_contains($moderation,'LEFT JOIN reservas'));
+    expect(str_contains($moderation,"record('AVALIACOES'"));
+});
+test('vitrine identifica a plataforma da avaliacao externa sem inserir html',function(){
+    $repository=file_get_contents(BASE_PATH.'/app/Repositories/ReviewRepository.php');
+    $script=file_get_contents(BASE_PATH.'/assets/js/reviews-carousel.js');
+    foreach(['origem_plataforma origem','external_url','TRIM(a.comentario)']as$needle)expect(str_contains($repository,$needle));
+    foreach(["GOOGLE: 'Google'","BOOKING: 'Booking.com'",'textContent']as$needle)expect(str_contains($script,$needle));
+    expect(!str_contains($script,'innerHTML'));
+});
 
 test('permissoes exatas e curingas sao centralizadas', function() { expect(AuthorizationService::permissionMatches('*','financeiro.manage')); expect(AuthorizationService::permissionMatches('conversas.*','conversas.reply')); expect(!AuthorizationService::permissionMatches('marketing.view','marketing.connect')); });
 test('perfis iniciais e permissoes sao versionados', function() { $sql=file_get_contents(BASE_PATH.'/database/migrations/003_create_core_operacao.sql'); foreach(['SUPER_ADMIN','ATENDIMENTO','MARKETING','FINANCEIRO','LEITURA','usuarios_admin_perfis'] as $needle) expect(str_contains($sql,$needle)); });
