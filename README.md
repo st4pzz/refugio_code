@@ -73,7 +73,7 @@ Todas as opções e exemplos estão em `.env.example`:
 - banco: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_CHARSET`;
 - reserva: `MAX_GUESTS`, `CPF_REQUIRED`, `UPLOAD_MAX_MB`, `KEEP_RECEIPT_AFTER_EXPIRY`, `CONTACT_WHATSAPP`;
 - e-mail: `SMTP_*` e `ADMIN_EMAIL`;
-- avaliações: `REVIEW_INVITATION_*`, `REVIEW_REMINDER_*` e `GOOGLE_BUSINESS_*`;
+- avaliações: `REVIEW_INVITATION_*`, `REVIEW_REMINDER_*`, `GOOGLE_PLACES_API_KEY` e `GOOGLE_PLACES_PLACE_ID`;
 - conversas: `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_API_VERSION`, templates, limite de mídia e retenção;
 - resumo mensal: `WHATSAPP_MONTHLY_SUMMARY_ENABLED`, `WHATSAPP_MONTHLY_SUMMARY_TEMPLATE` e `WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS`;
 - marketing: `META_*`, `GOOGLE_ADS_*`, `TIKTOK_ADS_*` e `OPENAI_*` para análises assistidas;
@@ -87,7 +87,7 @@ Em produção use `APP_DEBUG=false`, `SESSION_SECURE=true` e HTTPS. `MARKETING_E
 |---|---|---|---|
 | Meta Ads | [Meta for Developers](https://developers.facebook.com/), app Business com `ads_read` e `business_management` | `META_REDIRECT_URI` | “Testar conexão” no painel; reconecte quando o token expirar. “Desconectar” apaga os tokens e preserva o histórico. |
 | Google Ads | Google Cloud OAuth Web, Google Ads API/developer token e escopo `https://www.googleapis.com/auth/adwords` | `GOOGLE_ADS_REDIRECT_URI` | O refresh token renova o acesso automaticamente; ausência/revogação exige reconexão. A desconexão remove ambos os tokens locais. |
-| Google Business Profile | Projeto aprovado, Google My Business API, OAuth Web e escopo `business.manage` | `GOOGLE_BUSINESS_REDIRECT_URI` | Conecte e sincronize em Avaliações. Para renovação diária, agende `php scripts/sync_google_reviews.php`; o sistema mantém o conteúdo importado por no máximo 29 dias sem nova sincronização. |
+| Google Places (New) | Ative a Places API (New), crie uma API key restrita a essa API e obtenha o Place ID | Não usa callback | Configure `GOOGLE_PLACES_API_KEY` e `GOOGLE_PLACES_PLACE_ID`. O painel e a vitrine consultam até 5 avaliações ao vivo, sem armazená-las no banco. |
 | TikTok Ads | [TikTok for Business](https://business-api.tiktok.com/portal/docs), app autorizado para leitura das advertisers | `TIKTOK_ADS_REDIRECT_URI` | O refresh é usado quando fornecido; caso contrário, reconecte. A desconexão preserva apenas dados sincronizados. |
 | WhatsApp | Meta for Developers/WhatsApp Cloud API, WABA, Phone Number ID, token e assinatura do campo `messages` | webhook `https://SEU_DOMINIO/api/whatsapp/webhook` | Valide challenge, assinatura e envio para número de teste. Rotacione o token no cofre/.env; não há token editável no painel. |
 

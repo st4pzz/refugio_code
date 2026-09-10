@@ -5,6 +5,7 @@ namespace Refugio\Controllers;
 
 use Refugio\Config\Database;
 use Refugio\Repositories\ReviewRepository;
+use Refugio\Services\ExternalReviewService;
 use Refugio\Services\RateLimiter;
 use Refugio\Services\ReviewAccessException;
 use Refugio\Services\ReviewService;
@@ -64,9 +65,19 @@ final class PublicReviewController
     public function approved(): never
     {
         header('Content-Type: application/json; charset=UTF-8');
-        header('Cache-Control: public, max-age=300, stale-while-revalidate=600');
+        header('Cache-Control: no-store, max-age=0');
         try {
-            $data=(new ReviewRepository(Database::connection()))->publicData();
+            $db=Database::connection();
+            $data=(new ReviewRepository($db))->publicData();
+            $googleService=new ExternalReviewService($db);
+            if ($googleService->googleStatus()['configured']) {
+                try {
+                    $google=$googleService->fetchGooglePlacesReviews();
+                    $data['items']=array_merge($google['items'],$data['items']);
+                } catch (Throwable $googleError) {
+                    error_log('[avaliacoes-google-places] '.$googleError->getMessage());
+                }
+            }
             echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
         } catch (Throwable $e) {
             error_log('[avaliacoes-publicas] '.$e->getMessage());

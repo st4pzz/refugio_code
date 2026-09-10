@@ -1,4 +1,4 @@
-// Vitrine pública: somente avaliações aprovadas retornadas pela API.
+// Vitrine pública: avaliações locais aprovadas e avaliações consultadas ao vivo no Google Maps.
 (function () {
     'use strict';
 
@@ -44,7 +44,7 @@
 
         const identity = element('div', 'reviewer');
         identity.appendChild(element('span', 'reviewer-name', String(item.nome_exibicao || 'Hóspede')));
-        const origins = { GOOGLE: 'Google', BOOKING: 'Booking.com', AIRBNB: 'Airbnb' };
+        const origins = { GOOGLE: 'Google Maps', BOOKING: 'Booking.com', AIRBNB: 'Airbnb' };
         const origin = origins[String(item.origem || '')];
         if (origin) {
             const sourceUrl = String(item.external_url || '');

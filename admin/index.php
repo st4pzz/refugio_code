@@ -20,9 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($route === 'review-action') $reviews->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'review-invite') $reviews->invitation((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'review-import-manual') $reviews->importManual();
-    if ($route === 'review-google-connect') $reviews->connectGoogle();
-    if ($route === 'review-google-sync') $reviews->syncGoogle();
-    if ($route === 'review-google-disconnect') $reviews->disconnectGoogle();
     if ($route === 'conversa-acao') $conversations->action((int) ($_GET['id'] ?? 0), (string) ($_GET['action'] ?? ''));
     if ($route === 'conversa-templates') $conversations->syncTemplates();
     if ($route === 'conversa-sugerir-ia') $conversations->suggest((int) ($_GET['id'] ?? 0));
@@ -49,7 +46,6 @@ match ($route) {
     'calendario' => $admin->calendar(),
     'avaliacoes' => $reviews->index(),
     'avaliacao-detalhe' => $reviews->detail((int) ($_GET['id'] ?? 0)),
-    'review-google-callback' => $reviews->googleCallback(),
     'comprovante' => $admin->receipt((int) ($_GET['pagamento'] ?? 0)),
     'clientes' => $customers->index(),
     'cliente-detalhe' => $customers->detail((int) ($_GET['id'] ?? 0)),

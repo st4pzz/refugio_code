@@ -4,7 +4,6 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/bootstrap.php';
 $db = Refugio\Config\Database::connection();
-(new Refugio\Repositories\ReviewRepository($db))->purgeExpiredGoogleReviews();
 $queue = new Refugio\Services\JobQueueService($db);
 $ical = new Refugio\Services\ICalendarService($db);
 $ical->enqueueDue($queue);

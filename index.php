@@ -956,7 +956,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         }
     </script>
     <!-- Lazy Loading Script (defer para não bloquear renderização) -->
-    <script defer src="assets/js/reviews-carousel.js?v=3"></script>
+    <script defer src="assets/js/reviews-carousel.js?v=4"></script>
     <script defer src="assets/js/videos-carousel.js?v=1"></script>
     <!-- Service Worker Registration (async pois é não-crítico) -->
     <script async src="assets/js/register-sw.js"></script>

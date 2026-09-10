@@ -30,7 +30,16 @@ final class AdminReviewController
         $this->boot();
         $filters = array_intersect_key($_GET, array_flip(['q','status','nota','origem','inicio','fim']));
         $result = $this->repository->paginate($filters, max(1, (int) ($_GET['pagina'] ?? 1)));
-        $google = (new ExternalReviewService($this->db, $this->config))->googleStatus();
+        $externalReviews = new ExternalReviewService($this->db);
+        $google = $externalReviews->googleStatus() + ['requested'=>false,'live'=>null,'error'=>null];
+        if ($google['configured'] && (string) ($_GET['google'] ?? '') === '1') {
+            $google['requested'] = true;
+            try {
+                $google['live'] = $externalReviews->fetchGooglePlacesReviews();
+            } catch (Throwable $error) {
+                $google['error'] = $error->getMessage();
+            }
+        }
         require BASE_PATH . '/app/Views/admin/reviews.php';
     }
 
@@ -98,67 +107,9 @@ final class AdminReviewController
         $this->boot();
         try {
             Csrf::verify($_POST['_csrf'] ?? null);
-            $id = (new ExternalReviewService($this->db, $this->config))->createManual($_POST, (int) $_SESSION['admin_id']);
+            $id = (new ExternalReviewService($this->db))->createManual($_POST, (int) $_SESSION['admin_id']);
             (new AuditService($this->db))->record('AVALIACOES','IMPORTAR_MANUAL','avaliacoes',$id,null,['origem'=>strtoupper((string)($_POST['provider']??''))]);
             flash('success', 'Avaliação cadastrada e enviada para moderação.');
-        } catch (Throwable $error) {
-            flash('error', $error->getMessage());
-        }
-        redirect(base_url('admin/avaliacoes'));
-    }
-
-    public function connectGoogle(): never
-    {
-        AuthorizationService::requirePermission('avaliacoes.manage');
-        $this->boot();
-        try {
-            Csrf::verify($_POST['_csrf'] ?? null);
-            redirect((new ExternalReviewService($this->db, $this->config))->googleAuthorizationUrl());
-        } catch (Throwable $error) {
-            flash('error', $error->getMessage());
-            redirect(base_url('admin/avaliacoes'));
-        }
-    }
-
-    public function googleCallback(): never
-    {
-        AuthorizationService::requirePermission('avaliacoes.manage');
-        $this->boot();
-        try {
-            if (!empty($_GET['error'])) throw new RuntimeException('Autorização recusada pelo Google.');
-            (new ExternalReviewService($this->db, $this->config))->completeGoogleOAuth((string)($_GET['code']??''),(string)($_GET['state']??''),(int)$_SESSION['admin_id']);
-            (new AuditService($this->db))->record('AVALIACOES','CONECTAR_GOOGLE','review_integrations','GOOGLE');
-            flash('success', 'Google Business Profile conectado.');
-        } catch (Throwable $error) {
-            flash('error', $error->getMessage());
-        }
-        redirect(base_url('admin/avaliacoes'));
-    }
-
-    public function syncGoogle(): never
-    {
-        AuthorizationService::requirePermission('avaliacoes.manage');
-        $this->boot();
-        try {
-            Csrf::verify($_POST['_csrf'] ?? null);
-            $result = (new ExternalReviewService($this->db, $this->config))->syncGoogle((int)$_SESSION['admin_id']);
-            (new AuditService($this->db))->record('AVALIACOES','SINCRONIZAR_GOOGLE','review_integrations','GOOGLE',null,$result);
-            flash('success', $result['imported'] . ' avaliação(ões) do Google atualizada(s). Total informado pelo Google: ' . $result['total'] . '.');
-        } catch (Throwable $error) {
-            flash('error', $error->getMessage());
-        }
-        redirect(base_url('admin/avaliacoes'));
-    }
-
-    public function disconnectGoogle(): never
-    {
-        AuthorizationService::requirePermission('avaliacoes.manage');
-        $this->boot();
-        try {
-            Csrf::verify($_POST['_csrf'] ?? null);
-            (new ExternalReviewService($this->db, $this->config))->disconnectGoogle();
-            (new AuditService($this->db))->record('AVALIACOES','DESCONECTAR_GOOGLE','review_integrations','GOOGLE');
-            flash('success', 'Integração com o Google desconectada.');
         } catch (Throwable $error) {
             flash('error', $error->getMessage());
         }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Refugio\Repositories;
 
 use PDO;
-use Refugio\Services\EncryptionService;
 
 final class ReviewRepository
 {
@@ -87,8 +86,7 @@ final class ReviewRepository
 
     public function publicData(int $limit = 20): array
     {
-        $this->purgeExpiredGoogleReviews();
-        $stmt=$this->db->prepare("SELECT a.nome_exibicao,a.nota_geral,a.comentario,a.resposta_administrador,r.checkout,a.origem_plataforma origem,a.external_url FROM avaliacoes a LEFT JOIN reservas r ON r.id=a.reserva_id WHERE a.status='APROVADA' AND a.autoriza_publicacao=1 AND TRIM(a.comentario)<>'' AND (a.expira_em IS NULL OR a.expira_em>NOW()) ORDER BY a.aprovada_em DESC LIMIT ?");
+        $stmt=$this->db->prepare("SELECT a.nome_exibicao,a.nota_geral,a.comentario,a.resposta_administrador,r.checkout,a.origem_plataforma origem,a.external_url FROM avaliacoes a LEFT JOIN reservas r ON r.id=a.reserva_id WHERE a.status='APROVADA' AND a.autoriza_publicacao=1 AND a.origem_plataforma<>'GOOGLE' AND TRIM(a.comentario)<>'' AND (a.expira_em IS NULL OR a.expira_em>NOW()) ORDER BY a.aprovada_em DESC LIMIT ?");
         $stmt->bindValue(1,$limit,PDO::PARAM_INT); $stmt->execute();
         $stats=$this->db->query("SELECT COUNT(*) quantidade,AVG(nota_geral) media FROM avaliacoes WHERE status='APROVADA' AND autoriza_publicacao=1 AND origem_plataforma<>'GOOGLE' AND TRIM(comentario)<>'' AND (expira_em IS NULL OR expira_em>NOW())")->fetch();
         return ['items'=>$stmt->fetchAll(),'count'=>(int)$stats['quantidade'],'average'=>$stats['media']!==null?round((float)$stats['media'],1):null];
@@ -105,43 +103,6 @@ final class ReviewRepository
             'rating'=>$data['rating'],'comment'=>$data['comment'],'created_by'=>$userId > 0 ? $userId : null,
         ]);
         return (int) $this->db->lastInsertId();
-    }
-
-    public function googleIntegration(bool $includeSecrets = false): ?array
-    {
-        $fields = $includeSecrets ? '*' : 'id,provider,status,token_expires_at,ultima_sincronizacao_em,erro_ultima_sincronizacao,created_at,updated_at';
-        $stmt = $this->db->query("SELECT {$fields} FROM review_integrations WHERE provider='GOOGLE' LIMIT 1");
-        return $stmt->fetch() ?: null;
-    }
-
-    public function saveGoogleIntegration(array $tokens, int $userId): void
-    {
-        $encryption = new EncryptionService();
-        $access = $encryption->encrypt((string) $tokens['access_token']);
-        $refresh = ($tokens['refresh_token'] ?? '') !== '' ? $encryption->encrypt((string) $tokens['refresh_token']) : '';
-        $sql = "INSERT INTO review_integrations (provider,status,access_token_encrypted,refresh_token_encrypted,token_expires_at,created_by) VALUES ('GOOGLE','CONECTADA',?,?,?,?)
-            ON DUPLICATE KEY UPDATE status='CONECTADA',access_token_encrypted=VALUES(access_token_encrypted),refresh_token_encrypted=IF(VALUES(refresh_token_encrypted)='',refresh_token_encrypted,VALUES(refresh_token_encrypted)),token_expires_at=VALUES(token_expires_at),erro_ultima_sincronizacao=NULL,created_by=COALESCE(VALUES(created_by),created_by)";
-        $this->db->prepare($sql)->execute([$access,$refresh,$tokens['expires_at'] ?? null,$userId > 0 ? $userId : null]);
-    }
-
-    public function finishGoogleSync(?string $error): void
-    {
-        if ($error === null) {
-            $this->db->exec("UPDATE review_integrations SET status='CONECTADA',ultima_sincronizacao_em=NOW(),erro_ultima_sincronizacao=NULL WHERE provider='GOOGLE'");
-            return;
-        }
-        $stmt = $this->db->prepare("UPDATE review_integrations SET status='ERRO',erro_ultima_sincronizacao=? WHERE provider='GOOGLE'");
-        $stmt->execute([mb_substr($error, 0, 1000)]);
-    }
-
-    public function disconnectGoogleIntegration(): void
-    {
-        $this->db->exec("UPDATE review_integrations SET status='DESCONECTADA',access_token_encrypted=NULL,refresh_token_encrypted=NULL,token_expires_at=NULL WHERE provider='GOOGLE'");
-    }
-
-    public function purgeExpiredGoogleReviews(): int
-    {
-        return $this->db->exec("DELETE FROM avaliacoes WHERE origem_plataforma='GOOGLE' AND expira_em IS NOT NULL AND expira_em<=NOW()");
     }
 
     public function invitationCandidates(string $checkoutThreshold, int $limit = 100): array

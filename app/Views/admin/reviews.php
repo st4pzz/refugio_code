@@ -1,8 +1,7 @@
 <?php
 $title = 'Avaliações';
 $originLabels = ['SITE_DIRETO'=>'Site direto','GOOGLE'=>'Google','BOOKING'=>'Booking.com','AIRBNB'=>'Airbnb'];
-$googleIntegration = $google['integration'] ?? null;
-$googleConnected = $googleIntegration && in_array($googleIntegration['status'], ['CONECTADA','ERRO'], true);
+$googleConfigured = !empty($google['configured']);
 require __DIR__ . '/_top.php';
 ?>
 <div class="page-heading"><div><p class="eyebrow">Moderação</p><h1>Avaliações</h1><p>Reúna avaliações diretas e de outras plataformas em um único fluxo de moderação.</p></div></div>
@@ -11,20 +10,13 @@ require __DIR__ . '/_top.php';
 <section class="admin-panel review-import-panel">
     <div class="panel-heading"><div><p class="eyebrow">Fontes externas</p><h2>Integrações e importação</h2></div></div>
     <div class="review-source-grid">
-        <article class="review-source-card <?= $googleConnected ? 'is-connected' : '' ?>">
-            <header><span class="source-mark google" aria-hidden="true">G</span><div><h3>Google</h3><small><?= $googleConnected ? 'Conectado ao Business Profile' : 'Importação via OAuth' ?></small></div></header>
-            <p>Importa até 5 avaliações recentes por sincronização. O conteúdo é renovado antes do limite de armazenamento de 30 dias do Google.</p>
-            <?php if (!$google['configured']): ?>
-                <div class="source-warning">Configure as credenciais e os IDs do Google Business Profile no ambiente do site.</div>
-            <?php elseif (!$googleConnected): ?>
-                <form action="<?= e(base_url('admin/avaliacoes/integracoes/google/conectar')) ?>" method="post"><?= csrf_field() ?><button class="admin-primary" type="submit">Conectar Google</button></form>
+        <article class="review-source-card <?= $googleConfigured ? 'is-connected' : '' ?>">
+            <header><span class="source-mark google" aria-hidden="true">G</span><div><h3>Google Maps</h3><small><?= $googleConfigured ? 'Places API configurada' : 'Configuração pendente' ?></small></div></header>
+            <p>Consulta ao vivo as até 5 avaliações selecionadas por relevância pelo Google. Elas também aparecem na vitrine pública sem serem armazenadas no banco.</p>
+            <?php if (!$googleConfigured): ?>
+                <div class="source-warning">Configure GOOGLE_PLACES_API_KEY e GOOGLE_PLACES_PLACE_ID no ambiente do site.</div>
             <?php else: ?>
-                <div class="source-actions">
-                    <form action="<?= e(base_url('admin/avaliacoes/integracoes/google/sincronizar')) ?>" method="post"><?= csrf_field() ?><button class="admin-primary" type="submit">Puxar avaliações</button></form>
-                    <form action="<?= e(base_url('admin/avaliacoes/integracoes/google/desconectar')) ?>" method="post" data-confirm="Desconectar o Google? As avaliações já importadas expirarão normalmente."><?= csrf_field() ?><button class="admin-secondary" type="submit">Desconectar</button></form>
-                </div>
-                <small>Última sincronização: <?= !empty($googleIntegration['ultima_sincronizacao_em']) ? date('d/m/Y H:i', strtotime($googleIntegration['ultima_sincronizacao_em'])) : 'ainda não realizada' ?></small>
-                <?php if (!empty($googleIntegration['erro_ultima_sincronizacao'])): ?><p class="source-error"><?= e($googleIntegration['erro_ultima_sincronizacao']) ?></p><?php endif; ?>
+                <a class="admin-primary" href="<?= e(base_url('admin/avaliacoes?google=1#google-live-reviews')) ?>">Puxar avaliações</a>
             <?php endif; ?>
         </article>
         <article class="review-source-card">
@@ -39,6 +31,28 @@ require __DIR__ . '/_top.php';
         </article>
     </div>
 </section>
+
+<?php if (!empty($google['requested'])): ?>
+<section class="admin-panel google-live-panel" id="google-live-reviews">
+    <div class="panel-heading"><div><p class="eyebrow">Consulta ao vivo</p><h2>Avaliações do Google Maps</h2></div></div>
+    <?php if (!empty($google['error'])): ?>
+        <div class="source-error">Não foi possível consultar o Google: <?= e($google['error']) ?></div>
+    <?php elseif (!empty($google['live'])): $googleLive=$google['live']; ?>
+        <div class="google-live-summary"><strong><?= e($googleLive['place_name']) ?></strong><span><?= $googleLive['rating'] !== null ? e(number_format((float)$googleLive['rating'],1,',','.')).' ★ · ' : '' ?><?= (int)$googleLive['total'] ?> avaliação(ões) no Google</span></div>
+        <div class="google-live-grid">
+            <?php foreach ($googleLive['items'] as $googleReview): ?>
+                <article class="google-live-review">
+                    <span class="review-stars" aria-label="<?= (int)$googleReview['nota_geral'] ?> de 5 estrelas"><?= str_repeat('★',(int)$googleReview['nota_geral']).str_repeat('☆',5-(int)$googleReview['nota_geral']) ?></span>
+                    <blockquote><?= nl2br(e($googleReview['comentario'])) ?></blockquote>
+                    <footer><strong><?= e($googleReview['nome_exibicao']) ?></strong><?php if(!empty($googleReview['avaliacao_em'])): ?><span><?= date('d/m/Y',strtotime($googleReview['avaliacao_em'])) ?></span><?php endif; ?><?php if(!empty($googleReview['external_url'])): ?><a href="<?= e($googleReview['external_url']) ?>" target="_blank" rel="noopener noreferrer">Ver no Google Maps</a><?php endif; ?></footer>
+                </article>
+            <?php endforeach; ?>
+        </div>
+        <?php if (!$googleLive['items']): ?><p>Nenhuma avaliação com comentário foi retornada pelo Google.</p><?php endif; ?>
+        <p class="privacy-notice">Dados fornecidos pelo Google Maps e consultados neste momento. O sistema não armazena essas avaliações.</p>
+    <?php endif; ?>
+</section>
+<?php endif; ?>
 
 <details class="admin-panel review-manual-panel" id="cadastro-externo">
     <summary><span><strong>Cadastrar avaliação do Booking ou Airbnb</strong><small>A avaliação entrará como pendente antes de aparecer no site.</small></span></summary>

@@ -1,0 +1,2 @@
+-- A transicao para consulta ao vivo nao possui rollback automatico de credenciais OAuth.
+-- Para voltar ao modelo anterior, restaure a integracao por uma migration nova e reconecte a conta.
