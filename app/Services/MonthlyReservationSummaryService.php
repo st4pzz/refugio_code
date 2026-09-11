@@ -35,11 +35,10 @@ final class MonthlyReservationSummaryService
 
     public function enqueueForConfirmedReservation(int $reservationId): int
     {
-        $stmt = $this->db->prepare("SELECT checkin FROM reservas WHERE id=? AND status='RESERVA_CONFIRMADA'");
+        $stmt = $this->db->prepare("SELECT id FROM reservas WHERE id=? AND status='RESERVA_CONFIRMADA'");
         $stmt->execute([$reservationId]);
-        $checkin = $stmt->fetchColumn();
-        if (!$checkin) return 0;
-        return $this->enqueueMonth(new DateTimeImmutable((string) $checkin, $this->timezone()), 'direct', (string) $reservationId);
+        if (!$stmt->fetchColumn()) return 0;
+        return $this->enqueueMonth($this->currentMonth(), 'direct', (string) $reservationId);
     }
 
     public function enqueueForConfirmedExternalEvent(int $eventId): int
@@ -52,26 +51,21 @@ final class MonthlyReservationSummaryService
         $eventIds = array_values(array_unique(array_filter(array_map('intval', $eventIds), static fn(int $id): bool => $id > 0)));
         if ($eventIds === []) return 0;
         $marks = implode(',', array_fill(0, count($eventIds), '?'));
-        $stmt = $this->db->prepare("SELECT e.id,e.starts_at FROM calendar_external_events e JOIN calendar_sources s ON s.id=e.source_id WHERE e.id IN ({$marks}) AND e.status='CONFIRMED' AND e.deleted_at IS NULL AND s.ativo=1 AND s.provider IN ('AIRBNB','BOOKING') ORDER BY e.id");
+        $stmt = $this->db->prepare("SELECT e.id FROM calendar_external_events e JOIN calendar_sources s ON s.id=e.source_id WHERE e.id IN ({$marks}) AND e.status='CONFIRMED' AND e.deleted_at IS NULL AND s.ativo=1 AND s.provider IN ('AIRBNB','BOOKING') ORDER BY e.id");
         $stmt->execute($eventIds);
-        $months = [];
-        foreach ($stmt->fetchAll() as $event) {
-            $date = new DateTimeImmutable((string) $event['starts_at'], $this->timezone());
-            $month = $date->format('Y-m-01');
-            $months[$month][] = (int) $event['id'];
-        }
-        $count = 0;
-        foreach ($months as $month => $ids) {
-            $count += $this->enqueueMonth(new DateTimeImmutable($month, $this->timezone()), 'external', hash('sha256', implode(',', $ids)));
-        }
-        return $count;
+        $confirmedIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        if ($confirmedIds === []) return 0;
+        return $this->enqueueMonth($this->currentMonth(), 'external', hash('sha256', implode(',', $confirmedIds)));
     }
 
     public function process(array $payload): void
     {
         if (!Env::bool('WHATSAPP_MONTHLY_SUMMARY_ENABLED', true)) return;
-        $month = DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($payload['month'] ?? ''), $this->timezone());
-        if (!$month || $month->format('d') !== '01') throw new RuntimeException('Mes invalido no job de resumo de reservas.');
+        $queuedMonth = DateTimeImmutable::createFromFormat('!Y-m-d', (string) ($payload['month'] ?? ''), $this->timezone());
+        if (!$queuedMonth || $queuedMonth->format('d') !== '01') throw new RuntimeException('Mes invalido no job de resumo de reservas.');
+        // O resumo administrativo sempre representa o mes corrente, inclusive ao
+        // consumir jobs antigos criados a partir do check-in de uma reserva futura.
+        $month = $this->currentMonth();
         $recipient = $this->normalizePhone((string) ($payload['recipient'] ?? ''));
         if ($recipient === '' || !in_array($recipient, $this->recipients(), true)) {
             throw new RuntimeException('Destinatario invalido no job de resumo de reservas.');
@@ -177,5 +171,10 @@ final class MonthlyReservationSummaryService
     private function now(): DateTimeImmutable
     {
         return new DateTimeImmutable('now', $this->timezone());
+    }
+
+    private function currentMonth(): DateTimeImmutable
+    {
+        return $this->now()->modify('first day of this month')->setTime(0, 0);
     }
 }

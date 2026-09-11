@@ -661,12 +661,16 @@ test('parametros de template do whatsapp nao contem quebras ou espacos repetidos
 test('confirmacoes diretas e externas atualizam o resumo mensal',function(){
     $reservation=file_get_contents(BASE_PATH.'/app/Services/ReservationService.php');
     $ical=file_get_contents(BASE_PATH.'/app/Services/ICalendarService.php');
+    $summary=file_get_contents(BASE_PATH.'/app/Services/MonthlyReservationSummaryService.php');
     $cron=file_get_contents(BASE_PATH.'/scripts/schedule_monthly_reservation_summary.php');
     expect(str_contains($reservation,'enqueueMonthlySummary($reservationId)'));
     expect(str_contains($reservation,'enqueueForConfirmedReservation'));
     expect(str_contains($ical,'enqueueForConfirmedExternalEvents($newlyConfirmed)'));
     expect(str_contains($ical,"\$event['status'] === 'CONFIRMED'"));
     expect(str_contains($cron,"date('N') !== 1"));
+    expect(substr_count($summary,'$this->currentMonth()')>=3);
+    expect(str_contains($summary,'inclusive ao'));
+    expect(!str_contains($summary,"new DateTimeImmutable((string) \$checkin"));
 });
 
 test('conversa usa seletor unico para vincular cliente e reserva',function(){
