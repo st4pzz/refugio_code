@@ -2,6 +2,8 @@
 
 O PDF fornecido tem 12 páginas. A primeira é orientação editorial e foi excluída do documento assinável. O texto-base está arquivado como versão 1 `ARCHIVED`; a proposta dinâmica é versão 2 `PENDING_APPROVAL`. O original nunca é substituído silenciosamente. A versão 2 limita o Anexo II a exatamente dez hóspedes e exige aprovação em `/admin/contratos`.
 
+Na área **Templates** de `/admin/contratos`, o botão **Baixar contrato-modelo** gera sob demanda um PDF da versão aprovada. O arquivo mantém os dados institucionais configurados do imóvel e do locador, mas substitui todos os dados de cliente, datas, valores e identificadores da reserva por campos em branco. A geração não consulta reservas nem persiste o PDF.
+
 Pontos obrigatórios para revisão administrativa/jurídica: cancelamento; multa compensatória de 20%; foro; caução; pets; silêncio; valor de visitante não autorizado; regras municipais e classificação do imóvel. A política recebida foi preservada e `CANCELLATION_POLICY_APPROVED` inicia falsa.
 
 ## Imutabilidade

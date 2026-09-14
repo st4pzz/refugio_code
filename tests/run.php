@@ -19,6 +19,7 @@ use Refugio\Services\PricingEngine;
 use Refugio\Services\ICalendarService;
 use Refugio\Services\ContractTemplateService;
 use Refugio\Services\ContractPdfTemplate;
+use Refugio\Services\ContractModelPdfService;
 use Refugio\Services\PdfRenderer;
 use Refugio\Services\ReservationPdfTemplate;
 use Refugio\Services\OpenAiMarketingAnalysisService;
@@ -279,6 +280,27 @@ test('contrato pdf termina com folha de assinaturas para assinatura eletronica',
     expect(strpos($html,'FOLHA DE ASSINATURAS')>strpos($html,'Conteúdo contratual.'));
     $service=file_get_contents(BASE_PATH.'/app/Services/ContractPdfService.php');
     expect(str_contains($service,"variables_snapshot_json"));
+});
+test('contrato modelo pode ser baixado sem dados de clientes', function(){
+    $variables = ContractModelPdfService::modelVariables([
+        'OWNER_FULL_NAME' => 'Locador Exemplo',
+        'PROPERTY_NAME' => 'Refúgio Exemplo',
+        'MAX_GUESTS' => 4,
+    ]);
+    expect($variables['guest_full_name'] === '________________________________');
+    expect($variables['contract_number'] === 'MODELO');
+    expect(substr_count($variables['guest_rows'], '<tr>') === 4);
+    expect(!str_contains(json_encode($variables, JSON_UNESCAPED_UNICODE), 'Maria da Silva'));
+
+    $controller=file_get_contents(BASE_PATH.'/app/Controllers/OperationsController.php');
+    $view=file_get_contents(BASE_PATH.'/app/Views/admin/contracts.php');
+    $routes=file_get_contents(BASE_PATH.'/.htaccess');
+    $front=file_get_contents(BASE_PATH.'/admin/index.php');
+    expect(str_contains($controller, 'contractModelDocument'));
+    expect(str_contains($controller, "AuthorizationService::requirePermission('contracts.view')"));
+    expect(str_contains($view, 'Baixar contrato-modelo'));
+    expect(str_contains($routes, 'admin/contratos/modelo\\.pdf'));
+    expect(str_contains($front, "'contrato-modelo' => \$operations->contractModelDocument()"));
 });
 test('template php do pedido escapa dados do cliente',function(){$html=ReservationPdfTemplate::render(['document'=>['type'=>'PROPOSAL','version'=>1,'issued_at'=>'2026-07-30 12:00:00','valid_until'=>'2026-07-31 12:00:00'],'property'=>['name'=>'Refúgio'],'reservation'=>['code'=>'RDC-TESTE','customer_name'=>'<script>alert(1)</script> Maria','customer_phone'=>'5516999999999','checkin'=>'2026-08-10','checkout'=>'2026-08-12','nights'=>2,'adults'=>2,'children'=>0,'total'=>'1000.00'],'pricing_items'=>[['description'=>'Hospedagem','amount'=>'1000.00']]]);expect(str_contains($html,'Pedido de reserva'));expect(!str_contains($html,'<script>'));expect(str_contains($html,'R$ 1.000,00'));});
 test('dompdf produz arquivo a4 valido pelo renderizador php',function(){$path=sys_get_temp_dir().'/refugio-dompdf-'.bin2hex(random_bytes(5)).'.pdf';try{(new PdfRenderer())->render('<!doctype html><html><head><meta charset="UTF-8"></head><body><h1>PDF Refúgio</h1><p>Validação do renderizador PHP.</p></body></html>',$path);expect(is_file($path));expect(file_get_contents($path,false,null,0,5)==='%PDF-');expect(filesize($path)>1000);}finally{if(is_file($path))unlink($path);}});

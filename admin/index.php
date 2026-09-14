@@ -65,6 +65,7 @@ match ($route) {
     'precos' => $operations->pricing(),
     'orcamentos' => $operations->quotes(),
     'contratos' => $operations->contracts(),
+    'contrato-modelo' => $operations->contractModelDocument(),
     'contrato-pdf' => $operations->contractDocument((int) ($_GET['id'] ?? 0)),
     'contrato-assinado' => $operations->contractSignatureDocument((int) ($_GET['id'] ?? 0), (string) ($_GET['documento'] ?? '')),
     'precheckins' => $operations->precheckins(),

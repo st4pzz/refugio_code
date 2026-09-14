@@ -34,7 +34,7 @@ require __DIR__ . '/_top.php';
 
 <div class="detail-grid">
     <section class="admin-panel">
-        <h2>Templates</h2>
+        <div class="panel-heading"><div><h2>Templates</h2><small>Baixe a versão aprovada sem dados de hóspedes ou de reservas.</small></div><a class="admin-secondary" href="<?= e(base_url('admin/contratos/modelo.pdf')) ?>">Baixar contrato-modelo</a></div>
         <form method="post" action="<?= e(base_url('admin/operacoes/contract-bootstrap')) ?>"><?= csrf_field() ?><button class="admin-secondary">Instalar/validar versões empacotadas</button></form>
         <?php foreach ($versions as $version): ?><div class="block-row"><div><strong>v<?= (int) $version['version_no'] ?> · <?= e($version['title']) ?></strong><small><?= e($version['status']) ?> · <?= e($version['source_kind']) ?></small></div><?php if ($version['status'] === 'PENDING_APPROVAL' && can('contracts.templates.approve')): ?><form method="post" action="<?= e(base_url('admin/operacoes/contract-approve')) ?>"><?= csrf_field() ?><input type="hidden" name="version_id" value="<?= (int) $version['id'] ?>"><button class="admin-primary">Aprovar</button></form><?php endif; ?></div><?php endforeach; ?>
     </section>

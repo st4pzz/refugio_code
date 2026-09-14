@@ -8,6 +8,7 @@ use PDO;
 use Refugio\Config\Database;
 use Refugio\Services\AuthorizationService;
 use Refugio\Services\ContractPdfService;
+use Refugio\Services\ContractModelPdfService;
 use Refugio\Services\ContractRevisionService;
 use Refugio\Services\ContractSignatureWorkflowService;
 use Refugio\Services\ContractTemplateService;
@@ -71,6 +72,22 @@ final class OperationsController
         header('X-Content-Type-Options: nosniff');
         header('Content-Disposition: inline; filename="'.$filename.'"');
         readfile($path);
+        exit;
+    }
+    public function contractModelDocument(): never
+    {
+        AuthorizationService::requirePermission('contracts.view');
+        $path = (new ContractModelPdfService($this->db))->generate();
+        try {
+            header('Content-Type: application/pdf');
+            header('Content-Length: ' . filesize($path));
+            header('Cache-Control: private, no-store');
+            header('X-Content-Type-Options: nosniff');
+            header('Content-Disposition: attachment; filename="contrato-modelo.pdf"');
+            readfile($path);
+        } finally {
+            if (is_file($path)) unlink($path);
+        }
         exit;
     }
     public function contractSignatureDocument(int $contractId,string $kind):never
