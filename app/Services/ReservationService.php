@@ -183,7 +183,7 @@ final class ReservationService
         $this->syncFinancials($id, $userId);
         $delivery = $this->notifications->customer($reservation, 'RESERVA_APROVADA', [
             'valor' => $paymentValue,
-            'link' => base_url('reserva/' . $reservation['token_publico']),
+            'link' => absolute_url('reserva/' . $reservation['token_publico']),
         ]);
         $this->emitAutomationRule('PAYMENT_REMINDER','PAYMENT_REQUEST_CREATED',$id,['payment_due'=>$billing['deadline']]);
         if (!$delivery['email']) {

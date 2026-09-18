@@ -304,7 +304,7 @@ final class OperationsController
         if($status===false)throw new RuntimeException('Reserva não encontrada.');
         if(!in_array($status,['AGUARDANDO_APROVACAO','AGUARDANDO_PAGAMENTO','COMPROVANTE_ENVIADO','PAGAMENTO_CONFIRMADO','RESERVA_CONFIRMADA','FINALIZADA'],true))throw new RuntimeException('O portal não pode ser gerado para uma reserva encerrada sem hospedagem.');
         $token=(new GuestPortalService($this->db,$this->config))->regenerate($reservationId,$userId);
-        flash('portal_url',base_url('minha-reserva/'.$token));
+        flash('portal_url',absolute_url('minha-reserva/'.$token));
         flash('success','Novo link do portal gerado. Copie-o antes de sair desta página.');
     }
     private function precheckinReview(int $userId):void{AuthorizationService::requirePermission('precheckin.review');$reservationId=(int)$_POST['reservation_id'];$decision=(string)$_POST['decision'];(new PreCheckinService($this->db))->review($reservationId,$decision,(string)($_POST['message']??''),$userId);if($decision==='approve')(new \Refugio\Services\ReservationAutomationService($this->db,$this->config))->emit('PRECHECKIN_APPROVED',$reservationId,[],'precheckin-approved');}

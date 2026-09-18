@@ -237,7 +237,7 @@ final class AdminController
             'EXPIRADA' => 'PAGAMENTO_EXPIRADO', 'CANCELADA' => 'RESERVA_CANCELADA', default => throw new RuntimeException('Nao ha notificacao para este status.'),
         };
         $payment = $this->repository->payments($id)[0] ?? [];
-        $delivery=(new NotificationService($this->db))->customer($r, $event, ['valor' => $payment['valor'] ?? 0, 'link' => base_url('reserva/' . $r['token_publico'])]);
+        $delivery=(new NotificationService($this->db))->customer($r, $event, ['valor' => $payment['valor'] ?? 0, 'link' => absolute_url('reserva/' . $r['token_publico'])]);
         if (!$delivery['email']) throw new RuntimeException('O e-mail não pôde ser enviado. Consulte o erro registrado em Notificações e verifique a configuração SMTP.');
     }
 

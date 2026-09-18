@@ -245,7 +245,7 @@ final class ReservationDocumentService
                 'customer_notes' => $reservation['observacoes_cliente'],
                 'commercial_notes' => $reservation['observacoes_cobranca'],
                 'cancellation_policy' => $reservation['politica_cancelamento'],
-                'customer_portal_url' => base_url('reserva/' . $reservation['token_publico']),
+                'customer_portal_url' => absolute_url('reserva/' . $reservation['token_publico']),
             ],
             'pricing_items' => array_values(array_map(static fn(array $item): array => [
                 'description' => mb_substr(trim(strip_tags((string) ($item['description'] ?? 'Item'))), 0, 160),

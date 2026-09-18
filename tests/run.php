@@ -194,7 +194,7 @@ test('localizacao contato botao e interativa sao reconhecidos', function() { exp
 test('evento e mensagem duplicados possuem chaves unicas', function() { $sql=file_get_contents(BASE_PATH.'/database/migrations/004_create_conversas.sql');expect(str_contains($sql,'uk_whatsapp_event_hash'));expect(str_contains($sql,'uk_mensagem_external')); });
 test('texto livre respeita janela de 24 horas', function() { $now=new DateTimeImmutable('2026-07-22 12:00:00');expect(ConversationService::freeTextAllowed('2026-07-22 12:00:01',$now));expect(!ConversationService::freeTextAllowed('2026-07-22 11:59:59',$now));expect(!ConversationService::freeTextAllowed(null,$now)); });
 test('webhook enfileira processamento pesado antes de responder', function() { $controller=file_get_contents(BASE_PATH.'/app/Controllers/WhatsAppWebhookController.php');$service=file_get_contents(BASE_PATH.'/app/Services/WhatsAppWebhookService.php');expect(str_contains($controller,"echo 'EVENT_RECEIVED'"));expect(str_contains($service,"enqueue('WHATSAPP_WEBHOOK'"));expect(str_contains($service,"enqueue('WHATSAPP_MEDIA'")); });
-test('somente a primeira mensagem da conversa enfileira alerta de email idempotente', function() { $webhook=file_get_contents(BASE_PATH.'/app/Services/WhatsAppWebhookService.php');$worker=file_get_contents(BASE_PATH.'/scripts/process_jobs.php');$alert=file_get_contents(BASE_PATH.'/app/Services/ConversationAlertService.php');$env=file_get_contents(BASE_PATH.'/.env.example');expect(str_contains($webhook,'isFirstIncomingMessage($conversationId, $messageId)'));expect(str_contains($webhook,"'conversation-email-alert:' . \$conversationId"));expect(str_contains($worker,"'CONVERSATION_EMAIL_ALERT'"));expect(str_contains($alert,"first_message.direcao='ENTRADA'"));expect(str_contains($alert,"base_url('admin/conversas?id='"));expect(str_contains($alert,'Nova conversa no WhatsApp'));expect(str_contains($env,'CONVERSATION_ALERT_EMAIL=refugiodocuscuzeiro@gmail.com')); });
+test('somente a primeira mensagem da conversa enfileira alerta de email idempotente', function() { $webhook=file_get_contents(BASE_PATH.'/app/Services/WhatsAppWebhookService.php');$worker=file_get_contents(BASE_PATH.'/scripts/process_jobs.php');$alert=file_get_contents(BASE_PATH.'/app/Services/ConversationAlertService.php');$env=file_get_contents(BASE_PATH.'/.env.example');expect(str_contains($webhook,'isFirstIncomingMessage($conversationId, $messageId)'));expect(str_contains($webhook,"'conversation-email-alert:' . \$conversationId"));expect(str_contains($worker,"'CONVERSATION_EMAIL_ALERT'"));expect(str_contains($alert,"first_message.direcao='ENTRADA'"));expect(str_contains($alert,"absolute_url('admin/conversas?id='"));expect(str_contains($alert,'Nova conversa no WhatsApp'));expect(str_contains($env,'CONVERSATION_ALERT_EMAIL=refugiodocuscuzeiro@gmail.com')); });
 test('rotas de conversas exigem permissao e CSRF', function() { $source=file_get_contents(BASE_PATH.'/app/Controllers/ConversationController.php');expect(substr_count($source,'AuthorizationService::requirePermission')>=6);expect(substr_count($source,'Csrf::verify')>=2); });
 test('midia enviada e preservada em armazenamento privado', function() { $source=file_get_contents(BASE_PATH.'/app/Services/ConversationService.php');expect(str_contains($source,'storeOutgoingMedia'));expect(str_contains($source,"BASE_PATH.'/storage/conversas/'"));expect(str_contains($source,'media_path=?')); });
 test('conversas exibem imagem e player de audio inclusive pelo polling', function() { $view=file_get_contents(BASE_PATH.'/app/Views/admin/conversations.php');$script=file_get_contents(BASE_PATH.'/assets/js/conversations.js');$controller=file_get_contents(BASE_PATH.'/app/Controllers/ConversationController.php');$migration=file_get_contents(BASE_PATH.'/database/migrations/014_create_conversation_media_recovery.sql');expect(str_contains($view,'<audio controls'));expect(str_contains($view,'alt="Imagem recebida"'));expect(str_contains($script,"message.tipo === 'AUDIO'"));expect(str_contains($script,"['IMAGEM', 'STICKER']"));expect(str_contains($controller,"!empty(\$m['media_id'])"));expect(str_contains($migration,"tipo = 'DESCONHECIDA'"));expect(str_contains($migration,'INSERT IGNORE INTO jobs'));expect(str_contains($migration,"'WHATSAPP_MEDIA'")); });
@@ -347,6 +347,34 @@ test('fluxo de contrato usa PDFs do Gov e elimina aceite local por codigo',funct
     expect(str_contains($workflow,"hash_equals((string) \$guest['sha256']"));
     expect(str_contains($workflow,"'GUEST_SIGNED_PDF_UPLOADED'"));
     expect(str_contains($workflow,"'FULLY_SIGNED_PDF_UPLOADED'"));
+});
+
+test('links enviados incluem dominio em requisicoes web e tarefas CLI',function()use(&$config){
+    $originalUrl=$config['url']??null;
+    $originalHost=$_SERVER['HTTP_HOST']??null;
+    try{
+        $config['url']='https://www.refugiodocuscuzeiro.com.br/';
+        $service=(new ReflectionClass(NotificationService::class))->newInstanceWithoutConstructor();
+        $message=new ReflectionMethod(NotificationService::class,'message');
+        foreach(['refugiodocuscuzeiro.com.br','www.refugiodocuscuzeiro.com.br','localhost:8000','dominio-malicioso.example',null]as$host){
+            if($host===null)unset($_SERVER['HTTP_HOST']);else $_SERVER['HTTP_HOST']=$host;
+            foreach(['reserva/token','/minha-reserva/token#contrato','minha-reserva/token/pre-checkin','avaliar/token']as$path){
+                expect(absolute_url($path)==='https://www.refugiodocuscuzeiro.com.br/'.ltrim($path,'/'));
+            }
+            [, $html]=$message->invoke($service,'RESERVA_APROVADA',[
+                'nome_cliente'=>'Hospede de teste','codigo'=>'TESTE','valor'=>'100.00','link'=>absolute_url('reserva/token'),
+            ]);
+            expect(str_contains($html,'href="https://www.refugiodocuscuzeiro.com.br/reserva/token"'));
+        }
+        foreach(['','/','example.com','javascript:alert(1)']as$invalid){
+            $config['url']=$invalid;
+            try{absolute_url('reserva/token');}catch(RuntimeException){continue;}
+            throw new RuntimeException('APP_URL invalida foi aceita');
+        }
+    }finally{
+        $config['url']=$originalUrl;
+        if($originalHost===null)unset($_SERVER['HTTP_HOST']);else $_SERVER['HTTP_HOST']=$originalHost;
+    }
 });
 
 test('formularios preservam a sessao entre dominio com e sem www',function()use(&$config){

@@ -75,7 +75,7 @@ final class ReviewInviteService
             throw $e;
         }
 
-        $link = base_url('avaliar/' . $rawToken);
+        $link = absolute_url('avaliar/' . $rawToken);
         $delivery = $this->notifications->reviewInvitation($reservation, $link, $window['expires_at']->format('Y-m-d H:i:s'), $reminder);
         $this->repository->recordDelivery($inviteId, $delivery['email'], $delivery['whatsapp'], $reminder);
         $this->history->log($reservationId, $reminder ? 'LEMBRETE_AVALIACAO_ENVIADO' : 'CONVITE_AVALIACAO_ENVIADO', $reservation['status'], $reservation['status'], ['email'=>$delivery['email'],'whatsapp'=>$delivery['whatsapp']], $userId);

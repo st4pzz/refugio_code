@@ -87,7 +87,7 @@ final class NotificationService
         if ($email === '') return;
         $label = match ($type) { 'NOVA_SOLICITACAO' => 'Nova solicitacao ', 'NOVO_COMPROVANTE' => 'Novo comprovante ', 'NOVA_AVALIACAO' => 'Nova avaliacao ', default => 'Atualizacao ' };
         $subject = '[Refugio] ' . $label . $reservation['codigo'];
-        $html = $this->layout('<h2>' . e($subject) . '</h2><p>' . e($details) . '</p><p><a class="button" href="' . e(base_url($path ?? ('admin/reservas/' . $reservation['id']))) . '">Abrir no painel</a></p>');
+        $html = $this->layout('<h2>' . e($subject) . '</h2><p>' . e($details) . '</p><p><a class="button" href="' . e(absolute_url($path ?? ('admin/reservas/' . $reservation['id']))) . '">Abrir no painel</a></p>');
         $this->email((int) $reservation['id'], $type, $email, $subject, $html);
     }
 

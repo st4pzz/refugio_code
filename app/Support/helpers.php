@@ -50,6 +50,17 @@ function can(string $permission): bool
     return AuthorizationService::currentAllows($permission);
 }
 
+// Links enviados por e-mail, WhatsApp e documentos precisam incluir o dominio.
+function absolute_url(string $path = ''): string
+{
+    global $config;
+    $base = rtrim(trim((string) ($config['url'] ?? '')), '/');
+    if (!filter_var($base, FILTER_VALIDATE_URL) || !in_array(strtolower((string) parse_url($base, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+        throw new RuntimeException('Configure APP_URL com uma URL absoluta http ou https.');
+    }
+    return $base . '/' . ltrim($path, '/');
+}
+
 function base_url(string $path = ''): string
 {
     global $config;

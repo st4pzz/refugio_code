@@ -65,8 +65,8 @@ final class ReservationAutomationService
         $settings=(new PropertySettingsService($this->db))->values();
         $values=[
             'first_name'=>explode(' ',trim((string)$run['nome_cliente']))[0]??'','reservation_code'=>$run['codigo'],'checkin'=>date('d/m/Y',strtotime($run['checkin'])),'checkout'=>date('d/m/Y',strtotime($run['checkout'])),'guests'=>$run['quantidade_hospedes'],
-            'total'=>money($run['valor_total']??0),'payment_due'=>!empty($payment['data_vencimento'])?date('d/m/Y H:i',strtotime($payment['data_vencimento'])):'','payment_link'=>base_url('reserva/'.$run['token_publico']),
-            'portal_link'=>base_url('minha-reserva/'.$token),'contract_link'=>base_url('minha-reserva/'.$token.'#contrato'),'precheckin_link'=>base_url('minha-reserva/'.$token.'/pre-checkin'),
+            'total'=>money($run['valor_total']??0),'payment_due'=>!empty($payment['data_vencimento'])?date('d/m/Y H:i',strtotime($payment['data_vencimento'])):'','payment_link'=>absolute_url('reserva/'.$run['token_publico']),
+            'portal_link'=>absolute_url('minha-reserva/'.$token),'contract_link'=>absolute_url('minha-reserva/'.$token.'#contrato'),'precheckin_link'=>absolute_url('minha-reserva/'.$token.'/pre-checkin'),
             'checkin_time'=>$settings['DEFAULT_CHECKIN_TIME']??'','checkout_time'=>$settings['DEFAULT_CHECKOUT_TIME']??'',
         ];
         $subject=$this->render((string)$run['subject_template'],$values);$body=$this->render((string)$run['body_template'],$values);$channels=json_decode((string)$run['channels_json'],true);$channels=is_array($channels)?$channels:['EMAIL'];

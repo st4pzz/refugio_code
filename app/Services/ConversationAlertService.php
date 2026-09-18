@@ -33,7 +33,7 @@ final class ConversationAlertService
         $contact = trim((string) ($message['nome_contato'] ?? '')) ?: 'Contato sem nome';
         $phone = trim((string) ($message['telefone'] ?? '')) ?: 'Telefone nao informado';
         $type = self::typeLabel((string) $message['tipo']);
-        $url = base_url('admin/conversas?id=' . (int) $message['conversa_id']);
+        $url = absolute_url('admin/conversas?id=' . (int) $message['conversa_id']);
         $subject = '[Refugio] Nova conversa no WhatsApp - ' . $contact;
         $html = '<!doctype html><html><body style="margin:0;background:#f5f1eb;font-family:Arial,sans-serif;color:#4b4a39">'
             . '<div style="max-width:620px;margin:auto;padding:28px"><div style="background:#fff;border-radius:16px;padding:30px;border-top:5px solid #4b4a39">'
