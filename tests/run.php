@@ -699,7 +699,7 @@ test('resumo mensal do whatsapp usa template aprovado e fila idempotente',functi
     foreach(['message_templates','UTILITY','body_text','Resumo mensal de reservas','error_data']as$needle)expect(str_contains($whatsapp,$needle));
     expect(!str_contains($whatsapp,"'allow_category_change'"));
     expect(str_contains($worker,"'RESERVATION_MONTHLY_SUMMARY'"));
-    expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015'));
+    expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015,5519996873957'));
 });
 
 test('parametros de template do whatsapp nao contem quebras ou espacos repetidos',function(){
@@ -717,7 +717,8 @@ test('confirmacoes diretas e externas atualizam o resumo mensal',function(){
     expect(str_contains($reservation,'enqueueForConfirmedReservation'));
     expect(str_contains($ical,'enqueueForConfirmedExternalEvents($newlyConfirmed)'));
     expect(str_contains($ical,"\$event['status'] === 'CONFIRMED'"));
-    expect(str_contains($cron,"date('N') !== 1"));
+    expect(str_contains($cron,'->enqueueDaily()'));
+    expect(!str_contains($cron,"date('N')"));
     expect(substr_count($summary,'$this->currentMonth()')>=3);
     expect(str_contains($summary,'inclusive ao'));
     expect(!str_contains($summary,"new DateTimeImmutable((string) \$checkin"));

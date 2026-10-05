@@ -14,7 +14,7 @@ Adicione ao `.env`:
 ```dotenv
 WHATSAPP_MONTHLY_SUMMARY_ENABLED=true
 WHATSAPP_MONTHLY_SUMMARY_TEMPLATE=resumo_reservas_mensal
-WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015
+WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015,5519996873957
 ```
 
 O token usado para criar o template precisa permitir administracao da conta do WhatsApp Business. Submeta uma unica vez:
@@ -25,13 +25,13 @@ php scripts/configure_whatsapp_monthly_summary_template.php
 
 Consulte novamente com o mesmo comando ate o retorno indicar `APPROVED`. O comando e idempotente: se nome e idioma ja existirem, apenas informa o estado atual.
 
-Agende a segunda-feira, por exemplo as 08:00 no fuso da aplicacao:
+Agende diariamente, por exemplo as 08:00 no fuso da aplicacao:
 
 ```cron
-0 8 * * 1 /usr/bin/php /var/www/refugio/scripts/schedule_monthly_reservation_summary.php >> /var/log/refugio-resumo-reservas.log 2>&1
+0 8 * * * /usr/bin/php /var/www/refugio/scripts/schedule_monthly_reservation_summary.php >> /var/log/refugio-resumo-reservas.log 2>&1
 ```
 
-O `scripts/process_jobs.php` existente deve continuar rodando a cada poucos minutos. O cron semanal apenas agenda um job para cada telefone; o worker envia o template. Para homologar fora de uma segunda-feira, use `php scripts/schedule_monthly_reservation_summary.php --force`.
+O `scripts/process_jobs.php` existente deve continuar rodando a cada poucos minutos. O cron diario apenas agenda um job para cada telefone; o worker envia o template. A chave por data e destinatario impede duplicacao se a rotina executar novamente no mesmo dia. Para homologar, use `php scripts/schedule_monthly_reservation_summary.php`.
 
 Usuarios com a permissao `reservas.manage` tambem podem usar o botao **Enviar resumo do mes** no cabecalho da secao administrativa **Reservas**. O botao agenda o mesmo resumo do mes corrente para todos os destinatarios configurados. Cada formulario recebe uma chave unica para impedir duplicacao causada por duplo clique ou reenvio do navegador.
 

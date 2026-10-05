@@ -24,6 +24,12 @@ final class MonthlyReservationSummaryService
         return $this->enqueueMonth($now->modify('first day of this month'), 'weekly', $now->format('o-W'));
     }
 
+    public function enqueueDaily(?DateTimeImmutable $now = null): int
+    {
+        $now ??= $this->now();
+        return $this->enqueueMonth($now->modify('first day of this month'), 'daily', $now->format('Y-m-d'));
+    }
+
     public function enqueueManual(string $requestKey, ?DateTimeImmutable $now = null): int
     {
         if (!preg_match('/^[a-f0-9]{32}$/', $requestKey)) {
@@ -141,7 +147,7 @@ final class MonthlyReservationSummaryService
 
     private function recipients(): array
     {
-        $values = explode(',', Env::get('WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS', '5519999725599,5519999925015'));
+        $values = explode(',', Env::get('WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS', '5519999725599,5519999925015,5519996873957'));
         return array_values(array_unique(array_filter(array_map(fn(string $phone): string => $this->normalizePhone($phone), $values))));
     }
 

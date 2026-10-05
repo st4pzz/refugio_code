@@ -137,7 +137,7 @@ Exemplo para uma instalação em `/var/www/refugio`:
 
 ```cron
 */5 * * * * /usr/bin/php /var/www/refugio/scripts/process_jobs.php --limit=50 >> /var/log/refugio-jobs.log 2>&1
-0 8 * * 1 /usr/bin/php /var/www/refugio/scripts/schedule_monthly_reservation_summary.php >> /var/log/refugio-resumo-reservas.log 2>&1
+0 8 * * * /usr/bin/php /var/www/refugio/scripts/schedule_monthly_reservation_summary.php >> /var/log/refugio-resumo-reservas.log 2>&1
 */5 * * * * /usr/bin/php /var/www/refugio/scripts/expirar_reservas.php >> /var/log/refugio-reservas.log 2>&1
 15 1 * * * /usr/bin/php /var/www/refugio/scripts/schedule_reservation_automations.php >> /var/log/refugio-automacoes.log 2>&1
 20 2 * * * /usr/bin/php /var/www/refugio/scripts/gerar_recorrencias_financeiras.php >> /var/log/refugio-financeiro.log 2>&1
