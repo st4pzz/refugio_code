@@ -69,18 +69,19 @@ final class ConversationService
         $types = ['image/jpeg'=>'image','image/png'=>'image','image/webp'=>'image','application/pdf'=>'document','text/plain'=>'document','audio/ogg'=>'audio','audio/mpeg'=>'audio','video/mp4'=>'video'];
         $type = $types[$mime] ?? null;
         if (!$type) throw new RuntimeException('Formato de arquivo nao permitido.');
+        $messageType = ['image'=>'IMAGEM','document'=>'DOCUMENTO','audio'=>'AUDIO','video'=>'VIDEO'][$type];
         $safeName = mb_substr(preg_replace('/[^A-Za-z0-9._-]/', '-', basename((string) $file['name'])) ?: 'arquivo', 0, 200);
         $caption = mb_substr(trim(strip_tags($caption)), 0, 1024);
         try {
             $whatsapp = new WhatsAppService();
             $mediaId = $whatsapp->uploadMedia((string) $file['tmp_name'], $mime, $safeName);
             $externalId = $whatsapp->sendMedia((string) $conversation['telefone_normalizado'],$type,$mediaId,$caption ?: null,$safeName);
-            $messageId=$this->persistOutgoing($conversationId,$externalId,strtoupper($type),$caption ?: '[' . $safeName . ']','ENVIADA',$userId,null,['type'=>$type,'media_id'=>$mediaId,'filename'=>$safeName]);
+            $messageId=$this->persistOutgoing($conversationId,$externalId,$messageType,$caption ?: '[' . $safeName . ']','ENVIADA',$userId,null,['type'=>$type,'media_id'=>$mediaId,'filename'=>$safeName]);
             $mediaPath=$this->storeOutgoingMedia((string)$file['tmp_name'],$mime);
             $this->db->prepare('UPDATE mensagens SET media_id=?,media_path=?,media_mime=?,media_nome=? WHERE id=?')->execute([$mediaId,$mediaPath,$mime,$safeName,$messageId]);
             return $messageId;
         } catch (Throwable $error) {
-            $this->persistOutgoing($conversationId,'local-' . bin2hex(random_bytes(16)),strtoupper($type),$caption ?: '[' . $safeName . ']','FALHA',$userId,null,['type'=>$type,'filename'=>$safeName],$error->getMessage());
+            $this->persistOutgoing($conversationId,'local-' . bin2hex(random_bytes(16)),$messageType,$caption ?: '[' . $safeName . ']','FALHA',$userId,null,['type'=>$type,'filename'=>$safeName],$error->getMessage());
             throw $error;
         }
     }
