@@ -24,3 +24,12 @@ A tabela conversation_auto_replies registra tentativas. Se houver falha ambígua
 ## Verificação local
 
 `php tests/run.php` executa a suíte. É necessário PHP 8.2 ou superior com as extensões usadas no projeto. Testes com MySQL e integrações reais exigem um ambiente configurado; não devem ser executados contra produção.
+
+
+## Formulário em etapas
+
+A página `/reserva/solicitar` inicia somente com check-in, check-out e total de hóspedes (adultos e crianças). “Consultar disponibilidade” faz uma chamada ao endpoint público de orçamento, com CSRF e limitação de requisições. O servidor valida datas, conflitos e atualização dos calendários antes de calcular o preço.
+
+Durante a consulta há um indicador de carregamento. Apenas uma resposta válida libera a segunda etapa com resumo, valor, nome, e-mail, WhatsApp e consentimentos. CPF aparece somente se for obrigatório pela configuração. Crianças, pets e observações ficam em uma área expansível; crianças já pertencem ao total informado, que deve incluir ao menos um adulto. Alterar pets recalcula o valor antes de permitir pagamento.
+
+Alterar datas ou hóspedes invalida a consulta anterior. Respostas antigas são descartadas, falhas e timeout permitem tentar novamente, e os dados preenchidos são preservados ao voltar. A consulta não bloqueia as datas: a criação da reserva revalida tudo no servidor e somente então libera o Pix. Sem JavaScript, a página orienta o contato pelo WhatsApp.

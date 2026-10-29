@@ -306,6 +306,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
+    <?php if ($requestPath === ''): ?><link rel="stylesheet" href="/assets/css/paid-reservation-prompt.css?v=1"><?php endif; ?>
 </head>
 <body data-landing-section="<?= $escape($landingSectionSlug) ?>"<?= $showCookieBanner ? ' class="cookie-consent-visible"' : '' ?>>
     <!-- HEADER STICKY -->
@@ -363,7 +364,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
             <h1 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h1>
             <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
             <div class="hero-actions">
-                <a class="cta-button cta-reserva" href="/reserva/solicitar">Solicitar reserva direta</a>
+                <a class="cta-button cta-reserva" href="/reserva/solicitar">Consultar datas e valores</a>
                 <a class="cta-button cta-secondary" href="/comodidades">Conheça Nossas Comodidades</a>
             </div>
         </div>
@@ -749,11 +750,11 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         <div class="section-container reservation-promo-inner">
             <div>
                 <span class="reservation-kicker">Atendimento direto</span>
-                <h2 class="section-title">Solicite sua reserva pelo nosso site</h2>
-                <p>Envie as datas desejadas sem compromisso. Confirmamos a disponibilidade manualmente e, se aprovado, voce recebe uma pagina segura com a cobranca Pix.</p>
+                <h2 class="section-title">Escolha suas datas e reserve pelo site</h2>
+                <p>Informe as datas e o número de hóspedes. Se houver disponibilidade, complete seus dados e siga para o pagamento Pix.</p>
                 <p class="reservation-disclaimer">Consulte as datas e siga direto para o Pix. A reserva é confirmada após a conferência do pagamento.</p>
             </div>
-            <a class="reservation-button" href="/reserva/solicitar">Solicitar reserva direta</a>
+            <a class="reservation-button" href="/reserva/solicitar">Consultar datas e valores</a>
         </div>
     </section>
 
@@ -960,5 +961,16 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
     <script defer src="assets/js/videos-carousel.js?v=1"></script>
     <!-- Service Worker Registration (async pois é não-crítico) -->
     <script async src="assets/js/register-sw.js"></script>
+    <?php if ($requestPath === ''): ?>
+    <aside class="paid-reservation-prompt" data-paid-reservation-prompt role="region" aria-labelledby="paid-reservation-title" hidden>
+        <button class="prompt-close" type="button" aria-label="Fechar convite para reservar" data-dismiss-reservation-prompt>×</button>
+        <p class="prompt-kicker">Seu descanso em Analândia</p>
+        <h2 id="paid-reservation-title">Viva o Refúgio do Cuscuzeiro</h2>
+        <p>Não perca a chance de se hospedar no Refúgio. Consulte as datas e planeje sua próxima estadia.</p>
+        <a class="prompt-cta" href="/reserva/solicitar" data-reservation-prompt-cta>Reserve já</a>
+        <button class="prompt-later" type="button" data-dismiss-reservation-prompt>Quero conhecer a chácara primeiro</button>
+    </aside>
+    <script defer src="/assets/js/paid-reservation-prompt.js?v=1"></script>
+    <?php endif; ?>
 </body>
 </html>

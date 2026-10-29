@@ -88,6 +88,22 @@ test('mensagem Booking inclui estadia valor vencimento e Pix sem confirmar pagam
     expect(!str_contains($message, '{{'));
 });
 
+test('reserva em etapas converte total de hospedes sem contar criancas duas vezes', function() use ($valid, $config) {
+    $input = $valid;
+    unset($input['adultos']);
+    $input['hospedes'] = '4';
+    $input['criancas'] = '2';
+    $result = ReservationValidator::validate($input, $config);
+    expect(!$result['errors']);
+    expect($result['data']['adultos'] === 2);
+    expect($result['data']['criancas'] === 2);
+    expect($result['data']['quantidade_hospedes'] === 4);
+    $input['criancas'] = '4';
+    expect(isset(ReservationValidator::validate($input, $config)['errors']['criancas']));
+    $input['hospedes'] = '100';
+    expect(isset(ReservationValidator::validate($input, $config)['errors']['hospedes']));
+});
+
 test('solicitacao valida e telefone internacional', function() use ($valid,$config) { $r=ReservationValidator::validate($valid,$config); expect(!$r['errors']); expect($r['data']['telefone']==='5516999999999'); });
 test('datas invalidas', function() use ($valid,$config) { $d=$valid; $d['checkout']=$d['checkin']; expect(isset(ReservationValidator::validate($d,$config)['errors']['checkout'])); });
 test('limite de hospedes', function() use ($valid,$config) { $d=$valid; $d['adultos']='10'; $d['criancas']='1'; expect(isset(ReservationValidator::validate($d,$config)['errors']['hospedes'])); });

@@ -15,6 +15,14 @@ final class ReservationValidator
         $checkout = self::date($input['checkout'] ?? '');
         $adults = filter_var($input['adultos'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         $children = filter_var($input['criancas'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if (array_key_exists('hospedes', $input)) {
+            $guests = filter_var($input['hospedes'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => $config['max_guests']]]);
+            if ($guests === false) $errors['hospedes'] = 'Informe uma quantidade válida de hóspedes.';
+            if ($guests !== false && $children !== false) {
+                $adults = $guests - $children;
+                if ($adults < 1) $errors['criancas'] = 'O total deve incluir ao menos um adulto. Crianças já estão incluídas no número de hóspedes.';
+            }
+        }
         $name = trim(strip_tags((string) ($input['nome'] ?? '')));
         $email = filter_var(trim((string) ($input['email'] ?? '')), FILTER_VALIDATE_EMAIL);
         $phone = self::phone((string) ($input['telefone'] ?? ''));

@@ -1,0 +1,11 @@
+.paid-reservation-prompt[hidden]{display:none!important}
+.paid-reservation-prompt{position:fixed;right:24px;bottom:24px;z-index:2000;width:min(370px,calc(100vw - 32px));box-sizing:border-box;padding:25px;border:1px solid #d8e5d9;border-radius:22px;background:#fffdf7;color:#254735;box-shadow:0 12px 50px #172c3438;font-family:Poppins,Arial,sans-serif}
+.paid-reservation-prompt .prompt-close{position:absolute;right:10px;top:9px;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#254735;font-size:26px;cursor:pointer}
+.paid-reservation-prompt .prompt-kicker{margin:0 36px 10px 0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.paid-reservation-prompt h2{font-family:'Playfair Display',Georgia,serif;font-size:26px;line-height:1.2;margin:0 20px 12px 0;color:#254735}
+.paid-reservation-prompt p{font-size:14px;line-height:1.6;margin:0 0 16px}
+.paid-reservation-prompt .prompt-cta{display:block;background:#285840;color:#fff;text-align:center;text-decoration:none;border-radius:12px;padding:13px 18px;font-weight:600;min-height:44px;box-sizing:border-box}
+.paid-reservation-prompt .prompt-later{display:block;margin:8px auto 0;padding:10px;border:0;background:transparent;color:#4b6154;text-decoration:underline;font:inherit;font-size:12px;cursor:pointer}
+.paid-reservation-prompt :focus-visible{outline:3px solid #a36921;outline-offset:3px}
+body.paid-popup-visible .floating-buttons-container{visibility:hidden}
+@media(max-width:480px){.paid-reservation-prompt{left:16px;right:16px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;padding:20px}.paid-reservation-prompt h2{font-size:23px}.paid-reservation-prompt p{font-size:13px;margin-bottom:12px}.paid-reservation-prompt .prompt-kicker{margin-bottom:7px}}
