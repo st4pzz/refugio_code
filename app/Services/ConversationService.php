@@ -26,7 +26,7 @@ final class ConversationService
         return new DateTimeImmutable($windowUntil) >= ($now ?? new DateTimeImmutable());
     }
 
-    public function sendText(int $conversationId, string $text, int $userId, ?int $replyToId = null): int
+    public function sendText(int $conversationId, string $text, ?int $userId, ?int $replyToId = null): int
     {
         $conversation = $this->conversation($conversationId);
         $text = trim(strip_tags($text));
@@ -239,7 +239,7 @@ final class ConversationService
         return $reservation;
     }
 
-    private function persistOutgoing(int $conversationId,string $externalId,string $type,string $text,string $status,int $userId,?int $replyToId,array $payload,?string $error=null,?string $templateName=null,?string $templateLanguage=null): int
+    private function persistOutgoing(int $conversationId,string $externalId,string $type,string $text,string $status,?int $userId,?int $replyToId,array $payload,?string $error=null,?string $templateName=null,?string $templateLanguage=null): int
     {
         $stmt=$this->db->prepare("INSERT INTO mensagens (conversa_id,external_message_id,direcao,tipo,texto,template_name,template_language,payload_json,status,erro,respondendo_a_id,enviada_por_usuario_id,enviada_em) VALUES (?,?,'SAIDA',?,?,?,?,?,?,?,?,?,NOW())");
         $stmt->execute([$conversationId,$externalId,$type,$text,$templateName,$templateLanguage,json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$status,$error ? mb_substr($error,0,2000) : null,$replyToId,$userId]);

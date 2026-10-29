@@ -129,6 +129,9 @@ final class WhatsAppWebhookService
             $existing->execute([$externalId]);
             $messageId = (int) $existing->fetchColumn();
         }
+        if ($messageId > 0 && $type === 'TEXTO' && Env::bool('OPENAI_CONVERSATIONS_AUTO_REPLY', true) && Env::bool('OPENAI_CONVERSATIONS_ENABLED', true)) {
+            (new JobQueueService($this->db))->enqueue('CONVERSATION_AI_REPLY', ['conversation_id' => $conversationId, 'message_id' => $messageId], 'conversation-ai-reply:' . $messageId, 40, 3, new \DateTimeImmutable('+5 seconds'));
+        }
         if ($messageId > 0 && $this->isFirstIncomingMessage($conversationId, $messageId)) {
             (new JobQueueService($this->db))->enqueue(
                 'CONVERSATION_EMAIL_ALERT',

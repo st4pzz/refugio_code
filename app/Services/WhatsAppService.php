@@ -123,6 +123,8 @@ final class WhatsAppService
             }
         }
 
+        if ($name === 'resumo_reservas_mensal') throw new RuntimeException('Para criar o novo layout, configure WHATSAPP_MONTHLY_SUMMARY_TEMPLATE=resumo_reservas_mensal_v2.');
+
         $waba = Env::get('WHATSAPP_BUSINESS_ACCOUNT_ID');
         if ($waba === '') throw new RuntimeException('WHATSAPP_BUSINESS_ACCOUNT_ID nao configurado.');
         $payload = [
@@ -133,16 +135,39 @@ final class WhatsAppService
                 ['type' => 'HEADER', 'format' => 'TEXT', 'text' => 'Resumo mensal de reservas'],
                 [
                     'type' => 'BODY',
-                    'text' => "Este é o resumo administrativo de reservas referente a {{1}}.\n\nDados consolidados: {{2}}\n\nUse estas informações para acompanhar a ocupação do Refúgio do Cuscuzeiro.",
+                    'text' => "📅 *Reservas de {{1}}*\nAtualizado: {{2}}\nTotal de períodos: {{3}}\n\n🏡 *Reservas diretas*\n{{4}}\n\n🌿 *Airbnb — calendário*\n{{5}}\n\n🧳 *Booking — calendário*\n{{6}}\n\nEntrada = chegada • Saída = fim da hospedagem.\nConfira os detalhes no calendário administrativo.",
                     'example' => ['body_text' => [[
-                        'setembro de 2026',
-                        "Atualizado em 08/09/2026 às 08:00.\nDiretas (1):\n- 12-15/09 - RFG-EXEMPLO\nAirbnb (1):\n- 20-22/09\nTotal de estadias no mês: 2.",
+                        'outubro de 2026', '29/10/2026 08:00', '3',
+                        '1) Entrada 10/10 → saída 12/10',
+                        '1) Entrada 15/10 → saída 18/10',
+                        '1) Entrada 23/10 → saída 25/10',
                     ]]],
                 ],
                 ['type' => 'FOOTER', 'text' => 'Atualização automática de reservas'],
             ],
         ];
         $template = $this->requestJson('POST', $this->baseUrl() . '/' . rawurlencode($waba) . '/message_templates', $payload);
+        return ['created' => true, 'template' => $template];
+    }
+
+    public function ensureBookingBillingTemplate(): array
+    {
+        $name = Env::get('WHATSAPP_BOOKING_BILLING_TEMPLATE', 'booking_cobranca_pix_v1');
+        if (!preg_match('/^[a-z0-9_]{1,512}$/', $name)) throw new RuntimeException('Nome de template inválido.');
+        $language = Env::get('WHATSAPP_TEMPLATE_LANGUAGE', 'pt_BR');
+        foreach ($this->listTemplates() as $template) {
+            if (($template['name'] ?? '') === $name && ($template['language'] ?? '') === $language) return ['created' => false, 'template' => $template];
+        }
+        $waba = Env::get('WHATSAPP_BUSINESS_ACCOUNT_ID');
+        if ($waba === '') throw new RuntimeException('WHATSAPP_BUSINESS_ACCOUNT_ID não configurado.');
+        $template = $this->requestJson('POST', $this->baseUrl() . '/' . rawurlencode($waba) . '/message_templates', [
+            'name' => $name, 'language' => $language, 'category' => 'UTILITY',
+            'components' => [
+                ['type' => 'HEADER', 'format' => 'TEXT', 'text' => 'Pagamento da reserva Booking'],
+                ['type' => 'BODY', 'text' => BookingBillingService::templateBody(), 'example' => ['body_text' => [['Maria', '10/11/2026', '12/11/2026', 'R$ 1.500,00', '05/11/2026']]]],
+                ['type' => 'FOOTER', 'text' => 'Refúgio do Cuscuzeiro • Atendimento'],
+            ],
+        ]);
         return ['created' => true, 'template' => $template];
     }
 

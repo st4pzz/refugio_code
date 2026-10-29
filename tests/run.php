@@ -46,6 +46,48 @@ $valid = [
     'adultos'=>'2','criancas'=>'1','nome'=>'Maria da Silva','cpf'=>'52998224725','email'=>'maria@example.com','telefone'=>'(16) 99999-9999',
     'regras_aceitas'=>'1','cancelamento_aceito'=>'1','contato_autorizado'=>'1','website'=>'',
 ];
+test('atendimento automatico respeita pausa humana e janela WhatsApp', function() {
+    $open = ['status' => 'NOVA', 'janela_atendimento_ate' => date('Y-m-d H:i:s', time() + 3600)];
+    expect(\Refugio\Services\ConversationAutoReplyService::canReply($open));
+    foreach (['AGUARDANDO_EQUIPE','FINALIZADA','ARQUIVADA','SPAM','CONVERTIDA'] as $status) {
+        expect(!\Refugio\Services\ConversationAutoReplyService::canReply(array_replace($open, ['status' => $status])));
+    }
+    expect(!\Refugio\Services\ConversationAutoReplyService::canReply(array_replace($open, ['janela_atendimento_ate' => date('Y-m-d H:i:s', time() - 60)])));
+});
+
+test('bloqueios externos e holds impedem disponibilidade independentemente do titulo', function() {
+    foreach (['Booking', 'Airbnb'] as $provider) {
+        foreach (['Not available', 'Reserved', 'Closed'] as $title) {
+            expect(\Refugio\Services\AvailabilityService::hasConflicts(['externos' => [['origem' => $provider, 'summary' => $title]]]));
+        }
+    }
+    expect(\Refugio\Services\AvailabilityService::hasConflicts(['holds' => [['id' => 1]]]));
+    expect(!\Refugio\Services\AvailabilityService::hasConflicts(['externos' => [], 'holds' => []]));
+});
+
+test('cobranca Booking aceita telefone ou email sem exigir ambos', function() {
+    $service = \Refugio\Services\BookingBillingService::class;
+    $phone = $service::validateContact(['guest_name' => 'Maria', 'phone' => '(19) 99687-3957']);
+    expect($phone['phone'] === '5519996873957' && $phone['email'] === null);
+    $email = $service::validateContact(['guest_name' => 'Maria', 'email' => 'maria@example.com', 'amount' => '1.250,50', 'due_on' => '2027-01-10']);
+    expect($email['phone'] === null && $email['amount'] === '1250.50');
+    expect($service::validateContact(['guest_name' => 'Maria', 'phone' => '+1 202 555 0123'])['phone'] === '12025550123');
+});
+
+test('cobranca Booking rejeita contato ausente email invalido e valor negativo', function() {
+    foreach ([['guest_name' => 'Maria'], ['guest_name' => 'Maria', 'email' => 'invalido'], ['guest_name' => 'Maria', 'email' => 'maria@example.com', 'amount' => '-1'], ['guest_name' => 'Maria', 'email' => 'maria@example.com', 'due_on' => '2027-02-30']] as $input) {
+        try { \Refugio\Services\BookingBillingService::validateContact($input); }
+        catch (\RuntimeException | \InvalidArgumentException) { continue; }
+        throw new RuntimeException('Entrada inválida aceita.');
+    }
+});
+
+test('mensagem Booking inclui estadia valor vencimento e Pix sem confirmar pagamento', function() {
+    $message = \Refugio\Services\BookingBillingService::message(['Maria', '10/11/2026', '12/11/2026', 'R$ 1.500,00', '05/11/2026']);
+    foreach (['Maria','Entrada: 10/11/2026','Saída: 12/11/2026','R$ 1.500,00','05/11/2026','74373137820','Sergio Ramella','Safra','não pague novamente'] as $text) expect(str_contains($message, $text));
+    expect(!str_contains($message, '{{'));
+});
+
 test('solicitacao valida e telefone internacional', function() use ($valid,$config) { $r=ReservationValidator::validate($valid,$config); expect(!$r['errors']); expect($r['data']['telefone']==='5516999999999'); });
 test('datas invalidas', function() use ($valid,$config) { $d=$valid; $d['checkout']=$d['checkin']; expect(isset(ReservationValidator::validate($d,$config)['errors']['checkout'])); });
 test('limite de hospedes', function() use ($valid,$config) { $d=$valid; $d['adultos']='10'; $d['criancas']='1'; expect(isset(ReservationValidator::validate($d,$config)['errors']['hospedes'])); });
@@ -479,7 +521,7 @@ test('calendario para IA une bloqueios adjacentes e calcula lacunas',function(){
     expect($ranges['available_ranges']===[['checkin'=>'2026-09-02','checkout'=>'2026-09-03'],['checkin'=>'2026-09-07','checkout'=>'2026-09-10']]);
 });
 
-test('conversas geram rascunho com csrf sem envio automatico',function(){
+test('sugestao manual continua protegida e separada do envio automatico',function(){
     $controller=file_get_contents(BASE_PATH.'/app/Controllers/ConversationController.php');
     $service=file_get_contents(BASE_PATH.'/app/Services/OpenAiConversationReplyService.php');
     $route=file_get_contents(BASE_PATH.'/.htaccess');
@@ -492,7 +534,7 @@ test('conversas geram rascunho com csrf sem envio automatico',function(){
     expect(str_contains($route,'sugerir-ia'));
     expect(str_contains($front,'conversa-sugerir-ia'));
     expect(str_contains($view,'Sugerir resposta com IA'));
-    expect(str_contains($view,'Revise antes de enviar'));
+    expect(str_contains($view,'AGUARDANDO_EQUIPE'));
     expect(str_contains($script,'textarea.value = data.draft'));
     expect(!str_contains($service,'sendText('));
     expect(str_contains($service,"'store' => false"));
@@ -690,6 +732,24 @@ test('encerramento invalida acessos e documentos pendentes',function(){
     expect(str_contains($migration,"JOIN reservas reserva ON reserva.id=convite.reserva_id"));
 });
 
+test('resumo mensal formata períodos legíveis e sinaliza itens omitidos', function() {
+    $class = \Refugio\Services\MonthlyReservationSummaryService::class;
+    expect($class::groupText([]) === 'Nenhuma neste mês.');
+    expect($class::groupText(['Entrada 10/10 → saída 12/10']) === '1) Entrada 10/10 → saída 12/10');
+    $text = $class::groupText(array_fill(0, 20, 'Entrada 10/10 → saída 12/10'));
+    expect(str_contains($text, 'no calendário.'));
+    expect(mb_strlen($text) < 220);
+});
+
+test('resumo mensal normaliza os dois celulares brasileiros solicitados', function() {
+    $service = (new ReflectionClass(\Refugio\Services\MonthlyReservationSummaryService::class))->newInstanceWithoutConstructor();
+    $method = new ReflectionMethod($service, 'normalizePhone');
+    expect($method->invoke($service, '(19)99687-3957') === '5519996873957');
+    expect($method->invoke($service, '19 99781-5267') === '5519997815267');
+    expect($method->invoke($service, '+55 19 99781-5267') === '5519997815267');
+    expect($method->invoke($service, '123') === '');
+});
+
 test('resumo mensal do whatsapp usa template aprovado e fila idempotente',function(){
     $summary=file_get_contents(BASE_PATH.'/app/Services/MonthlyReservationSummaryService.php');
     $whatsapp=file_get_contents(BASE_PATH.'/app/Services/WhatsAppService.php');
@@ -699,7 +759,7 @@ test('resumo mensal do whatsapp usa template aprovado e fila idempotente',functi
     foreach(['message_templates','UTILITY','body_text','Resumo mensal de reservas','error_data']as$needle)expect(str_contains($whatsapp,$needle));
     expect(!str_contains($whatsapp,"'allow_category_change'"));
     expect(str_contains($worker,"'RESERVATION_MONTHLY_SUMMARY'"));
-    expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519999725599,5519999925015,5519996873957'));
+    expect(str_contains($env,'WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS=5519996873957,5519997815267'));
 });
 
 test('parametros de template do whatsapp nao contem quebras ou espacos repetidos',function(){

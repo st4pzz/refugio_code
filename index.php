@@ -751,7 +751,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                 <span class="reservation-kicker">Atendimento direto</span>
                 <h2 class="section-title">Solicite sua reserva pelo nosso site</h2>
                 <p>Envie as datas desejadas sem compromisso. Confirmamos a disponibilidade manualmente e, se aprovado, voce recebe uma pagina segura com a cobranca Pix.</p>
-                <p class="reservation-disclaimer">Esta e uma solicitacao de reserva e esta sujeita a confirmacao de disponibilidade.</p>
+                <p class="reservation-disclaimer">Consulte as datas e siga direto para o Pix. A reserva é confirmada após a conferência do pagamento.</p>
             </div>
             <a class="reservation-button" href="/reserva/solicitar">Solicitar reserva direta</a>
         </div>

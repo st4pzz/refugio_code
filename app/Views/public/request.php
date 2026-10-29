@@ -1,8 +1,8 @@
 <?php $title = 'Solicitar reserva direta'; require __DIR__ . '/_top.php'; ?>
 <section class="reservation-card form-card">
     <div class="eyebrow">Reserva direta</div>
-    <h1>Solicite suas datas</h1>
-    <p class="important-note"><strong>Esta e uma solicitacao de reserva</strong> e esta sujeita a confirmacao de disponibilidade. Nenhuma cobranca sera feita agora.</p>
+    <h1>Escolha suas datas e reserve</h1>
+    <p class="important-note">Datas disponíveis? Continue direto para o Pix, sem aguardar aprovação. Você verá o valor antes de pagar e terá <?= max(5, min(120, (int) ($this->config['pix_payment_minutes'] ?? 30))) ?> minutos para enviar o comprovante. A confirmação ocorre após a conferência do pagamento.</p>
     <?php if ($message = flash('error')): ?><div class="alert alert-error" role="alert"><?= e($message) ?></div><?php endif; ?>
     <?php if ($errors): ?><div class="alert alert-error" role="alert">Revise os campos destacados antes de continuar.</div><?php endif; ?>
     <form action="<?= e(base_url('api/reservas/solicitar')) ?>" method="post" class="reservation-form" data-submit-form novalidate>
@@ -13,8 +13,9 @@
             <label>Check-out <input type="date" name="checkout" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required value="<?= e($old['checkout'] ?? '') ?>" aria-describedby="error-checkout"><small id="error-checkout" class="field-error"><?= e($errors['checkout'] ?? '') ?></small></label>
             <label>Adultos <input type="number" name="adultos" min="1" max="<?= (int) $this->config['max_guests'] ?>" required value="<?= e($old['adultos'] ?? '1') ?>"><small class="field-error"><?= e($errors['adultos'] ?? '') ?></small></label>
             <label>Criancas <input type="number" name="criancas" min="0" max="<?= (int) $this->config['max_guests'] ?>" required value="<?= e($old['criancas'] ?? '0') ?>"><small class="field-error"><?= e($errors['criancas'] ?? $errors['hospedes'] ?? '') ?></small></label>
+            <label>Pets <input type="number" name="pets" min="0" max="20" value="<?= e($old['pets'] ?? '0') ?>"></label>
         </div><p class="form-hint">Limite de <?= (int) $this->config['max_guests'] ?> hospedes.</p></fieldset>
-        <div class="quote-preview" data-quote-preview data-quote-endpoint="<?= e(base_url('api/orcamentos/calcular')) ?>"><button type="button" class="secondary-button" data-calculate-quote>Calcular valor estimado</button><div class="quote-result" data-quote-result role="status" aria-live="polite"><p>Escolha as datas e o número de hóspedes.</p></div></div>
+        <div class="quote-preview" data-quote-preview data-quote-endpoint="<?= e(base_url('api/orcamentos/calcular')) ?>"><button type="button" class="secondary-button" data-calculate-quote>Consultar disponibilidade e valor</button><div class="quote-result" data-quote-result role="status" aria-live="polite"><p>Escolha as datas e o número de hóspedes.</p></div></div>
         <fieldset><legend>Seus dados</legend><div class="form-grid">
             <label class="full">Nome completo <input type="text" name="nome" maxlength="160" autocomplete="name" required value="<?= e($old['nome'] ?? '') ?>"><small class="field-error"><?= e($errors['nome'] ?? '') ?></small></label>
             <label>CPF <?= $this->config['cpf_required'] ? '' : '(opcional)' ?><input type="text" name="cpf" inputmode="numeric" maxlength="14" autocomplete="off" <?= $this->config['cpf_required'] ? 'required' : '' ?> value="<?= e($old['cpf'] ?? '') ?>"><small class="field-error"><?= e($errors['cpf'] ?? '') ?></small></label>
@@ -30,7 +31,7 @@
             <label><input type="checkbox" name="contato_autorizado" value="1" required <?= !empty($old['contato_autorizado']) ? 'checked' : '' ?>> Autorizo mensagens relacionadas a esta solicitacao por e-mail e WhatsApp.</label>
             <small class="field-error"><?= e($errors['contato_autorizado'] ?? '') ?></small>
         </div></fieldset>
-        <button type="submit" class="primary-button"><span class="button-label">Enviar solicitacao</span><span class="button-loading">Enviando...</span></button>
+        <button type="submit" class="primary-button"><span class="button-label">Continuar para o Pix</span><span class="button-loading">Enviando...</span></button>
         <p class="privacy-copy">Usaremos seus dados apenas para processar a hospedagem, o pagamento e as comunicacoes relacionadas. Consulte a <a href="<?= e(base_url('politicas/privacidade')) ?>">politica de privacidade</a>.</p>
     </form>
 </section>

@@ -10,6 +10,23 @@ final class AvailabilityService
 {
     public function __construct(private PDO $db) {}
 
+    public function externalSyncStatus(): array
+    {
+        $row = $this->db->query("SELECT COUNT(*) active_external_sources,MAX(ultimo_sync_em) last_external_sync_at,SUM(CASE WHEN ultimo_sync_em IS NULL OR ultimo_status='FAILED' OR proximo_sync_em IS NULL OR proximo_sync_em<NOW() OR ultimo_sync_em<DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1 ELSE 0 END) stale_external_sources FROM calendar_sources WHERE ativo=1")->fetch() ?: [];
+        return [
+            'active_external_sources' => (int) ($row['active_external_sources'] ?? 0),
+            'last_external_sync_at' => $row['last_external_sync_at'] ?? null,
+            'stale_external_sources' => (int) ($row['stale_external_sources'] ?? 0),
+        ];
+    }
+
+    public function assertFreshExternalCalendars(): void
+    {
+        if ($this->externalSyncStatus()['stale_external_sources'] > 0) {
+            throw new \RuntimeException('Estamos atualizando o calendário. Tente novamente em instantes ou fale com a equipe.');
+        }
+    }
+
     public function lockApprovalMutex(): void
     {
         $this->db->query('SELECT id FROM reserva_mutex WHERE id=1 FOR UPDATE')->fetchColumn();

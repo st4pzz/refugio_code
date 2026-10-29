@@ -43,10 +43,15 @@ final class PublicReservationController
             if ($key === '' || !hash_equals($_SESSION['_request_idempotency'] ?? '', $key)) throw new RuntimeException('Formulario expirado. Atualize a pagina e tente novamente.');
             $reservation = $this->service->request($_POST, $key);
             $db = Database::connection();
-            $clientId = (new CustomerRepository($db))->syncFromReservation($reservation);
-            (new AttributionService($db))->linkReservation((int) $reservation['id'], $clientId);
+            try {
+                $clientId = (new CustomerRepository($db))->syncFromReservation($reservation);
+                (new AttributionService($db))->linkReservation((int) $reservation['id'], $clientId);
+            } catch (Throwable $error) {
+                error_log('[checkout-attribution] ' . $error->getMessage());
+            }
+            unset($_SESSION['_request_idempotency']);
             $_SESSION['_success_reservation'] = ['codigo' => $reservation['codigo'], 'token' => $reservation['token_publico']];
-            redirect(base_url('reserva/sucesso'));
+            redirect(base_url('reserva/' . $reservation['token_publico'] . '?pagar=1'));
         } catch (ValidationException $e) {
             $_SESSION['_form_errors'] = $e->errors;
             $_SESSION['_form_old'] = $_POST;

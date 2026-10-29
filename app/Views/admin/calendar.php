@@ -25,6 +25,8 @@ $next=$start->modify('+1 month')->format('Y-m');
     </div>
 </section>
 
+<?php if(can('reservas.manage')) require __DIR__ . '/booking-billing.php'; ?>
+
 <section class="admin-panel special-pricing-panel">
     <div class="panel-heading">
         <div><p class="eyebrow">Datas especiais</p><h2>Diárias por período</h2><p>O valor especial substitui a diária base em todas as noites do período. A data final também recebe o valor informado.</p></div>

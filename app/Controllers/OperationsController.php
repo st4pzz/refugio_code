@@ -120,6 +120,8 @@ final class OperationsController
                 'property-update'=>$this->propertyUpdate($userId),
                 'pricing-update'=>$this->pricingUpdate($userId),
                 'quote-create'=>$this->quoteCreate($userId),
+                'calendar-booking-save'=>$this->bookingBilling(false, $userId),
+                'calendar-booking-send'=>$this->bookingBilling(true, $userId),
                 'calendar-source-create'=>$this->calendarSourceCreate($userId),
                 'calendar-source-sync'=>$this->calendarSourceSync(),
                 'calendar-export-create'=>$this->calendarExportCreate($userId),
@@ -141,12 +143,19 @@ final class OperationsController
             };
             $redirect=match(true){str_starts_with($action,'property-')=>'admin/configuracoes/propriedade',str_starts_with($action,'pricing-')=>'admin/precos',str_starts_with($action,'quote-')=>'admin/orcamentos',str_starts_with($action,'calendar-')=>'admin/calendario',str_starts_with($action,'contract-')||str_starts_with($action,'portal-')=>'admin/contratos',str_starts_with($action,'precheckin-')||str_starts_with($action,'rules-')=>'admin/pre-checkins',str_starts_with($action,'automation-')=>'admin/automacoes',default=>'admin'};
             $returnMonth=(string)($_POST['return_month']??'');
-            if(str_starts_with($action,'calendar-special-price-')&&preg_match('/^\d{4}-\d{2}$/',$returnMonth))$redirect='admin/calendario?mes='.$returnMonth;
+            if((str_starts_with($action,'calendar-special-price-')||str_starts_with($action,'calendar-booking-'))&&preg_match('/^\d{4}-\d{2}$/',$returnMonth))$redirect='admin/calendario?mes='.$returnMonth;
             $returnTo=(string)($_POST['return_to']??'');
             if($action==='portal-regenerate'&&preg_match('#^admin/reservas/[1-9][0-9]*$#',$returnTo))$redirect=$returnTo;
             if(!isset($_SESSION['_flash']['success']))flash('success','Operação concluída.');
         }catch(Throwable $error){flash('error',$error->getMessage());$redirect=$_SERVER['HTTP_REFERER']??base_url('admin');if(str_starts_with($redirect,'http')){header('Location: '.$redirect,true,303);exit;}}
         redirect(base_url($redirect));
+    }
+
+    private function bookingBilling(bool $send, int $userId): void
+    {
+        AuthorizationService::requirePermission('reservas.manage');
+        $count = (new \Refugio\Services\BookingBillingService($this->db))->save((int) ($_POST['event_id'] ?? 0), $_POST, $userId, $send);
+        flash('success', $send ? ($count ? "Cobrança agendada em {$count} canal(is). Acompanhe o resultado no histórico abaixo." : 'Este pedido de envio já foi registrado; nenhuma mensagem duplicada foi agendada.') : 'Contato e dados de cobrança salvos. Nenhuma mensagem foi enviada.');
     }
 
     private function propertyUpdate(int $userId):void{AuthorizationService::requirePermission('property_settings.manage');(new PropertySettingsService($this->db))->update($_POST,$userId);}

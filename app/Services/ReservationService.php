@@ -36,25 +36,52 @@ final class ReservationService
         if ($validated['errors']) throw new ValidationException($validated['errors']);
         $idempotency = hash('sha256', $idempotency);
         if ($existing = $this->reservations->findByIdempotency($idempotency)) return $existing;
-        $token = self::token();
         $data = array_merge($validated['data'], [
-            'codigo' => $this->code(), 'token_publico' => $token, 'idempotency_key' => $idempotency,
-            'status' => ReservationStatus::AGUARDANDO_APROVACAO->value,
-            'finalidade_coleta' => 'Processar a solicitacao, o pagamento e a comunicacao sobre a hospedagem.',
+            'codigo' => $this->code(), 'token_publico' => self::token(), 'idempotency_key' => $idempotency,
+            'status' => ReservationStatus::AGUARDANDO_PAGAMENTO->value,
+            'finalidade_coleta' => 'Processar a reserva, o pagamento e a comunicação sobre a hospedagem.',
         ]);
         $this->db->beginTransaction();
         try {
+            $this->availability->lockApprovalMutex();
+            if ($existing = $this->reservations->findByIdempotency($idempotency)) {
+                $this->db->commit();
+                return $existing;
+            }
+            $conflicts = $this->availability->conflicts($data['checkin'], $data['checkout'], null, true);
+            if (AvailabilityService::hasConflicts($conflicts)) {
+                throw new ValidationException(['checkin' => 'Estas datas não estão disponíveis. Escolha outro período.']);
+            }
+            $this->availability->assertFreshExternalCalendars();
+            $quote = (new QuoteService($this->db))->calculate([
+                'checkin' => $data['checkin'], 'checkout' => $data['checkout'],
+                'guests' => $data['quantidade_hospedes'], 'pets' => $input['pets'] ?? 0,
+            ], true);
+            $total = (float) $quote['total'];
+            if ($total <= 0) throw new RuntimeException('Preço indisponível. Entre em contato com a equipe.');
+            $deadline = (new DateTimeImmutable())->modify('+' . max(5, min(120, (int) ($this->config['pix_payment_minutes'] ?? 30))) . ' minutes')->format('Y-m-d H:i:s');
+            $property = (new PropertySettingsService($this->db))->values();
             $id = $this->reservations->create($data);
-            $this->history->log($id, 'SOLICITACAO_CRIADA', null, $data['status'], ['origem' => 'SITE_DIRETO']);
+            $this->db->prepare('UPDATE reservas SET valor_total=?,valor_sinal=0,valor_restante=?,prazo_pagamento=?,politica_cancelamento=? WHERE id=?')
+                ->execute([$total, $total, $deadline, $property['CANCELLATION_POLICY'] ?? '', $id]);
+            $this->createPayment($id, 'INTEGRAL', $total, $this->config['pix_key'] ?? '74373137820', null, $deadline, 'Pix por chave CPF. Favorecido: Sergio Ramella. Banco: Safra.');
+            $this->db->prepare("INSERT INTO datas_bloqueadas (data_inicio,data_fim,motivo,reserva_id,origem) VALUES (?,?,?,?,'RESERVA_TEMPORARIA')")
+                ->execute([$data['checkin'], $data['checkout'], 'Aguardando pagamento ' . $data['codigo'], $id]);
+            $this->history->log($id, 'RESERVA_DIRETA_CRIADA', null, $data['status'], ['valor_total' => $total, 'prazo' => $deadline, 'quote' => $quote]);
             $this->db->commit();
         } catch (Throwable $e) {
-            $this->db->rollBack();
+            if ($this->db->inTransaction()) $this->db->rollBack();
             if ($existing = $this->reservations->findByIdempotency($idempotency)) return $existing;
             throw $e;
         }
         $reservation = $this->reservations->find($id);
-        $this->notifications->admin($reservation, 'NOVA_SOLICITACAO', 'Ha uma nova solicitacao aguardando analise.');
-        $this->emitAutomation('RESERVATION_REQUEST_CREATED',(int)$reservation['id']);
+        // A falha de comunicação não deve interromper um checkout já criado.
+        try {
+            $this->notifications->customer($reservation, 'RESERVA_APROVADA', ['valor' => $total, 'link' => absolute_url('reserva/' . $reservation['token_publico'])]);
+            $this->emitAutomationRule('PAYMENT_REMINDER', 'PAYMENT_REQUEST_CREATED', $id, ['payment_due' => $deadline]);
+        } catch (Throwable $error) {
+            error_log('[reserva-direta-notificacao] #' . $id . ': ' . $error->getMessage());
+        }
         return $reservation;
     }
 
@@ -208,7 +235,8 @@ final class ReservationService
             $locked = $this->reservations->findForUpdate((int) $reservation['id']);
             $stmt = $this->db->prepare("SELECT * FROM pagamentos WHERE id=? AND reserva_id=? AND status IN ('PENDENTE','COMPROVANTE_ENVIADO') FOR UPDATE");
             $stmt->execute([$paymentId, $reservation['id']]);
-            if (!$stmt->fetch()) throw new RuntimeException('Cobranca indisponivel para envio.');
+            $payment = $stmt->fetch();
+            if (!$payment || !in_array($locked['status'], ['AGUARDANDO_PAGAMENTO', 'COMPROVANTE_ENVIADO', 'RESERVA_CONFIRMADA'], true) || strtotime($payment['data_vencimento']) <= time()) throw new RuntimeException('O prazo desta cobrança encerrou. Consulte novamente a disponibilidade antes de pagar.');
             $this->db->prepare("UPDATE pagamentos SET comprovante_path=?,comprovante_nome_original=?,comprovante_mime=?,status=? WHERE id=?")
                 ->execute([$stored['path'], $stored['name'], $stored['mime'], PaymentStatus::COMPROVANTE_ENVIADO->value, $paymentId]);
             if ($locked['status'] === ReservationStatus::AGUARDANDO_PAGAMENTO->value) {

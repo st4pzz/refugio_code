@@ -77,20 +77,28 @@ final class MonthlyReservationSummaryService
             throw new RuntimeException('Destinatario invalido no job de resumo de reservas.');
         }
         $summary = $this->summary($month);
-        $template = Env::get('WHATSAPP_MONTHLY_SUMMARY_TEMPLATE', 'resumo_reservas_mensal');
+        $template = Env::get('WHATSAPP_MONTHLY_SUMMARY_TEMPLATE', 'resumo_reservas_mensal_v2');
         $now = $this->now();
-        $details = preg_replace('/\R+/u', ' | ', (string) $summary['details']) ?? (string) $summary['details'];
-        $this->whatsApp->sendTemplate($recipient, $template, [
-            $this->monthLabel($month),
-            'Atualizado em ' . $now->format('d/m/Y') . ' às ' . $now->format('H:i') . '. | '
-                . $details . ' | Total de estadias no mês: ' . $summary['total'] . '.',
-        ]);
+        if ($template === 'resumo_reservas_mensal') {
+            // Compatibilidade enquanto o template v2 aguarda aprovação no provedor.
+            $details = preg_replace('/\R+/u', ' | ', (string) $summary['details']) ?? (string) $summary['details'];
+            $parameters = [$this->monthLabel($month), 'Atualizado em ' . $now->format('d/m/Y H:i') . ' | ' . $details . ' | Total: ' . $summary['total']];
+        } else {
+            $parameters = [
+                $this->monthLabel($month), $now->format('d/m/Y H:i'), (string) $summary['total'],
+                self::groupText($summary['groups']['DIRETA']),
+                self::groupText($summary['groups']['AIRBNB']),
+                self::groupText($summary['groups']['BOOKING']),
+            ];
+        }
+        $this->whatsApp->sendTemplate($recipient, $template, $parameters);
+
     }
 
     public function ensureTemplate(): array
     {
         return $this->whatsApp->ensureMonthlyReservationSummaryTemplate(
-            Env::get('WHATSAPP_MONTHLY_SUMMARY_TEMPLATE', 'resumo_reservas_mensal')
+            Env::get('WHATSAPP_MONTHLY_SUMMARY_TEMPLATE', 'resumo_reservas_mensal_v2')
         );
     }
 
@@ -100,10 +108,10 @@ final class MonthlyReservationSummaryService
         $end = $start->modify('first day of next month');
         $groups = ['DIRETA' => [], 'AIRBNB' => [], 'BOOKING' => []];
 
-        $stmt = $this->db->prepare("SELECT codigo,checkin,checkout FROM reservas WHERE status IN ('RESERVA_CONFIRMADA','FINALIZADA') AND checkin<? AND checkout>? ORDER BY checkin,id");
+        $stmt = $this->db->prepare("SELECT checkin,checkout FROM reservas WHERE status IN ('RESERVA_CONFIRMADA','FINALIZADA') AND checkin<? AND checkout>? ORDER BY checkin,id");
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]);
         foreach ($stmt->fetchAll() as $reservation) {
-            $groups['DIRETA'][] = $this->period((string) $reservation['checkin'], (string) $reservation['checkout']) . ' - ' . mb_substr((string) $reservation['codigo'], 0, 32);
+            $groups['DIRETA'][] = $this->period((string) $reservation['checkin'], (string) $reservation['checkout']);
         }
 
         $stmt = $this->db->prepare("SELECT s.provider,e.starts_at,e.ends_at FROM calendar_external_events e JOIN calendar_sources s ON s.id=e.source_id WHERE s.ativo=1 AND s.provider IN ('AIRBNB','BOOKING') AND e.status='CONFIRMED' AND e.deleted_at IS NULL AND e.starts_at<? AND e.ends_at>? ORDER BY e.starts_at,e.id");
@@ -131,6 +139,19 @@ final class MonthlyReservationSummaryService
         return ['details' => implode("\n", $lines), 'total' => $total, 'groups' => $groups];
     }
 
+    public static function groupText(array $items): string
+    {
+        if ($items === []) return 'Nenhuma neste mês.';
+        $visible = [];
+        foreach ($items as $index => $item) {
+            $entry = ($index + 1) . ') ' . $item;
+            if (mb_strlen(implode(' • ', [...$visible, $entry])) > 175) break;
+            $visible[] = $entry;
+        }
+        $omitted = count($items) - count($visible);
+        return implode(' • ', $visible) . ($omitted > 0 ? ' • +' . $omitted . ' no calendário.' : '');
+    }
+
     private function enqueueMonth(DateTimeImmutable $date, string $trigger, string $reference): int
     {
         if (!Env::bool('WHATSAPP_MONTHLY_SUMMARY_ENABLED', true)) return 0;
@@ -145,22 +166,23 @@ final class MonthlyReservationSummaryService
         return $count;
     }
 
-    private function recipients(): array
+    public function recipients(): array
     {
-        $values = explode(',', Env::get('WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS', '5519999725599,5519999925015,5519996873957'));
+        $values = explode(',', Env::get('WHATSAPP_MONTHLY_SUMMARY_RECIPIENTS', '5519996873957,5519997815267'));
         return array_values(array_unique(array_filter(array_map(fn(string $phone): string => $this->normalizePhone($phone), $values))));
     }
 
     private function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D+/', '', $phone) ?? '';
-        if (strlen($digits) >= 10 && strlen($digits) <= 15) return $digits;
+        if (strlen($digits) === 10 || strlen($digits) === 11) $digits = '55' . $digits;
+        if (preg_match('/^55[1-9]{2}[0-9]{8,9}$/', $digits)) return $digits;
         return '';
     }
 
     private function period(string $start, string $end): string
     {
-        return (new DateTimeImmutable($start, $this->timezone()))->format('d/m') . '-' . (new DateTimeImmutable($end, $this->timezone()))->format('d/m');
+        return 'Entrada ' . (new DateTimeImmutable($start, $this->timezone()))->format('d/m') . ' → saída ' . (new DateTimeImmutable($end, $this->timezone()))->format('d/m');
     }
 
     private function monthLabel(DateTimeImmutable $date): string

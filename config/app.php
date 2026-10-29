@@ -13,6 +13,8 @@ return [
     'encryption_key' => Env::get('MARKETING_ENCRYPTION_KEY', ''),
     'session_secure' => Env::bool('SESSION_SECURE', true),
     'max_guests' => Env::int('MAX_GUESTS', 10),
+    'pix_key' => '74373137820',
+    'pix_payment_minutes' => Env::int('PIX_PAYMENT_MINUTES', 30),
     'cpf_required' => Env::bool('CPF_REQUIRED', false),
     'upload_max_bytes' => Env::int('UPLOAD_MAX_MB', 8) * 1024 * 1024,
     'whatsapp_media_max_bytes' => max(1, Env::int('WHATSAPP_MEDIA_MAX_MB', 20)) * 1024 * 1024,

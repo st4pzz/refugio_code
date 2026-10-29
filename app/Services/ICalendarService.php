@@ -123,6 +123,7 @@ final class ICalendarService
         $newlyConfirmed = [];
         $this->db->beginTransaction();
         try {
+            (new AvailabilityService($this->db))->lockApprovalMutex();
             $find = $this->db->prepare('SELECT id,raw_checksum,status FROM calendar_external_events WHERE source_id=? AND external_uid=? FOR UPDATE');
             $insert = $this->db->prepare('INSERT INTO calendar_external_events (source_id,external_uid,summary,starts_at,ends_at,all_day,status,sequence_no,raw_checksum,raw_json) VALUES (?,?,?,?,?,?,?,?,?,?)');
             $update = $this->db->prepare('UPDATE calendar_external_events SET summary=?,starts_at=?,ends_at=?,all_day=?,status=?,sequence_no=?,raw_checksum=?,raw_json=?,last_seen_at=NOW(),deleted_at=NULL WHERE id=?');

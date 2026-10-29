@@ -22,13 +22,13 @@ return [
                 'Quem já decidiu o destino pode consultar a página de <a href="/alugar-chacara/analandia/">chácara em Analândia</a>. Para uma viagem curta, veja a orientação de <a href="/alugar-chacara/final-de-semana/">fim de semana</a>. Há ainda conteúdos específicos para <a href="/alugar-chacara/para-familia/">viagem em família</a>, <a href="/alugar-chacara/interior-de-sp/">interior de São Paulo</a> e o hub para <a href="/chacara-perto-de/">planejar a saída pela sua cidade</a>.',
             ]],
             ['heading' => 'O que fazer antes de solicitar a reserva', 'paragraphs' => [
-                'Defina as datas, o número de hóspedes e o perfil do grupo. Depois, confira as <a href="/galeria-de-fotos">fotos</a> e envie uma solicitação pelo fluxo de reserva direta. A equipe verifica as datas manualmente; o envio não representa confirmação automática.',
+                'Defina as datas, o número de hóspedes e o perfil do grupo. Depois, confira as <a href="/galeria-de-fotos">fotos</a> e envie uma solicitação pelo fluxo de reserva direta. O sistema verifica as datas e libera o Pix quando há disponibilidade. A confirmação depende da conferência do pagamento.',
             ]],
         ],
         'faq' => [
             ['question' => 'Onde fica o Refúgio do Cuscuzeiro?', 'answer' => 'O Refúgio do Cuscuzeiro fica em Analândia, no interior do estado de São Paulo.'],
             ['question' => 'A chácara é indicada para famílias?', 'answer' => 'A estrutura reúne suítes e áreas de convivência e lazer. Consulte as regras e informe a composição do grupo ao solicitar as datas.'],
-            ['question' => 'Como consultar disponibilidade?', 'answer' => 'Use a página de solicitação de reserva. As datas são verificadas manualmente e a reserva depende de confirmação.'],
+            ['question' => 'Como consultar disponibilidade?', 'answer' => 'Use a página de solicitação de reserva. As datas são verificadas pelo sistema; a confirmação depende da conferência do pagamento Pix.'],
             ['question' => 'Quais espaços aparecem no site?', 'answer' => 'O site apresenta quatro suítes, piscina, hidromassagem, churrasqueira, varanda, salão de jogos, campo de futebol, quadra de areia e garagem coberta.'],
         ],
         'cta_title' => 'Quer reunir seu grupo em Analândia?',
@@ -80,13 +80,13 @@ return [
                 'Para organizar a programação completa, consulte o <a href="/analandia/">guia de Analândia</a> e o roteiro de <a href="/blog/final-de-semana-em-analandia/">dois ou três dias</a>.',
             ]],
             ['heading' => 'Reserve com as informações certas', 'paragraphs' => [
-                'Informe datas, número de hóspedes e dados de contato na solicitação. A disponibilidade é analisada manualmente. Antes de concluir, confira fotos, regras e políticas e esclareça qualquer necessidade específica com o atendimento.',
-            ], 'table' => ['headers' => ['Etapa', 'O que fazer'], 'rows' => [['1. Conhecer', 'Veja comodidades e fotos reais do imóvel.'], ['2. Planejar', 'Defina datas e composição do grupo.'], ['3. Consultar', 'Envie a solicitação de reserva direta.'], ['4. Confirmar', 'Aguarde a validação de disponibilidade e as orientações.']]]],
+                'Informe datas, número de hóspedes e dados de contato na solicitação. A disponibilidade é verificada pelo sistema antes de liberar o Pix. Antes de concluir, confira fotos, regras e políticas e esclareça qualquer necessidade específica com o atendimento.',
+            ], 'table' => ['headers' => ['Etapa', 'O que fazer'], 'rows' => [['1. Conhecer', 'Veja comodidades e fotos reais do imóvel.'], ['2. Planejar', 'Defina datas e composição do grupo.'], ['3. Consultar', 'Envie a solicitação de reserva direta.'], ['4. Confirmar', 'Pague pelo Pix e envie o comprovante para conferência.']]]],
         ],
         'faq' => [
             ['question' => 'Tem chácara para alugar em Analândia?', 'answer' => 'Sim. O Refúgio do Cuscuzeiro é uma chácara de aluguel por temporada em Analândia e é a hospedagem proprietária deste site.'],
             ['question' => 'O que fazer em Analândia durante a estadia?', 'answer' => 'A cidade é procurada por paisagens, trilhas, formações rochosas e cachoeiras. Consulte o guia de Analândia e confirme as condições de cada atração.'],
-            ['question' => 'A reserva é confirmada na hora?', 'answer' => 'Não. O formulário registra uma solicitação, e a disponibilidade é confirmada manualmente.'],
+            ['question' => 'A reserva é confirmada na hora?', 'answer' => 'Não. As datas disponíveis liberam o Pix automaticamente; a reserva é confirmada após a conferência do pagamento.'],
             ['question' => 'Posso viajar com crianças?', 'answer' => 'Famílias podem consultar a hospedagem, mas devem avaliar cada passeio e as áreas de lazer conforme idade, supervisão e condições do dia.'],
         ],
         'cta_title' => 'Consulte sua estadia em Analândia',

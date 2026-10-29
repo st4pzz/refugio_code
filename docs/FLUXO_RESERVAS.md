@@ -2,6 +2,8 @@
 
 Uma solicitacao nunca e apresentada como reserva confirmada antes da verificacao manual do pagamento.
 
+Reservas diretas do site iniciam em `AGUARDANDO_PAGAMENTO`, com preço calculado no servidor, bloqueio transacional e Pix por chave CPF. Propostas manuais continuam usando a aprovação. Veja [checkout e ativação](CHECKOUT_PIX_AUTOMATICO.md).
+
 ## Estados e transicoes
 
 ```text

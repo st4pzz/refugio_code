@@ -19,6 +19,8 @@ $failed = 0;
 while ($processed < $limit && ($job = $queue->reserve($worker))) {
     try {
         $result = match ($job['tipo']) {
+            'BOOKING_BILLING' => (new Refugio\Services\BookingBillingService($db))->process((int) $job['payload']['delivery_id']),
+            'CONVERSATION_AI_REPLY' => (new Refugio\Services\ConversationAutoReplyService($db, require dirname(__DIR__) . '/config/app.php'))->process((int) $job['payload']['conversation_id'], (int) $job['payload']['message_id']),
             'WHATSAPP_WEBHOOK' => (new Refugio\Services\WhatsAppWebhookService($db))->process((int) $job['payload']['event_id']),
             'CONVERSATION_EMAIL_ALERT' => (new Refugio\Services\ConversationAlertService($db))->send((int) $job['payload']['message_id']),
             'WHATSAPP_MEDIA' => (new Refugio\Services\WhatsAppWebhookService($db))->downloadMedia((int) $job['payload']['message_id']),
