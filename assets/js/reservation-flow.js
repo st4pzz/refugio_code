@@ -5,6 +5,8 @@
   const details = form.querySelector('[data-reservation-details]');
   const feedback = form.querySelector('[data-availability-feedback]');
   const preview = form.querySelector('[data-stay-preview]');
+  const alternatives = form.querySelector('[data-reservation-alternatives]');
+  const alternativePeriods = form.querySelector('[data-alternative-periods]');
   const check = form.querySelector('[data-check-availability]');
   const pay = form.querySelector('[data-proceed-payment]');
   let checked = null;
@@ -37,6 +39,8 @@
     sequence++;
     request?.abort();
     checked = null;
+    alternatives.hidden = true;
+    alternativePeriods.replaceChildren();
     setBusy(false);
   };
   const displayDate = value => value.split('-').reverse().join('/');
@@ -58,6 +62,48 @@
       return false;
     }
     return true;
+  };
+  const showAlternatives = payload => {
+    const options = (Array.isArray(payload.alternatives) ? payload.alternatives : []).slice(0, 3).filter(option =>
+      /^\d{4}-\d{2}-\d{2}$/.test(option.checkin) && /^\d{4}-\d{2}-\d{2}$/.test(option.checkout)
+      && Number.isFinite(Number(option.total)) && Number(option.total) > 0);
+    step(false);
+    feedback.textContent = payload.message || 'Estas datas estão ocupadas. Escolha outro período.';
+    alternatives.hidden = false;
+    form.querySelector('[data-alternatives-intro]').textContent = options.length
+      ? 'Encontramos estas opções próximas das datas que você escolheu:'
+      : 'Não encontramos opções válidas nos 30 dias antes ou depois da data escolhida. Experimente outro mês ou fale conosco.';
+    alternativePeriods.replaceChildren();
+    for (const option of options) {
+      const card = document.createElement('article');
+      card.className = 'alternative-period';
+      const heading = document.createElement('h3');
+      heading.textContent = `${displayDate(option.checkin)} → ${displayDate(option.checkout)}`;
+      const description = document.createElement('p');
+      description.textContent = `${option.nights} noite(s) · ${option.guests} hóspede(s)`;
+      const price = document.createElement('strong');
+      price.textContent = `Total: ${new Intl.NumberFormat('pt-BR', {style: 'currency', currency: option.currency}).format(Number(option.total))}`;
+      const choose = document.createElement('button');
+      choose.type = 'button'; choose.className = 'secondary-button';
+      choose.textContent = 'Escolher estas datas';
+      choose.setAttribute('aria-label', `Escolher de ${displayDate(option.checkin)} a ${displayDate(option.checkout)}`);
+      choose.addEventListener('click', () => {
+        form.elements.checkin.value = option.checkin;
+        form.elements.checkout.value = option.checkout;
+        const minimum = new Date(option.checkin + 'T12:00:00Z');
+        minimum.setUTCDate(minimum.getUTCDate() + 1);
+        form.elements.checkout.min = minimum.toISOString().slice(0, 10);
+        form.elements.checkout.setCustomValidity('');
+        track('reservation_alternative_selected');
+        lookup(); // A suggestion is not a hold: always check again before continuing.
+        feedback.focus({preventScroll: true});
+      });
+      card.append(heading, description, price, choose);
+      alternativePeriods.append(card);
+    }
+    track('reservation_availability_unavailable');
+    feedback.focus({preventScroll: true});
+    feedback.scrollIntoView({behavior: 'smooth', block: 'center'});
   };
   const lookup = async () => {
     invalidate();
@@ -82,6 +128,7 @@
       const response = await fetch(form.dataset.quoteEndpoint, {method: 'POST', body, credentials: 'same-origin', headers: {Accept: 'application/json'}, signal: controller.signal});
       const payload = await response.json();
       if (current !== sequence || queried !== fingerprint()) return;
+      if (payload.code === 'DATES_UNAVAILABLE') { showAlternatives(payload); return; }
       if (!response.ok || !payload.ok) throw new Error(payload.message || 'Não foi possível consultar estas datas. Tente novamente.');
       const quote = payload.quote;
       if (!quote || !Number.isFinite(Number(quote.total)) || Number(quote.total) <= 0) throw new Error('O valor da estadia está indisponível. Fale com a equipe.');

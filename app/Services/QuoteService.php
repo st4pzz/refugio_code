@@ -10,21 +10,26 @@ use Throwable;
 
 final class QuoteService
 {
+    private ?array $pricingContext = null;
     public function __construct(private PDO $db, private PricingEngine $engine = new PricingEngine())
     {
     }
 
     public function calculate(array $request, bool $public = true): array
     {
-        $settings = $this->db->query('SELECT * FROM property_pricing_settings WHERE id=1')->fetch() ?: throw new RuntimeException('Configuração de preços não encontrada.');
-        $property = (new PropertySettingsService($this->db))->values();
-        $settings['max_guests'] = (int) ($property['MAX_GUESTS'] ?? 10);
-        $settings['pets_allowed'] = $property['PETS_ALLOWED'] ?? false;
-        $settings['max_pets'] = $property['MAX_PETS'] ?? null;
-        $settings['pet_fee'] = $property['PET_FEE'] ?? '0';
-        $seasons = $this->db->query('SELECT * FROM pricing_seasons WHERE ativo=1 ORDER BY priority,id')->fetchAll();
-        $special = $this->db->query('SELECT * FROM pricing_special_dates WHERE ativo=1 ORDER BY priority,id')->fetchAll();
-        $rules = $this->db->query('SELECT * FROM pricing_rules WHERE ativo=1 AND (starts_at IS NULL OR starts_at<=NOW()) AND (ends_at IS NULL OR ends_at>=NOW()) ORDER BY priority,id')->fetchAll();
+        if ($this->pricingContext === null) {
+            $settings = $this->db->query('SELECT * FROM property_pricing_settings WHERE id=1')->fetch() ?: throw new RuntimeException('Configuração de preços não encontrada.');
+            $property = (new PropertySettingsService($this->db))->values();
+            $settings['max_guests'] = (int) ($property['MAX_GUESTS'] ?? 10);
+            $settings['pets_allowed'] = $property['PETS_ALLOWED'] ?? false;
+            $settings['max_pets'] = $property['MAX_PETS'] ?? null;
+            $settings['pet_fee'] = $property['PET_FEE'] ?? '0';
+            $seasons = $this->db->query('SELECT * FROM pricing_seasons WHERE ativo=1 ORDER BY priority,id')->fetchAll();
+            $special = $this->db->query('SELECT * FROM pricing_special_dates WHERE ativo=1 ORDER BY priority,id')->fetchAll();
+            $rules = $this->db->query('SELECT * FROM pricing_rules WHERE ativo=1 AND (starts_at IS NULL OR starts_at<=NOW()) AND (ends_at IS NULL OR ends_at>=NOW()) ORDER BY priority,id')->fetchAll();
+            $this->pricingContext = compact('settings', 'seasons', 'special', 'rules');
+        }
+        ['settings' => $settings, 'seasons' => $seasons, 'special' => $special, 'rules' => $rules] = $this->pricingContext;
         $coupon = null;
         if (!empty($request['coupon'])) {
             $stmt = $this->db->prepare('SELECT * FROM pricing_coupons WHERE code=?');

@@ -33,3 +33,14 @@ A página `/reserva/solicitar` inicia somente com check-in, check-out e total de
 Durante a consulta há um indicador de carregamento. Apenas uma resposta válida libera a segunda etapa com resumo, valor, nome, e-mail, WhatsApp e consentimentos. CPF aparece somente se for obrigatório pela configuração. Crianças, pets e observações ficam em uma área expansível; crianças já pertencem ao total informado, que deve incluir ao menos um adulto. Alterar pets recalcula o valor antes de permitir pagamento.
 
 Alterar datas ou hóspedes invalida a consulta anterior. Respostas antigas são descartadas, falhas e timeout permitem tentar novamente, e os dados preenchidos são preservados ao voltar. A consulta não bloqueia as datas: a criação da reserva revalida tudo no servidor e somente então libera o Pix. Sem JavaScript, a página orienta o contato pelo WhatsApp.
+
+
+## Datas alternativas
+
+Quando a consulta encontra conflito, a API responde HTTP 409 com `code=DATES_UNAVAILABLE` e até três alternativas. A busca considera datas de entrada até 30 dias antes ou depois da escolhida, exclui datas passadas e preserva o número de noites, hóspedes e pets. Períodos mais próximos aparecem primeiro; em empate, o futuro vem primeiro. Reservas, bloqueios manuais, Booking/Airbnb e holds são consultados; eventos com horário não são truncados para datas.
+
+Cada alternativa passa pelo motor de preços e pelas regras de estadia. Configurações de preço são carregadas uma vez por instância de QuoteService para não repetir consultas de configuração a cada candidato. Calendários externos desatualizados impedem a apresentação de alternativas como disponíveis. Se não houver opções válidas no intervalo, a interface informa o limite da busca e mantém edição das datas e contato pelo WhatsApp.
+
+O botão “Escolher estas datas” preserva os contatos já preenchidos, atualiza check-in/check-out e consulta novamente; só o retorno válido libera a segunda etapa. Não cria reserva nem bloqueio durante a sugestão. A transação final continua revalidando tudo antes da cobrança.
+
+A home agora destaca localização, suítes, piscina e capacidade. O limite exibido usa MAX_GUESTS do mesmo `.env` utilizado pela validação de reservas (padrão 10), sem depender de consulta ao banco para renderizar a página inicial.

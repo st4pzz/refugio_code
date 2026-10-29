@@ -104,6 +104,32 @@ test('reserva em etapas converte total de hospedes sem contar criancas duas veze
     expect(isset(ReservationValidator::validate($input, $config)['errors']['hospedes']));
 });
 
+test('alternativas mantem duracao e priorizam datas proximas sem sugerir o periodo original', function() {
+    $periods = \Refugio\Services\ReservationAlternativesService::candidatePeriods(new DateTimeImmutable('2027-01-10'), new DateTimeImmutable('2027-01-12'), new DateTimeImmutable('2027-01-01'), []);
+    expect($periods[0] === ['checkin' => '2027-01-11', 'checkout' => '2027-01-13']);
+    expect($periods[1] === ['checkin' => '2027-01-09', 'checkout' => '2027-01-11']);
+    foreach ($periods as $period) {
+        expect($period['checkin'] !== '2027-01-10');
+        expect((new DateTimeImmutable($period['checkin']))->diff(new DateTimeImmutable($period['checkout']))->days === 2);
+        expect($period['checkin'] >= '2027-01-01');
+    }
+});
+
+test('alternativas respeitam bloqueios e liberam checkout exclusivo', function() {
+    $periods = \Refugio\Services\ReservationAlternativesService::candidatePeriods(new DateTimeImmutable('2027-01-10'), new DateTimeImmutable('2027-01-12'), new DateTimeImmutable('2027-01-10'), [['start' => '2027-01-10', 'end' => '2027-01-14']]);
+    expect($periods[0] === ['checkin' => '2027-01-14', 'checkout' => '2027-01-16']);
+    foreach ($periods as $period) expect(!AvailabilityService::overlaps('2027-01-10', '2027-01-14', $period['checkin'], $period['checkout']));
+});
+
+test('alternativas preservam horarios de eventos externos e retornam vazio sem janela livre', function() {
+    $class = \Refugio\Services\ReservationAlternativesService::class;
+    $start = new DateTimeImmutable('2027-01-10'); $end = new DateTimeImmutable('2027-01-12');
+    $periods = $class::candidatePeriods($start, $end, $start, [['start' => '2027-01-10 12:00:00', 'end' => '2027-01-14 12:00:00']]);
+    expect($periods[0]['checkin'] === '2027-01-15');
+    expect($class::candidatePeriods($start, $end, $start, [['start' => '2026-12-01', 'end' => '2027-03-01']]) === []);
+    expect($class::candidatePeriods($end, $start, $start, []) === []);
+});
+
 test('solicitacao valida e telefone internacional', function() use ($valid,$config) { $r=ReservationValidator::validate($valid,$config); expect(!$r['errors']); expect($r['data']['telefone']==='5516999999999'); });
 test('datas invalidas', function() use ($valid,$config) { $d=$valid; $d['checkout']=$d['checkin']; expect(isset(ReservationValidator::validate($d,$config)['errors']['checkout'])); });
 test('limite de hospedes', function() use ($valid,$config) { $d=$valid; $d['adultos']='10'; $d['criancas']='1'; expect(isset(ReservationValidator::validate($d,$config)['errors']['hospedes'])); });

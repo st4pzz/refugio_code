@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/app/Support/Env.php';
+\Refugio\Support\Env::load(__DIR__ . '/.env');
+$heroMaxGuests = max(1, \Refugio\Support\Env::int('MAX_GUESTS', 10));
 $cookieConsent = (string) ($_COOKIE['refugio_cookie_consent'] ?? '');
 $showCookieBanner = $cookieConsent === '';
 
@@ -307,6 +310,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
     ?></script>
     <?php if ($requestPath === ''): ?><link rel="stylesheet" href="/assets/css/paid-reservation-prompt.css?v=1"><?php endif; ?>
+    <link rel="stylesheet" href="/assets/css/hero-reservation.css?v=1">
 </head>
 <body data-landing-section="<?= $escape($landingSectionSlug) ?>"<?= $showCookieBanner ? ' class="cookie-consent-visible"' : '' ?>>
     <!-- HEADER STICKY -->
@@ -361,11 +365,13 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
             <div class="hero-overlay"></div>
         </div>
         <div class="hero-content">
-            <h1 class="hero-title">Bem-vindo ao Refúgio do Cuscuzeiro</h1>
-            <p class="hero-subtitle">Natureza, conforto e exclusividade em um único lugar</p>
+            <p class="hero-kicker">Refúgio do Cuscuzeiro · Analândia, SP</p>
+            <h1 class="hero-title">Sua chácara de temporada em Analândia</h1>
+            <p class="hero-subtitle">Reúna a família e os amigos para descansar, aproveitar a piscina e viver dias perto da natureza.</p>
+            <ul class="hero-highlights" aria-label="Destaques da hospedagem"><li>Até <?= $heroMaxGuests ?> hóspedes</li><li>4 suítes</li><li>Piscina e lazer</li></ul>
             <div class="hero-actions">
                 <a class="cta-button cta-reserva" href="/reserva/solicitar">Consultar datas e valores</a>
-                <a class="cta-button cta-secondary" href="/comodidades">Conheça Nossas Comodidades</a>
+                <a class="cta-button cta-secondary" href="/comodidades">Conheça os espaços</a>
             </div>
         </div>
     </section>

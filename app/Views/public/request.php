@@ -15,6 +15,13 @@
             <label class="full">Número de hóspedes<input type="number" name="hospedes" min="1" max="<?= (int) $this->config['max_guests'] ?>" required value="<?= e($old['hospedes'] ?? ((int) ($old['adultos'] ?? 2) + (int) ($old['criancas'] ?? 0))) ?>" aria-describedby="error-hospedes"><small>Inclua adultos e crianças. Até <?= (int) $this->config['max_guests'] ?> hóspedes.</small><small id="error-hospedes" class="field-error"><?= e($errors['hospedes'] ?? $errors['adultos'] ?? '') ?></small></label>
         </div><button type="submit" class="primary-button" data-check-availability>Consultar disponibilidade</button></fieldset>
         <div class="availability-feedback" data-availability-feedback role="status" aria-live="polite" aria-atomic="true" tabindex="-1" hidden></div>
+        <section class="reservation-alternatives" data-reservation-alternatives aria-labelledby="alternatives-title" hidden>
+            <h2 id="alternatives-title">Outras datas para sua estadia</h2>
+            <p data-alternatives-intro></p>
+            <div class="alternative-periods" data-alternative-periods></div>
+            <p class="form-hint">Mesmo número de hóspedes e mesma duração. As datas e o valor serão consultados novamente ao escolher uma opção.</p>
+            <a class="text-link" href="https://wa.me/<?= e($this->config['contact_whatsapp']) ?>" target="_blank" rel="noopener noreferrer">Precisa de outras datas? Fale conosco</a>
+        </section>
         <div class="stay-preview" data-stay-preview hidden><p data-stay-summary></p><strong data-stay-total></strong><p class="form-hint">A disponibilidade e o valor serão revalidados antes de liberar o Pix.</p><button type="button" class="text-link" data-edit-dates>Alterar datas ou hóspedes</button></div>
         <fieldset data-reservation-details disabled hidden><legend>Datas disponíveis! Complete sua reserva</legend>
             <div class="form-grid">
@@ -40,5 +47,5 @@
         <noscript><p class="alert alert-error">Ative o JavaScript para consultar a disponibilidade e continuar a reserva, ou <a href="https://wa.me/<?= e($this->config['contact_whatsapp']) ?>">fale conosco pelo WhatsApp</a>.</p></noscript>
     </form>
 </section>
-<script src="<?= e(base_url('assets/js/reservation-flow.js?v=1')) ?>" defer></script>
+<script src="<?= e(base_url('assets/js/reservation-flow.js?v=2')) ?>" defer></script>
 <?php require __DIR__ . '/_bottom.php'; ?>
