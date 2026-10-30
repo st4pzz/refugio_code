@@ -46,6 +46,26 @@ $valid = [
     'adultos'=>'2','criancas'=>'1','nome'=>'Maria da Silva','cpf'=>'52998224725','email'=>'maria@example.com','telefone'=>'(16) 99999-9999',
     'regras_aceitas'=>'1','cancelamento_aceito'=>'1','contato_autorizado'=>'1','website'=>'',
 ];
+test('resposta automatica sem chave falha explicitamente antes de acessar banco ou enviar', function() {
+    $keys = ['OPENAI_API_KEY', 'OPENAI_CONVERSATIONS_ENABLED', 'OPENAI_CONVERSATIONS_AUTO_REPLY'];
+    $previous = [];
+    foreach ($keys as $key) $previous[$key] = getenv($key);
+    try {
+        putenv('OPENAI_API_KEY=');
+        putenv('OPENAI_CONVERSATIONS_ENABLED=true');
+        putenv('OPENAI_CONVERSATIONS_AUTO_REPLY=true');
+        $db = new class extends PDO { public function __construct() {} };
+        try {
+            (new \Refugio\Services\ConversationAutoReplyService($db, []))->process(1, 1);
+        } catch (\RuntimeException $error) {
+            expect(str_contains($error->getMessage(), 'OPENAI_API_KEY'));
+            return;
+        }
+        throw new \RuntimeException('A ausência de chave não pode concluir o job silenciosamente.');
+    } finally {
+        foreach ($previous as $key => $value) putenv($value === false ? $key : $key . '=' . $value);
+    }
+});
 test('atendimento automatico respeita pausa humana e janela WhatsApp', function() {
     $open = ['status' => 'NOVA', 'janela_atendimento_ate' => date('Y-m-d H:i:s', time() + 3600)];
     expect(\Refugio\Services\ConversationAutoReplyService::canReply($open));

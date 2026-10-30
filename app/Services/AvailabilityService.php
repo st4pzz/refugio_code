@@ -12,7 +12,9 @@ final class AvailabilityService
 
     public function externalSyncStatus(): array
     {
-        $row = $this->db->query("SELECT COUNT(*) active_external_sources,MAX(ultimo_sync_em) last_external_sync_at,SUM(CASE WHEN ultimo_sync_em IS NULL OR ultimo_status='FAILED' OR proximo_sync_em IS NULL OR proximo_sync_em<NOW() OR ultimo_sync_em<DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1 ELSE 0 END) stale_external_sources FROM calendar_sources WHERE ativo=1")->fetch() ?: [];
+        // O horário agendado não é a conclusão do job. Dê ao cron/fila uma
+        // margem curta, sem aceitar falhas nem ampliar o limite de duas horas.
+        $row = $this->db->query("SELECT COUNT(*) active_external_sources,MAX(ultimo_sync_em) last_external_sync_at,SUM(CASE WHEN ultimo_sync_em IS NULL OR ultimo_status IS NULL OR ultimo_status<>'SUCCESS' OR proximo_sync_em IS NULL OR proximo_sync_em<DATE_SUB(NOW(), INTERVAL 5 MINUTE) OR ultimo_sync_em<DATE_SUB(NOW(), INTERVAL 2 HOUR) THEN 1 ELSE 0 END) stale_external_sources FROM calendar_sources WHERE ativo=1")->fetch() ?: [];
         return [
             'active_external_sources' => (int) ($row['active_external_sources'] ?? 0),
             'last_external_sync_at' => $row['last_external_sync_at'] ?? null,
@@ -23,7 +25,7 @@ final class AvailabilityService
     public function assertFreshExternalCalendars(): void
     {
         if ($this->externalSyncStatus()['stale_external_sources'] > 0) {
-            throw new \RuntimeException('Estamos atualizando o calendário. Tente novamente em instantes ou fale com a equipe.');
+            throw new \RuntimeException('Não foi possível confirmar a disponibilidade agora. Tente novamente em instantes ou fale com a equipe para consultar estas datas.');
         }
     }
 

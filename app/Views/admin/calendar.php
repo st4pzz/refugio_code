@@ -25,7 +25,13 @@ $next=$start->modify('+1 month')->format('Y-m');
     </div>
 </section>
 
-<?php if(can('reservas.manage')) require __DIR__ . '/booking-billing.php'; ?>
+<?php if(can('reservas.manage')): ?>
+    <?php if($bookingBillingUnavailable): ?>
+        <section class="admin-panel" role="alert"><h2>Cobranças Booking indisponíveis</h2><p>A atualização do banco de dados está pendente. Execute <code>php scripts/migrate.php</code> no servidor para instalar as tabelas de cobrança. A agenda continua disponível.</p></section>
+    <?php else: ?>
+        <?php require __DIR__ . '/booking-billing.php'; ?>
+    <?php endif; ?>
+<?php endif; ?>
 
 <section class="admin-panel special-pricing-panel">
     <div class="panel-heading">

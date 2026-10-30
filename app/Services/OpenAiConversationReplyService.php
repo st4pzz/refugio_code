@@ -155,7 +155,7 @@ Disponibilidade e preços:
 - Para informar valor total ou preço exato de um período, chame obrigatoriamente calculate_quote. Essa ferramenta também verifica a disponibilidade novamente.
 - As datas usam check-out exclusivo: uma ocupação de 10 a 12 bloqueia as noites de 10 e 11; a data 12 volta a poder ser check-in.
 - O calendário resumido pode ser usado para sugerir janelas gerais dentro do horizonte, mas nunca confirma uma reserva.
-- Se availability_status for needs_human_review ou o calendário indicar fontes externas desatualizadas, não afirme disponibilidade; explique que o calendário está sendo atualizado e ofereça tentar novamente.
+- Se availability_status for temporarily_unknown ou o calendário indicar fontes externas desatualizadas, não afirme disponibilidade. Explique que não foi possível confirmar as datas agora e ofereça tentar novamente. Isso, por si só, não exige intervenção humana.
 - Não trate datas anteriores a hoje ou fora do horizonte informado como disponíveis.
 - Não invente preços, descontos, taxas, horários, regras ou disponibilidade. Se a configuração necessária estiver ausente, diga de forma natural que a equipe confirmará.
 - Nunca diga que uma reserva está confirmada, garantida ou bloqueada. Explique, quando pertinente, que a disponibilidade pode mudar até a conclusão da reserva.
@@ -169,7 +169,7 @@ Regras comerciais:
 
 Saída:
 - Entregue uma única mensagem pronta para WhatsApp, preferencialmente com até 700 caracteres. Pode usar quebras de linha, mas evite listas longas.
-- needs_human_review deve ser true para exceções comerciais, negociação, reclamação que exige ação, solicitação de atendente ou erro de ferramenta. Datas ocupadas NÃO exigem revisão: explique a indisponibilidade e ofereça consultar outras datas. Dados faltantes NÃO exigem revisão: pergunte ao hóspede. Calendário desatualizado: explique que está sendo atualizado sem afirmar disponibilidade.
+- needs_human_review deve ser true para exceções comerciais, negociação, reclamação que exige ação, solicitação de atendente ou erro inesperado de ferramenta. Datas ocupadas NÃO exigem revisão: explique a indisponibilidade e ofereça consultar outras datas. Dados faltantes NÃO exigem revisão: pergunte ao hóspede. Calendário desatualizado (temporarily_unknown) NÃO exige revisão: informe que não foi possível confirmar as datas, sem afirmar disponibilidade. Mantenha needs_human_review=false nesse caso.
 - facts_used deve listar de forma curta somente os fatos oficiais relevantes usados na resposta.
 PROMPT;
     }
@@ -451,7 +451,7 @@ PROMPT;
         $conflicts = (new AvailabilityService($this->db))->conflicts($checkin, $checkout);
         $hasConflicts = AvailabilityService::hasConflicts($conflicts);
         $sync = $this->calendarSyncStatus();
-        $status = $hasConflicts ? 'unavailable' : ((int) $sync['stale_external_sources'] > 0 ? 'needs_human_review' : 'available');
+        $status = $hasConflicts ? 'unavailable' : ((int) $sync['stale_external_sources'] > 0 ? 'temporarily_unknown' : 'available');
         return [
             'ok' => true,
             'checkin' => $start->format('Y-m-d'),

@@ -165,7 +165,7 @@ final class AdminController
     {
         AuthorizationService::requirePermission('calendar.view');
         $this->boot();
-        $month = preg_match('/^\d{4}-\d{2}$/', (string) ($_GET['mes'] ?? '')) ? $_GET['mes'] : date('Y-m');
+        $month = preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) ($_GET['mes'] ?? '')) ? $_GET['mes'] : date('Y-m');
         $start = new DateTimeImmutable($month . '-01'); $end = $start->modify('first day of next month');
         $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? AND reserva_id IS NULL ORDER BY data_inicio');
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();
@@ -183,7 +183,18 @@ final class AdminController
             FROM calendar_sources s ORDER BY s.ativo DESC,s.nome")->fetchAll();
         $exportTokens=$this->db->query('SELECT id,nome,ativo,created_at,last_used_at,revoked_at FROM calendar_export_tokens ORDER BY created_at DESC,id DESC')->fetchAll();
         $syncLogs=$this->db->query('SELECT l.*,s.nome source_name FROM calendar_sync_logs l JOIN calendar_sources s ON s.id=l.source_id ORDER BY l.created_at DESC LIMIT 20')->fetchAll();
-        $bookingBillingEvents = can('reservas.manage') ? (new \Refugio\Services\BookingBillingService($this->db))->forMonth($start->format('Y-m-d'), $end->format('Y-m-d')) : [];
+        $bookingBillingEvents = [];
+        $bookingBillingUnavailable = false;
+        if (can('reservas.manage')) {
+            try {
+                $bookingBillingEvents = (new \Refugio\Services\BookingBillingService($this->db))->forMonth($start->format('Y-m-d'), $end->format('Y-m-d'));
+            } catch (\PDOException $error) {
+                // Uma migração opcional pendente não deve derrubar a agenda.
+                if (($error->errorInfo[1] ?? null) !== 1146 || !preg_match('/booking_billing_(contacts|deliveries)/', $error->getMessage())) throw $error;
+                error_log('[calendar-booking-billing] ' . $error->getMessage());
+                $bookingBillingUnavailable = true;
+            }
+        }
         require BASE_PATH . '/app/Views/admin/calendar.php';
     }
 

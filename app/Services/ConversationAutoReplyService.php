@@ -20,7 +20,10 @@ final class ConversationAutoReplyService
 
     public function process(int $conversationId, int $messageId): void
     {
-        if (!Env::bool('OPENAI_CONVERSATIONS_AUTO_REPLY', true) || !Env::bool('OPENAI_CONVERSATIONS_ENABLED', true) || trim(Env::get('OPENAI_API_KEY')) === '') return;
+        if (!Env::bool('OPENAI_CONVERSATIONS_AUTO_REPLY', true) || !Env::bool('OPENAI_CONVERSATIONS_ENABLED', true)) return;
+        if (trim(Env::get('OPENAI_API_KEY')) === '') {
+            throw new \RuntimeException('Resposta automática indisponível: configure OPENAI_API_KEY no ambiente do worker.');
+        }
         $lock = 'conversation-ai:' . $conversationId;
         $stmt = $this->db->prepare('SELECT GET_LOCK(?, 0)');
         $stmt->execute([$lock]);

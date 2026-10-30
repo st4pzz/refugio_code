@@ -18,6 +18,10 @@ Cadastre e sincronize fontes em `/admin/calendario`. Ao cadastrar, a primeira im
 
 O worker também procura e enfileira fontes vencidas antes de consumir a fila. Portanto, `process_jobs.php` sozinho mantém a importação automática; o cron dedicado `sync_calendars.php` pode ser mantido para reduzir a latência.
 
+A consulta de reserva exige sucesso na última sincronização de todas as fontes ativas. Há uma margem de cinco minutos após `proximo_sync_em` para o cron processar a fila; o limite absoluto continua sendo duas horas desde `ultimo_sync_em`. Fontes com falha, nunca sincronizadas ou sem próximo agendamento continuam bloqueando a consulta. A margem não ignora bloqueios do Booking/Airbnb.
+
+Se aparecer “Não foi possível confirmar a disponibilidade agora”, consulte o status e o último erro das fontes em `/admin/calendario` e use **Sincronizar agora**. Isso não significa que as datas estejam ocupadas nem que exista uma sincronização em execução. Se a sincronização manual funcionar, mas o problema voltar, confira a execução do worker a cada minuto e falhas da fila. Executar apenas `sync_calendars.php` enfileira tarefas, mas não importa os calendários.
+
 Crons recomendados:
 
 ```text
