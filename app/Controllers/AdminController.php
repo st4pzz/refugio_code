@@ -82,7 +82,7 @@ final class AdminController
         $page = max(1, (int) ($_GET['pagina'] ?? 1));
         $result = $this->repository->paginate($filters, $page);
         $reviewActions = AuthorizationService::currentAllows('avaliacoes.manage')
-            ? $this->reviewActionsFor($result['items'])
+            ? $this->reviewActionsFor(array_values(array_filter($result['items'], static fn(array $item): bool => $item['record_type'] === 'internal')))
             : [];
         require BASE_PATH . '/app/Views/admin/reservations.php';
     }

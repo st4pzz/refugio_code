@@ -19,8 +19,8 @@ require __DIR__ . '/_top.php';
 <?php endif; ?>
 
 <form class="filter-bar" method="get" action="<?= e(base_url('admin/reservas')) ?>">
-    <input type="search" name="q" placeholder="Nome, codigo, e-mail ou telefone" value="<?= e($filters['q'] ?? '') ?>">
-    <select name="status"><option value="">Todos os status</option><?php foreach (ReservationStatus::cases() as $s): ?><option value="<?= e($s->value) ?>" <?= ($filters['status'] ?? '') === $s->value ? 'selected' : '' ?>><?= e($s->label()) ?></option><?php endforeach; ?></select>
+    <input type="search" name="q" placeholder="Nome, código, identificação iCal ou contato" value="<?= e($filters['q'] ?? '') ?>">
+    <select name="status"><option value="">Todos os status</option><?php foreach (ReservationStatus::cases() as $s): ?><option value="<?= e($s->value) ?>" <?= ($filters['status'] ?? '') === $s->value ? 'selected' : '' ?>><?= e($s->label()) ?></option><?php endforeach; ?><?php foreach (['ICAL_REMOVIDO' => 'Saiu do feed iCal', 'ICAL_PROVISORIO' => 'Provisório (iCal)'] as $value => $label): ?><option value="<?= e($value) ?>" <?= ($filters['status'] ?? '') === $value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select>
     <select name="origem"><option value="">Todas as origens</option><?php foreach (['SITE_DIRETO','AIRBNB','BOOKING','MANUAL'] as $o): ?><option <?= ($filters['origem'] ?? '') === $o ? 'selected' : '' ?>><?= e($o) ?></option><?php endforeach; ?></select>
     <input type="date" name="inicio" value="<?= e($filters['inicio'] ?? '') ?>">
     <input type="date" name="fim" value="<?= e($filters['fim'] ?? '') ?>">
@@ -28,10 +28,26 @@ require __DIR__ . '/_top.php';
     <button class="admin-primary" type="submit">Filtrar</button>
 </form>
 
+<p>Booking e Airbnb aparecem com os dados importados pelo iCal, que também pode incluir bloqueios. Os dados completos do hóspede e do pagamento devem ser consultados na plataforma de origem.</p>
 <section class="admin-panel"><div class="table-wrap"><table>
     <thead><tr><th>Codigo</th><th>Cliente</th><th>Contato</th><th>Datas</th><th>Origem</th><th>Status</th><?php if (can('avaliacoes.manage')): ?><th>Avaliação</th><?php endif; ?></tr></thead>
     <tbody>
-    <?php foreach ($result['items'] as $r): $reviewAction = $reviewActions[(int) $r['id']] ?? null; ?>
+    <?php foreach ($result['items'] as $r): ?>
+        <?php if ($r['record_type'] === 'external'): ?>
+            <tr>
+                <td><details><summary>iCal #<?= (int) $r['id'] ?></summary><p><?= e($r['codigo']) ?></p><small>Identificação do evento na plataforma</small></details></td>
+                <td><?= e($r['nome_cliente']) ?><br><small>Descrição fornecida pelo iCal</small></td>
+                <td><small>Não informado pelo iCal</small></td>
+                <td><?= e(date('d/m/Y', strtotime($r['checkin']))) ?><br><?= e(date('d/m/Y', strtotime($r['checkout']))) ?></td>
+                <td><?= e($r['origem']) ?><br><small><?= e($r['source_name']) ?><?= (int) $r['source_active'] === 1 ? '' : ' · Fonte inativa' ?></small></td>
+                <td><span class="admin-status"><?= e(match ($r['feed_status']) { 'CANCELLED' => 'Cancelado pela plataforma', 'TENTATIVE' => 'Provisório (iCal)', default => 'Confirmado no iCal' }) ?></span>
+                    <?php if ($r['deleted_at']): ?><br><small>Saiu do feed em <?= e(date('d/m/Y', strtotime($r['deleted_at']))) ?>. A ausência no feed não comprova cancelamento.</small><?php endif; ?>
+                </td>
+                <?php if (can('avaliacoes.manage')): ?><td><small>Indisponível para eventos iCal</small></td><?php endif; ?>
+            </tr>
+            <?php continue; ?>
+        <?php endif; ?>
+        <?php $reviewAction = $reviewActions[(int) $r['id']] ?? null; ?>
         <tr data-href="<?= e(base_url('admin/reservas/' . $r['id'])) ?>">
             <td><a href="<?= e(base_url('admin/reservas/' . $r['id'])) ?>"><?= e($r['codigo']) ?></a></td>
             <td><?= e($r['nome_cliente']) ?></td>
