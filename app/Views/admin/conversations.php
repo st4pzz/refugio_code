@@ -35,7 +35,7 @@
             <?php if(Refugio\Services\ConversationService::freeTextAllowed($conversation['janela_atendimento_ate'])): ?>
             <div class="conversation-ai-tools">
                 <button class="admin-secondary" type="button" data-ai-suggest data-ai-url="<?= e(base_url('admin/conversas/'.$conversation['id'].'/sugerir-ia')) ?>" data-ai-csrf="<?= e(Refugio\Support\Csrf::token()) ?>" aria-controls="conversation-text" <?= empty($conversationAiConfigured)?'disabled':'' ?>>Sugerir resposta com IA</button>
-                <span data-ai-feedback role="status" aria-live="polite"><?= empty($conversationAiConfigured)?'Configure OPENAI_API_KEY para habilitar.':'Respostas automáticas usam calendário e preços atuais. Para pausar a IA nesta conversa, selecione AGUARDANDO_EQUIPE.' ?></span>
+                <span data-ai-feedback role="status" aria-live="polite"><?= empty($conversationAiConfigured)?'Configure OPENAI_API_KEY para habilitar.':'A IA pausa quando há atendente atribuído ou status AGUARDANDO_EQUIPE. Enviar uma mensagem atribui o atendimento a você. Para retomar, selecione Não atribuído e EM_ATENDIMENTO e salve.' ?></span>
                 <?php if(!empty($conversationAiConfigured)): ?><small><?= e($conversationAiModel??'') ?></small><?php endif; ?>
             </div>
             <form action="<?= e(base_url('admin/conversas/'.$conversation['id'].'/enviar')) ?>" method="post" class="composer-form"><?= csrf_field() ?><input type="hidden" name="respondendo_a_id" data-reply-input><label class="sr-only" for="conversation-text">Mensagem</label><textarea id="conversation-text" name="texto" rows="2" maxlength="4096" required placeholder="Digite uma mensagem"></textarea><button class="admin-primary" type="submit">Enviar</button></form>

@@ -26,7 +26,43 @@ final class ConversationService
         return new DateTimeImmutable($windowUntil) >= ($now ?? new DateTimeImmutable());
     }
 
+    private function withHumanControl(int $conversationId, ?int $userId, callable $send): int
+    {
+        if ($userId === null) return $send();
+        $lock = 'conversation-ai:' . $conversationId;
+        $stmt = $this->db->prepare('SELECT GET_LOCK(?, 5)');
+        $stmt->execute([$lock]);
+        if ((int) $stmt->fetchColumn() !== 1) throw new RuntimeException('A IA está concluindo uma resposta. Tente enviar novamente em instantes.');
+        try {
+            // Pause before the external send, including ambiguous send failures.
+            $this->db->prepare('UPDATE conversas SET atendente_id=? WHERE id=?')->execute([$userId, $conversationId]);
+            return $send();
+        } finally {
+            $this->db->prepare('SELECT RELEASE_LOCK(?)')->execute([$lock]);
+        }
+    }
+
     public function sendText(int $conversationId, string $text, ?int $userId, ?int $replyToId = null): int
+    {
+        return $this->withHumanControl($conversationId, $userId, fn(): int => $this->sendTextInternal($conversationId, $text, $userId, $replyToId));
+    }
+
+    public function sendTemplate(int $conversationId, int $templateId, array $parameters, int $userId): int
+    {
+        return $this->withHumanControl($conversationId, $userId, fn(): int => $this->sendTemplateInternal($conversationId, $templateId, $parameters, $userId));
+    }
+
+    public function sendMedia(int $conversationId, array $file, string $caption, int $userId): int
+    {
+        return $this->withHumanControl($conversationId, $userId, fn(): int => $this->sendMediaInternal($conversationId, $file, $caption, $userId));
+    }
+
+    public function sendStoredDocument(int $conversationId, string $path, string $filename, string $caption, int $userId): int
+    {
+        return $this->withHumanControl($conversationId, $userId, fn(): int => $this->sendStoredDocumentInternal($conversationId, $path, $filename, $caption, $userId));
+    }
+
+    private function sendTextInternal(int $conversationId, string $text, ?int $userId, ?int $replyToId = null): int
     {
         $conversation = $this->conversation($conversationId);
         $text = trim(strip_tags($text));
@@ -43,7 +79,7 @@ final class ConversationService
         }
     }
 
-    public function sendTemplate(int $conversationId, int $templateId, array $parameters, int $userId): int
+    private function sendTemplateInternal(int $conversationId, int $templateId, array $parameters, int $userId): int
     {
         $conversation = $this->conversation($conversationId);
         $stmt = $this->db->prepare("SELECT * FROM whatsapp_templates WHERE id=? AND status='APPROVED'"); $stmt->execute([$templateId]);
@@ -58,7 +94,7 @@ final class ConversationService
         }
     }
 
-    public function sendMedia(int $conversationId, array $file, string $caption, int $userId): int
+    private function sendMediaInternal(int $conversationId, array $file, string $caption, int $userId): int
     {
         $conversation = $this->conversation($conversationId);
         if (!self::freeTextAllowed($conversation['janela_atendimento_ate'])) throw new RuntimeException('A janela de 24 horas encerrou. Use um template aprovado.');
@@ -86,7 +122,7 @@ final class ConversationService
         }
     }
 
-    public function sendStoredDocument(int $conversationId, string $path, string $filename, string $caption, int $userId): int
+    private function sendStoredDocumentInternal(int $conversationId, string $path, string $filename, string $caption, int $userId): int
     {
         $conversation = $this->conversation($conversationId);
         if (!self::freeTextAllowed($conversation['janela_atendimento_ate'])) {

@@ -32,6 +32,7 @@ final class OpenAiConversationReplyService
         'PAYMENT_METHOD', 'CANCELLATION_POLICY', 'CANCELLATION_POLICY_APPROVED',
     ];
 
+    private array $toolResults = [];
     private ConversationRepository $repository;
 
     public function __construct(
@@ -45,6 +46,7 @@ final class OpenAiConversationReplyService
 
     public function suggest(int $conversationId, ?int $userId): array
     {
+        $this->toolResults = [];
         $this->validateConfiguration($conversationId, $userId);
         $conversation = $this->repository->find($conversationId)
             ?? throw new RuntimeException('Conversa não encontrada.');
@@ -125,6 +127,7 @@ final class OpenAiConversationReplyService
             ], [], $userId);
 
             return [
+                'tool_results' => $this->toolResults,
                 'draft' => trim((string) $result['reply']),
                 'needs_human_review' => (bool) $result['needs_human_review'],
                 'review_reason' => trim((string) $result['review_reason']),
@@ -155,7 +158,7 @@ Disponibilidade e preços:
 - Para informar valor total ou preço exato de um período, chame obrigatoriamente calculate_quote. Essa ferramenta também verifica a disponibilidade novamente.
 - As datas usam check-out exclusivo: uma ocupação de 10 a 12 bloqueia as noites de 10 e 11; a data 12 volta a poder ser check-in.
 - O calendário resumido pode ser usado para sugerir janelas gerais dentro do horizonte, mas nunca confirma uma reserva.
-- Se availability_status for temporarily_unknown ou o calendário indicar fontes externas desatualizadas, não afirme disponibilidade. Explique que não foi possível confirmar as datas agora e ofereça tentar novamente. Isso, por si só, não exige intervenção humana.
+- Se availability_status for temporarily_unknown ou o calendário indicar fontes externas desatualizadas, não afirme disponibilidade. Explique que não foi possível confirmar as datas agora e explique a dificuldade uma única vez, sem prometer retorno automático nem mandar ao mesmo site com falha. O sistema encaminhará falhas repetidas à equipe.
 - Não trate datas anteriores a hoje ou fora do horizonte informado como disponíveis.
 - Não invente preços, descontos, taxas, horários, regras ou disponibilidade. Se a configuração necessária estiver ausente, diga de forma natural que a equipe confirmará.
 - Nunca diga que uma reserva está confirmada, garantida ou bloqueada. Explique, quando pertinente, que a disponibilidade pode mudar até a conclusão da reserva.
@@ -165,6 +168,8 @@ Regras comerciais:
 - Festas e eventos não são permitidos. Não contorne essa regra nem sugira exceções.
 - Use apenas comodidades, regras e políticas presentes no contexto oficial.
 - Se faltarem datas, quantidade de hóspedes ou número de pets para consultar um valor, peça somente os dados que ainda faltam.
+- Quando houver datas, hóspedes e pets, consulte calculate_quote. Se disponível, apresente check-in, check-out, hóspedes, valor total e o reservation_url retornado pela ferramenta, com uma chamada objetiva para concluir a reserva. Não reconstrua esse link.
+- Se calculate_quote retornar alternatives, ofereça até três opções com datas, total e o link de cada opção. Elas já foram verificadas; não é necessário repetir check_availability para essas alternativas. Se faltarem hóspedes ou pets, pergunte somente o que falta para buscar alternativas. Se não houver alternativas, pergunte sobre flexibilidade de datas.
 - Direcione o hóspede ao reservation_url oficial para escolher datas e pagar pelo checkout. Não confirme pagamentos nem peça dados bancários na conversa.
 
 Saída:
@@ -435,13 +440,17 @@ PROMPT;
             if (!is_array($arguments)) {
                 throw new RuntimeException('Parâmetros inválidos.');
             }
-            return match ($name) {
+            $output = match ($name) {
                 'check_availability' => $this->checkAvailability((string) ($arguments['checkin'] ?? ''), (string) ($arguments['checkout'] ?? '')),
                 'calculate_quote' => $this->calculateQuote($arguments),
                 default => ['ok' => false, 'error' => 'Ferramenta não reconhecida.'],
             };
+            $this->toolResults[] = ['tool' => $name, 'request' => $arguments, 'result' => $output];
+            return $output;
         } catch (Throwable $error) {
-            return ['ok' => false, 'error' => mb_substr($error->getMessage(), 0, 500)];
+            $output = ['ok' => false, 'error' => mb_substr($error->getMessage(), 0, 500)];
+            $this->toolResults[] = ['tool' => $name, 'request' => $arguments ?? [], 'result' => $output];
+            return $output;
         }
     }
 
@@ -473,7 +482,15 @@ PROMPT;
             $reason = $availability['availability_status'] === 'unavailable'
                 ? 'O período possui conflito no calendário atual.'
                 : 'Uma ou mais fontes externas do calendário precisam ser sincronizadas antes da confirmação.';
-            return $availability + ['quote_calculated' => false, 'reason' => $reason];
+            $alternatives = [];
+            if ($availability['availability_status'] === 'unavailable' && $availability['calendar_sync_ok']) {
+                foreach ((new ReservationAlternativesService($this->db))->find($arguments) as $option) {
+                    try { $this->validateStayDates($option['checkin'], $option['checkout']); } catch (RuntimeException) { continue; }
+                    $option['reservation_url'] = self::reservationUrl($option);
+                    $alternatives[] = $option;
+                }
+            }
+            return $availability + ['quote_calculated' => false, 'reason' => $reason, 'alternatives' => $alternatives];
         }
         $calculation = (new QuoteService($this->db))->calculate([
             'checkin' => $checkin,
@@ -491,7 +508,16 @@ PROMPT;
             'items' => $calculation['items'],
             'total' => $calculation['total'],
             'estimate_only' => true,
+            'reservation_url' => self::reservationUrl($calculation),
         ];
+    }
+
+    public static function reservationUrl(array $stay): string
+    {
+        return absolute_url('reserva/solicitar') . '?' . http_build_query([
+            'checkin' => $stay['checkin'], 'checkout' => $stay['checkout'],
+            'hospedes' => (int) $stay['guests'], 'pets' => (int) $stay['pets'],
+        ], '', '&', PHP_QUERY_RFC3986);
     }
 
     /** @return array{0:DateTimeImmutable,1:DateTimeImmutable} */

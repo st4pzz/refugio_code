@@ -41,6 +41,23 @@ function test(string $name, callable $callback): void {
 }
 function expect(bool $condition, string $message='Condicao nao atendida'): void { if (!$condition) throw new RuntimeException($message); }
 
+test('atendente atribuido pausa IA mesmo apos nova mensagem do lead', function() {
+    $conversation = ['status' => 'EM_ATENDIMENTO', 'janela_atendimento_ate' => date('Y-m-d H:i:s', time() + 3600)];
+    expect(\Refugio\Services\ConversationAutoReplyService::canReply($conversation));
+    expect(!\Refugio\Services\ConversationAutoReplyService::canReply($conversation + ['atendente_id' => 7]));
+    $conversation['status'] = 'AGUARDANDO_EQUIPE';
+    expect(!\Refugio\Services\ConversationAutoReplyService::canReply($conversation));
+});
+test('calendario ocupado nao e falha de sincronizacao', function() {
+    expect(!\Refugio\Services\ConversationAutoReplyService::calendarFailed([['result' => ['availability_status' => 'unavailable', 'calendar_sync_ok' => true]]]));
+    expect(\Refugio\Services\ConversationAutoReplyService::calendarFailed([['result' => ['availability_status' => 'temporarily_unknown', 'calendar_sync_ok' => false]]]));
+});
+test('link de fechamento preserva datas hospedes e pets sem expor identidade', function() {
+    $url = OpenAiConversationReplyService::reservationUrl(['checkin' => '2027-02-05', 'checkout' => '2027-02-10', 'guests' => 8, 'pets' => 2, 'name' => 'Privado']);
+    parse_str(parse_url($url, PHP_URL_QUERY), $query);
+    expect($query === ['checkin' => '2027-02-05', 'checkout' => '2027-02-10', 'hospedes' => '8', 'pets' => '2']);
+});
+
 $valid = [
     'checkin'=>date('Y-m-d',strtotime('+10 days')), 'checkout'=>date('Y-m-d',strtotime('+12 days')),
     'adultos'=>'2','criancas'=>'1','nome'=>'Maria da Silva','cpf'=>'52998224725','email'=>'maria@example.com','telefone'=>'(16) 99999-9999',

@@ -29,6 +29,20 @@ final class PublicReservationController
         $_SESSION['_request_idempotency'] ??= bin2hex(random_bytes(32));
         $errors = $_SESSION['_form_errors'] ?? [];
         $old = $_SESSION['_form_old'] ?? [];
+        if ($old === []) {
+            // Links from the assistant prefill only stay data, never identity or price.
+            foreach (['checkin', 'checkout'] as $field) {
+                $value = $_GET[$field] ?? null;
+                if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/D', $value)) {
+                    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+                    if ($date && $date->format('Y-m-d') === $value) $old[$field] = $value;
+                }
+            }
+            foreach (['hospedes' => [1, (int) $this->config['max_guests']], 'pets' => [0, 20]] as $field => [$min, $max]) {
+                $value = filter_var($_GET[$field] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => $min, 'max_range' => $max]]);
+                if ($value !== false && $value !== null) $old[$field] = $value;
+            }
+        }
         unset($_SESSION['_form_errors'], $_SESSION['_form_old']);
         require BASE_PATH . '/app/Views/public/request.php';
     }
