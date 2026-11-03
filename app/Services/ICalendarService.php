@@ -146,6 +146,8 @@ final class ICalendarService
                 }
                 if ($event['status'] === 'CANCELLED') $cancelled++;
             }
+            // Absence from the feed is not a cancellation. Preserve the row and its
+            // last reported status so past events remain available in history.
             if ($seen === []) {
                 $this->db->prepare('UPDATE calendar_external_events SET deleted_at=NOW() WHERE source_id=? AND deleted_at IS NULL')->execute([$sourceId]);
             } else {

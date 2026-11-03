@@ -25,6 +25,39 @@ $next=$start->modify('+1 month')->format('Y-m');
     </div>
 </section>
 
+<section class="admin-panel" id="historico-ical">
+    <h2>Histórico iCal</h2>
+    <p>Eventos importados com checkout passado, inclusive os que saíram do feed ou pertencem a fontes inativas. Sair do feed não significa cancelamento. O iCal também pode conter bloqueios e não comprova que a estadia ocorreu.</p>
+    <form class="admin-form" method="get" action="<?= e(base_url('admin/calendario')) ?>#historico-ical">
+        <input type="hidden" name="mes" value="<?= e($start->format('Y-m')) ?>">
+        <label>Mês do checkout<input type="month" name="historico_mes" value="<?= e($historyMonth ?? '') ?>"></label>
+        <button class="admin-secondary" type="submit">Filtrar histórico</button>
+        <a href="<?= e(base_url('admin/calendario') . '?mes=' . $start->format('Y-m')) ?>#historico-ical">Ver todos os meses</a>
+    </form>
+    <p><?= (int) $externalHistory['total'] ?> evento(s) encontrado(s).</p>
+    <?php if (!$externalHistory['events']): ?><p class="empty-state">Nenhum evento passado importado neste período.</p><?php endif; ?>
+    <?php foreach ($externalHistory['events'] as $pastEvent): ?>
+        <article class="block-row">
+            <div>
+                <strong><?= e($pastEvent['summary'] ?: 'Reserva externa') ?></strong>
+                <small><?= e($pastEvent['source_name']) ?> · <?= e($pastEvent['provider']) ?><?= (int) $pastEvent['source_active'] === 1 ? '' : ' · Fonte inativa' ?></small>
+                <small>Check-in: <?= e(date('d/m/Y', strtotime($pastEvent['starts_at']))) ?> · Checkout: <?= e(date('d/m/Y', strtotime($pastEvent['ends_at']))) ?></small>
+                <small>Último status informado: <?= e(match ($pastEvent['status']) { 'CANCELLED' => 'Cancelado pela plataforma', 'TENTATIVE' => 'Provisório', default => 'Confirmado' }) ?></small>
+                <small><?= $pastEvent['deleted_at'] ? 'Saiu do feed em ' . e(date('d/m/Y H:i', strtotime($pastEvent['deleted_at']))) : 'Presente na última sincronização' ?></small>
+                <details><summary>Identificação do evento</summary><p><?= e($pastEvent['external_uid']) ?></p></details>
+            </div>
+        </article>
+    <?php endforeach; ?>
+    <?php if ($externalHistory['pages'] > 1): ?>
+        <nav class="month-nav" aria-label="Páginas do histórico iCal">
+            <?php $historyQuery = ['mes' => $start->format('Y-m'), 'historico_mes' => $historyMonth ?? '']; ?>
+            <?php if ($externalHistory['page'] > 1): ?><a href="?<?= e(http_build_query($historyQuery + ['historico_pagina' => $externalHistory['page'] - 1])) ?>#historico-ical">Anterior</a><?php endif; ?>
+            <span>Página <?= (int) $externalHistory['page'] ?> de <?= (int) $externalHistory['pages'] ?></span>
+            <?php if ($externalHistory['page'] < $externalHistory['pages']): ?><a href="?<?= e(http_build_query($historyQuery + ['historico_pagina' => $externalHistory['page'] + 1])) ?>#historico-ical">Próxima</a><?php endif; ?>
+        </nav>
+    <?php endif; ?>
+</section>
+
 <?php if(can('reservas.manage')): ?>
     <?php if($bookingBillingUnavailable): ?>
         <section class="admin-panel" role="alert"><h2>Cobranças Booking indisponíveis</h2><p>A atualização do banco de dados está pendente. Execute <code>php scripts/migrate.php</code> no servidor para instalar as tabelas de cobrança. A agenda continua disponível.</p></section>

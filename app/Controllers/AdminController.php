@@ -170,6 +170,8 @@ final class AdminController
         $stmt = $this->db->prepare('SELECT * FROM datas_bloqueadas WHERE data_inicio<? AND data_fim>? AND reserva_id IS NULL ORDER BY data_inicio');
         $stmt->execute([$end->format('Y-m-d'), $start->format('Y-m-d')]); $blocks = $stmt->fetchAll();
         $unifiedEvents=(new \Refugio\Services\UnifiedCalendarService($this->db))->events($start->format('Y-m-d'),$end->format('Y-m-d'));
+        $historyMonth = preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) ($_GET['historico_mes'] ?? '')) ? (string) $_GET['historico_mes'] : null;
+        $externalHistory = (new \Refugio\Services\UnifiedCalendarService($this->db))->externalHistory($historyMonth, max(1, (int) ($_GET['historico_pagina'] ?? 1)));
         $gridStart=$start->modify('-'.$start->format('w').' days');
         $gridEnd=$gridStart->modify('+41 days');
         $stmt=$this->db->prepare('SELECT * FROM pricing_special_dates WHERE ativo=1 AND starts_on<=? AND ends_on>=? ORDER BY priority,id');

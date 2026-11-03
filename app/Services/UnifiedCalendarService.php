@@ -29,6 +29,29 @@ final class UnifiedCalendarService
         return $items;
     }
 
+    public function externalHistory(?string $month, int $page = 1): array
+    {
+        // Missing feed entries remain stored. Include them and inactive sources in history.
+        $where = 'e.ends_at<=?';
+        $params = [(new DateTimeImmutable())->format('Y-m-d H:i:s')];
+        if ($month !== null) {
+            $start = new DateTimeImmutable($month . '-01');
+            $where .= ' AND e.ends_at>=? AND e.ends_at<?';
+            $params[] = $start->format('Y-m-d');
+            $params[] = $start->modify('first day of next month')->format('Y-m-d');
+        }
+        $from = ' FROM calendar_external_events e JOIN calendar_sources s ON s.id=e.source_id WHERE ' . $where;
+        $stmt = $this->db->prepare('SELECT COUNT(*)' . $from);
+        $stmt->execute($params);
+        $total = (int) $stmt->fetchColumn();
+        $pages = max(1, (int) ceil($total / 50));
+        $page = max(1, min($pages, $page));
+        $offset = ($page - 1) * 50;
+        $stmt = $this->db->prepare('SELECT e.*,s.nome AS source_name,s.provider,s.ativo AS source_active' . $from . " ORDER BY e.ends_at DESC,e.id DESC LIMIT 50 OFFSET {$offset}");
+        $stmt->execute($params);
+        return ['events' => $stmt->fetchAll(), 'total' => $total, 'page' => $page, 'pages' => $pages];
+    }
+
     public function createHold(string $checkin, string $checkout, string $purpose, int $ttlMinutes, ?int $quoteId = null, ?int $userId = null): array
     {
         $start = DateTimeImmutable::createFromFormat('!Y-m-d', $checkin);
