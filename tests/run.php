@@ -121,7 +121,7 @@ test('cobranca Booking rejeita contato ausente email invalido e valor negativo',
 
 test('mensagem Booking inclui estadia valor vencimento e Pix sem confirmar pagamento', function() {
     $message = \Refugio\Services\BookingBillingService::message(['Maria', '10/11/2026', '12/11/2026', 'R$ 1.500,00', '05/11/2026']);
-    foreach (['Maria','Entrada: 10/11/2026','Saída: 12/11/2026','R$ 1.500,00','05/11/2026','74373137820','Sergio Ramella','Safra','não pague novamente'] as $text) expect(str_contains($message, $text));
+    foreach (['Maria','Entrada: 10/11/2026','Saída: 12/11/2026','R$ 1.500,00','05/11/2026','6f3673aa-73f2-49ba-a956-e395535607e2','Sergio Ramella','Inter','não pague novamente'] as $text) expect(str_contains($message, $text));
     expect(!str_contains($message, '{{'));
 });
 

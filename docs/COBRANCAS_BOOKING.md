@@ -8,7 +8,7 @@ O iCal contém também bloqueios sem hóspede. Não envie cobranças para esses 
 
 ## Mensagem
 
-O modelo mostra nome, entrada, saída, valor desta cobrança, vencimento, chave CPF 74373137820, Sergio Ramella e Banco Safra. Solicita o comprovante e orienta a não pagar novamente caso já tenha pago. WhatsApp e e-mail usam o mesmo texto. Não há verificação bancária automática; após conferir o pagamento, marque **Pagamento já conferido — não cobrar** e salve. Essa marcação controla esta seção; não lança uma receita no módulo financeiro.
+O modelo mostra nome, entrada, saída, valor desta cobrança, vencimento, chave aleatória 6f3673aa-73f2-49ba-a956-e395535607e2, Sergio Ramella e Banco Inter. Solicita o comprovante e orienta a não pagar novamente caso já tenha pago. WhatsApp e e-mail usam o mesmo texto. Não há verificação bancária automática; após conferir o pagamento, marque **Pagamento já conferido — não cobrar** e salve. Essa marcação controla esta seção; não lança uma receita no módulo financeiro.
 
 ## Ativação
 

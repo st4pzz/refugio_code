@@ -24,8 +24,8 @@ document.querySelectorAll('[data-pix-dialog]').forEach(dialog => {
     if (!update()) return;
     const field = dialog.querySelector('[data-pix-key]');
     const feedback = dialog.querySelector('[data-pix-feedback]');
-    try { await navigator.clipboard.writeText(field.value); feedback.textContent = 'Chave CPF copiada. Abra o aplicativo do seu banco.'; }
-    catch { field.focus(); field.select(); feedback.textContent = 'Selecione e copie a chave CPF acima.'; }
+    try { await navigator.clipboard.writeText(field.value); feedback.textContent = 'Chave aleatória copiada. Abra o aplicativo do seu banco.'; }
+    catch { field.focus(); field.select(); feedback.textContent = 'Selecione e copie a chave aleatória acima.'; }
   });
   dialog.querySelector('[data-pix-receipt]').addEventListener('click', () => {
     dialog.close();

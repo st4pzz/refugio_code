@@ -18,7 +18,7 @@
                 <label><input type="checkbox" name="channels[]" value="EMAIL"> E-mail</label>
                 <label><input type="checkbox" name="confirmed_booking" value="1"> Conferi no Booking: é uma reserva real e este valor deve ser pago diretamente ao anfitrião.</label>
                 <p>O iCal também pode conter bloqueios sem hóspede. Não cobre esses eventos nem valores já pagos.</p>
-                <details><summary>Prévia da mensagem</summary><pre data-booking-preview style="white-space:pre-wrap;font:inherit"></pre><noscript>Mensagem: nome, entrada, saída, valor e vencimento, com Pix CPF 74373137820 — Sergio Ramella, Banco Safra. Solicita comprovante e orienta a não pagar novamente caso já tenha pago.</noscript></details>
+                <details><summary>Prévia da mensagem</summary><pre data-booking-preview style="white-space:pre-wrap;font:inherit"></pre><noscript>Mensagem: nome, entrada, saída, valor e vencimento, com Pix com chave aleatória 6f3673aa-73f2-49ba-a956-e395535607e2 — Sergio Ramella, Banco Inter. Solicita comprovante e orienta a não pagar novamente caso já tenha pago.</noscript></details>
                 <button type="submit" class="admin-primary" formaction="<?= e(base_url('admin/operacoes/calendar-booking-send')) ?>">Salvar e enviar cobrança</button>
             </fieldset>
         </form>

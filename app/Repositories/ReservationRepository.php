@@ -96,7 +96,14 @@ final class ReservationRepository
                          ELSE 'RESERVA_CONFIRMADA' END,
                     s.provider,e.created_at,'external',e.status,e.deleted_at,s.nome,s.ativo
                     FROM calendar_external_events e JOIN calendar_sources s ON s.id=e.source_id
-                    WHERE s.provider IN ('BOOKING','AIRBNB')) AS reservation_list";
+                    WHERE s.provider IN ('BOOKING','AIRBNB')
+                    AND LOWER(TRIM(COALESCE(e.summary,''))) NOT IN (
+                        'not available','airbnb (not available)','unavailable','blocked','closed',
+                        'indisponível','indisponivel','não disponível','nao disponivel',
+                        'bloqueado','bloqueada','fechado','fechada',
+                        'airbnb (indisponível)','airbnb (indisponivel)',
+                        'airbnb (não disponível)','airbnb (nao disponivel)'
+                    )) AS reservation_list";
         $perPage = max(1, min(100, $perPage));
         $where = ['1=1']; $params = [];
         if ($filters['q'] ?? '') {

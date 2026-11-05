@@ -64,7 +64,7 @@ final class ReservationService
             $id = $this->reservations->create($data);
             $this->db->prepare('UPDATE reservas SET valor_total=?,valor_sinal=0,valor_restante=?,prazo_pagamento=?,politica_cancelamento=? WHERE id=?')
                 ->execute([$total, $total, $deadline, $property['CANCELLATION_POLICY'] ?? '', $id]);
-            $this->createPayment($id, 'INTEGRAL', $total, $this->config['pix_key'] ?? '74373137820', null, $deadline, 'Pix por chave CPF. Favorecido: Sergio Ramella. Banco: Safra.');
+            $this->createPayment($id, 'INTEGRAL', $total, $this->config['pix_key'] ?? '6f3673aa-73f2-49ba-a956-e395535607e2', null, $deadline, 'Pix por chave aleatória. Favorecido: Sergio Ramella. Banco: Inter.');
             $this->db->prepare("INSERT INTO datas_bloqueadas (data_inicio,data_fim,motivo,reserva_id,origem) VALUES (?,?,?,?,'RESERVA_TEMPORARIA')")
                 ->execute([$data['checkin'], $data['checkout'], 'Aguardando pagamento ' . $data['codigo'], $id]);
             $this->history->log($id, 'RESERVA_DIRETA_CRIADA', null, $data['status'], ['valor_total' => $total, 'prazo' => $deadline, 'quote' => $quote]);

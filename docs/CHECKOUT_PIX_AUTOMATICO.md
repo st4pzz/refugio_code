@@ -2,7 +2,7 @@
 
 O site cria a reserva diretamente em AGUARDANDO_PAGAMENTO. Na mesma transação, trava reserva_mutex, verifica reservas, bloqueios manuais, eventos externos e holds, recalcula o preço com o motor oficial, cria uma cobrança integral e bloqueia as datas. Um período ocupado não gera cobrança. O importador iCal usa o mesmo mutex para serializar importações e reservas locais.
 
-O modal mostra a chave CPF 74373137820, Sergio Ramella, Banco Safra, o valor e o prazo. É uma transferência manual por chave, não um código BR Code nem uma integração com o Banco Central. O envio do comprovante não confirma pagamento; a conferência continua administrativa. PIX_PAYMENT_MINUTES controla o prazo (5–120 minutos; padrão 30). Comprovante enviado dentro do prazo mantém o bloqueio quando KEEP_RECEIPT_AFTER_EXPIRY=true.
+O modal mostra a chave aleatória 6f3673aa-73f2-49ba-a956-e395535607e2, Sergio Ramella, Banco Inter, o valor e o prazo. É uma transferência manual por chave, não um código BR Code nem uma integração com o Banco Central. O envio do comprovante não confirma pagamento; a conferência continua administrativa. PIX_PAYMENT_MINUTES controla o prazo (5–120 minutos; padrão 30). Comprovante enviado dentro do prazo mantém o bloqueio quando KEEP_RECEIPT_AFTER_EXPIRY=true.
 
 ## Ativação no servidor
 

@@ -28,7 +28,7 @@ require __DIR__ . '/_top.php';
     <button class="admin-primary" type="submit">Filtrar</button>
 </form>
 
-<p>Booking e Airbnb aparecem com os dados importados pelo iCal, que também pode incluir bloqueios. Os dados completos do hóspede e do pagamento devem ser consultados na plataforma de origem.</p>
+<p>Booking e Airbnb aparecem com os dados importados pelo iCal. Eventos identificados como indisponibilidade ficam apenas no calendário. Os dados completos do hóspede e do pagamento devem ser consultados na plataforma de origem.</p>
 <section class="admin-panel"><div class="table-wrap"><table>
     <thead><tr><th>Codigo</th><th>Cliente</th><th>Contato</th><th>Datas</th><th>Origem</th><th>Status</th><?php if (can('avaliacoes.manage')): ?><th>Avaliação</th><?php endif; ?></tr></thead>
     <tbody>

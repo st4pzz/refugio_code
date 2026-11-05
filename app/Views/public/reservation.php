@@ -21,7 +21,7 @@ require __DIR__ . '/_top.php';
     <?php if ($payment['status'] === 'EXPIRADO' || ($payment['status'] === 'PENDENTE' && strtotime($payment['data_vencimento']) <= time())): ?><p class="important-note">Prazo encerrado. Não pague esta cobrança. <a href="<?= e(base_url('reserva/solicitar')) ?>">Consultar novas datas</a></p><?php endif; ?>
     <?php if ($payment['status'] === 'CONFIRMADO'): ?><div class="alert alert-success">Pagamento identificado em <?= date('d/m/Y H:i', strtotime($payment['data_confirmacao'])) ?>.</div><?php endif; ?>
     <?php if (in_array($payment['status'], ['PENDENTE','COMPROVANTE_ENVIADO'], true) && strtotime($payment['data_vencimento']) > time() && in_array($reservation['status'], ['AGUARDANDO_PAGAMENTO', 'COMPROVANTE_ENVIADO', 'RESERVA_CONFIRMADA'], true)): ?>
-        <?php if ($payment['pix_copia_cola'] === '74373137820'): ?>
+        <?php if (in_array($payment['pix_copia_cola'], ['74373137820', '6f3673aa-73f2-49ba-a956-e395535607e2'], true)): ?>
             <?php require __DIR__ . '/pix-modal.php'; ?>
         <?php else: ?>
         <?php if ($payment['qr_code_path']): ?><img class="qr-code" src="<?= e(base_url('reserva/arquivo.php?token=' . rawurlencode($reservation['token_publico']) . '&pagamento=' . $payment['id'])) ?>" alt="QR Code Pix para pagamento"><?php endif; ?>

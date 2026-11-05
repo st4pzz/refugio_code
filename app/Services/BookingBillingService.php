@@ -108,7 +108,7 @@ final class BookingBillingService
 
     public static function templateBody(): string
     {
-        return "Olá, {{1}}! Seguem os dados de pagamento da sua reserva feita pelo Booking no Refúgio do Cuscuzeiro.\n\nEntrada: {{2}}\nSaída: {{3}}\nValor desta cobrança: {{4}}\nPagar até: {{5}}\n\nPix por chave CPF: 74373137820\nFavorecido: Sergio Ramella\nBanco: Safra\n\nConfira o favorecido no seu banco e envie o comprovante pelo atendimento. Se já pagou, não pague novamente; fale conosco para conferência.";
+        return "Olá, {{1}}! Seguem os dados de pagamento da sua reserva feita pelo Booking no Refúgio do Cuscuzeiro.\n\nEntrada: {{2}}\nSaída: {{3}}\nValor desta cobrança: {{4}}\nPagar até: {{5}}\n\nPix por chave aleatória: 6f3673aa-73f2-49ba-a956-e395535607e2\nFavorecido: Sergio Ramella\nBanco: Inter\n\nConfira o favorecido no seu banco e envie o comprovante pelo atendimento. Se já pagou, não pague novamente; fale conosco para conferência.";
     }
 
     public static function message(array $parameters): string
