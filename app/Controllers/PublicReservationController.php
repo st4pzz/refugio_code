@@ -44,6 +44,7 @@ final class PublicReservationController
             }
         }
         unset($_SESSION['_form_errors'], $_SESSION['_form_old']);
+        $measureCheckout = true;
         require BASE_PATH . '/app/Views/public/request.php';
     }
 
@@ -65,7 +66,7 @@ final class PublicReservationController
             }
             unset($_SESSION['_request_idempotency']);
             $_SESSION['_success_reservation'] = ['codigo' => $reservation['codigo'], 'token' => $reservation['token_publico']];
-            redirect(base_url('reserva/' . $reservation['token_publico'] . '?pagar=1'));
+            redirect(base_url('reserva/sucesso'));
         } catch (ValidationException $e) {
             $_SESSION['_form_errors'] = $e->errors;
             $_SESSION['_form_old'] = $_POST;
@@ -79,16 +80,28 @@ final class PublicReservationController
 
     public function success(): void
     {
-        $reservation = $_SESSION['_success_reservation'] ?? null;
-        if (!$reservation) redirect(base_url('reserva/solicitar'));
-        require BASE_PATH . '/app/Views/public/success.php';
+        $checkout = $_SESSION['_success_reservation'] ?? null;
+        if (!$checkout) redirect(base_url('reserva/solicitar'));
+        $this->renderReservation($checkout['token'], true);
     }
 
     public function show(string $token): void
     {
+        $this->renderReservation($token);
+    }
+
+    private function renderReservation(string $token, bool $measureCheckout = false): void
+    {
         $this->boot();
         $reservation = $this->validToken($token);
         $payments = $this->repository->payments((int) $reservation['id']);
+        $openPix = $measureCheckout || isset($_GET['pagar']);
+        $emitLead = $measureCheckout
+            && ($_COOKIE['refugio_cookie_consent'] ?? '') === 'accepted'
+            && ($_SESSION['_last_measured_checkout'] ?? null) !== $reservation['codigo'];
+        if ($emitLead) {
+            $_SESSION['_last_measured_checkout'] = $reservation['codigo'];
+        }
         require BASE_PATH . '/app/Views/public/reservation.php';
     }
 

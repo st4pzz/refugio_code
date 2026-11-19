@@ -4,9 +4,13 @@ $title = 'Solicitacao ' . $reservation['codigo'];
 $status = ReservationStatus::from($reservation['status']);
 $parts = preg_split('/\s+/', trim($reservation['nome_cliente']));
 $maskedName = $parts[0] . (count($parts) > 1 ? ' ' . strtoupper(substr(end($parts), 0, 1)) . '.' : '');
+$checkoutConsentReload = $measureCheckout;
 require __DIR__ . '/_top.php';
 ?>
-<section class="reservation-card public-status">
+<section class="reservation-card public-status"<?= $emitLead ? ' data-marketing-event="reservation_form_submit"' : '' ?>>
+    <?php if ($measureCheckout): ?>
+        <p><a href="<?= e(base_url('reserva/' . rawurlencode($reservation['token_publico']))) ?>" rel="noreferrer">Link para acompanhar a solicitação</a></p>
+    <?php endif; ?>
     <div class="status-row"><div><div class="eyebrow">Solicitacao <?= e($reservation['codigo']) ?></div><h1><?= e($status->label()) ?></h1></div><span class="status-badge status-<?= strtolower($status->value) ?>"><?= e($status->label()) ?></span></div>
     <?php if ($message = flash('success')): ?><div class="alert alert-success" role="status"><?= e($message) ?></div><?php endif; ?>
     <?php if ($message = flash('error')): ?><div class="alert alert-error" role="alert"><?= e($message) ?></div><?php endif; ?>

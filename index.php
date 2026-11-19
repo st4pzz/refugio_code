@@ -85,17 +85,12 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
     <meta name="facebook-domain-verification" content="sm11y3l28i1v2s2g36avcu3z3vejtg" />
     <script>
         (function (window, document) {
-            var googleAdsId = 'AW-18158463231';
-            var googleConversionId = 'AW-18158463231/1kiHCPjr7q0cEP_R0NJD';
             var metaPixelId = '1375499027959251';
             var tiktokPixelId = 'D9FTH53C77UBS5FSK8MG';
             var consentCookieName = 'refugio_cookie_consent';
             var consentCookieMaxAge = 31536000;
 
             window.dataLayer = window.dataLayer || [];
-            window.gtag = window.gtag || function () {
-                window.dataLayer.push(arguments);
-            };
 
             if (!window.fbq) {
                 var fbq = window.fbq = function () {
@@ -178,10 +173,8 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                 if (window.__marketingTagsLoaded || !hasMarketingConsent()) return;
                 window.__marketingTagsLoaded = true;
 
+                window.dataLayer.push({'gtm.start': Date.now(), event: 'gtm.js'});
                 loadScript('https://www.googletagmanager.com/gtm.js?id=GTM-5D4WKTM7', 'gtm-loader');
-                loadScript('https://www.googletagmanager.com/gtag/js?id=' + googleAdsId, 'google-ads-loader');
-                window.gtag('js', new Date());
-                window.gtag('config', googleAdsId);
 
                 loadScript('https://connect.facebook.net/en_US/fbevents.js', 'meta-pixel-loader');
                 window.fbq('init', metaPixelId);
@@ -213,23 +206,13 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                 hideBanner();
             }
 
-            window.gtag_report_conversion = function () {
-                if (!hasMarketingConsent()) return false;
-                window.gtag('event', 'conversion', {
-                    send_to: googleConversionId,
-                    value: 1.0,
-                    currency: 'BRL'
-                });
-                return true;
-            };
-
-            window.trackOutboundClick = function (metaEvent) {
+            window.trackOutboundClick = function (metaEvent, isWhatsApp) {
                 if (!hasMarketingConsent()) return true;
                 loadMarketingTags();
                 if (metaEvent  && typeof window.fbq === 'function') {
                     window.fbq('track', metaEvent);
                 }
-                window.gtag_report_conversion();
+                if (isWhatsApp) window.dataLayer.push({event: 'refugio_whatsapp_click'});
                 return true;
             };
 
@@ -844,7 +827,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
    <div class="floating-buttons-container">
     <div class="float-button-wrapper" data-tooltip="Fale conosco no WhatsApp">
         <a href="/contato/whatsapp"
-           onclick="trackOutboundClick('Lead')"
+           onclick="trackOutboundClick('Lead', true)"
            target="_blank" rel="noopener noreferrer" class="float-btn float-whatsapp" aria-label="Contato via WhatsApp">
             <span class="float-ping"></span>
             <span class="float-glow"></span>

@@ -1,5 +1,5 @@
 <button type="button" class="primary-button" data-open-pix="pix-<?= (int) $payment['id'] ?>">Pagar com Pix · <?= money($payment['valor']) ?></button>
-<dialog id="pix-<?= (int) $payment['id'] ?>" class="pix-dialog" aria-labelledby="pix-title-<?= (int) $payment['id'] ?>" data-pix-dialog data-deadline="<?= e(date(DATE_ATOM, strtotime($payment['data_vencimento']))) ?>" <?= isset($_GET['pagar']) && $payment['status'] === 'PENDENTE' ? 'data-auto-open' : '' ?>>
+<dialog id="pix-<?= (int) $payment['id'] ?>" class="pix-dialog" aria-labelledby="pix-title-<?= (int) $payment['id'] ?>" data-pix-dialog data-deadline="<?= e(date(DATE_ATOM, strtotime($payment['data_vencimento']))) ?>" <?= $openPix && $payment['status'] === 'PENDENTE' ? 'data-auto-open' : '' ?>>
     <form method="dialog"><button class="pix-close" aria-label="Fechar pagamento">×</button></form>
     <div class="eyebrow">Refúgio do Cuscuzeiro</div>
     <h2 id="pix-title-<?= (int) $payment['id'] ?>">Finalize sua reserva com Pix</h2>
