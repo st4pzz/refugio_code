@@ -17,13 +17,37 @@ final class Security
         session_start();
     }
 
-    public static function sendHeaders(): void
+    public static function sendHeaders(bool $checkoutMeasurement = false): void
     {
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-        header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline'; connect-src 'self'");
+        $directives = [
+            'default-src' => "'self'",
+            'img-src' => "'self' data:",
+            'style-src' => "'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+            'font-src' => "'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+            'script-src' => "'self' 'unsafe-inline'",
+            'connect-src' => "'self'",
+        ];
+        if ($checkoutMeasurement) {
+            $tagManager = 'https://www.googletagmanager.com';
+            $tagManagerPreview = 'https://tagmanager.google.com';
+            $ads = 'https://www.googleadservices.com https://www.google.com';
+            $adsRequests = "$tagManager $ads https://www.google.com.br https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com";
+            $directives['script-src'] .= " $tagManager $tagManagerPreview $ads";
+            $directives['style-src'] .= " $tagManager $tagManagerPreview";
+            $directives['font-src'] .= ' data:';
+            $directives['img-src'] .= " $adsRequests https://ssl.gstatic.com https://www.gstatic.com";
+            $directives['connect-src'] .= " $adsRequests https://ad.doubleclick.net";
+            $directives['frame-src'] = "'self' $tagManager";
+        }
+        $policy = [];
+        foreach ($directives as $directive => $sources) {
+            $policy[] = "$directive $sources";
+        }
+        header('Content-Security-Policy: ' . implode('; ', $policy));
     }
 
     public static function clientIp(): string
