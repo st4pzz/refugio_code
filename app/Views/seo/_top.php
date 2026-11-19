@@ -44,13 +44,10 @@ $isIndexable = ($page['indexable'] ?? true) === true && ($page['type'] ?? '') !=
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR) ?></script>
     <script>
     (function(window, document) {
-        var googleAdsId = 'AW-18158463231';
-        var googleConversionId = 'AW-18158463231/1kiHCPjr7q0cEP_R0NJD';
         var metaPixelId = '1375499027959251';
         var tiktokPixelId = 'D9FTH53C77UBS5FSK8MG';
         var cookieName = 'refugio_cookie_consent';
         window.dataLayer = window.dataLayer || [];
-        window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
         if (!window.fbq) {
             var fbq = window.fbq = function(){ fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments); };
             if (!window._fbq) window._fbq = fbq;
@@ -77,9 +74,8 @@ $isIndexable = ($page['indexable'] ?? true) === true && ($page['type'] ?? '') !=
         }
         function loadMarketing(){
             if (window.__marketingTagsLoaded || !hasConsent()) return; window.__marketingTagsLoaded = true;
+            window.dataLayer.push({'gtm.start': Date.now(), event: 'gtm.js'});
             loadScript('https://www.googletagmanager.com/gtm.js?id=GTM-5D4WKTM7','gtm-loader');
-            loadScript('https://www.googletagmanager.com/gtag/js?id='+googleAdsId,'google-ads-loader');
-            window.gtag('js', new Date()); window.gtag('config', googleAdsId);
             loadScript('https://connect.facebook.net/en_US/fbevents.js','meta-pixel-loader');
             window.fbq('init', metaPixelId); window.fbq('track','PageView'); window.fbq('track','ViewContent'); loadTikTok();
         }
@@ -87,7 +83,26 @@ $isIndexable = ($page['indexable'] ?? true) === true && ($page['type'] ?? '') !=
             document.cookie=cookieName+'='+value+'; Max-Age=31536000; Path=/; SameSite=Lax'; if(value==='accepted') loadMarketing();
             var banner=document.querySelector('[data-cookie-consent-banner]'); if(banner) banner.remove(); document.body.classList.remove('cookie-consent-visible');
         }
-        window.trackOutboundClick=function(eventName){ if(!hasConsent()) return true; loadMarketing(); if(eventName && typeof window.fbq==='function') window.fbq('track',eventName); window.gtag('event','conversion',{send_to:googleConversionId,value:1.0,currency:'BRL'}); return true; };
+        window.trackWhatsAppClick = function (click) {
+            if (!hasConsent()) return true;
+            loadMarketing();
+            window.fbq('track', 'Lead');
+            var event = {event: 'refugio_whatsapp_click'};
+            if (click.ctrlKey || click.metaKey || click.shiftKey || click.altKey) {
+                window.dataLayer.push(event);
+                return true;
+            }
+            var url = click.currentTarget.href;
+            var navigate = function () { window.location.assign(url); };
+            var fallback = window.setTimeout(navigate, 500);
+            event.eventTimeout = 500;
+            event.eventCallback = function () {
+                window.clearTimeout(fallback);
+                navigate();
+            };
+            window.dataLayer.push(event);
+            return false;
+        };
         window.refugioConsent=choose;
         if(hasConsent()) loadMarketing();
     })(window, document);
