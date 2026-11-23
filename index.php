@@ -394,7 +394,7 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                         <i class="fas fa-door-open"></i>
                     </div>
                     <h3>4 Suítes</h3>
-                    <p>Quartos espaçosos e confortáveis para sua família</p>
+                    <p>Quartos espaçosos e confortáveis para sua família. A estadia não inclui roupa de cama, mesa e banho.</p>
                 </div>
 
                 <div class="comodidade-card" id="piscina-card">
@@ -614,8 +614,8 @@ $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTE
                 </div>
 
                 <div class="galeria-item">
-                    <img src="assets/images/galeria/IMG_0549.webp" alt="Bancada do banheiro preparada com toalhas" loading="lazy" decoding="async" width="400" height="300">
-                    <div class="galeria-overlay"><p>Detalhes do banheiro</p></div>
+                    <img src="assets/images/galeria/IMG_0549.webp" alt="Bancada do banheiro da suíte" loading="lazy" decoding="async" width="400" height="300">
+                    <div class="galeria-overlay"><p>Detalhes do banheiro. Toalhas não inclusas.</p></div>
                 </div>
 
                 <div class="galeria-item">

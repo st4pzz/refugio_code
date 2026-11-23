@@ -3,6 +3,7 @@
     <div class="eyebrow">Reserva direta</div>
     <h1 data-reservation-title>Quando você quer vir?</h1>
     <p data-reservation-intro>Consulte as datas e o valor da sua estadia antes de preencher seus dados.</p>
+    <p>A estadia não inclui roupa de cama, mesa e banho. Traga esses itens para a sua estadia.</p>
     <ol class="reservation-steps" aria-label="Etapas da reserva"><li data-step-label="dates" aria-current="step">1. Datas</li><li data-step-label="details">2. Seus dados</li><li>3. Pix</li></ol>
     <?php if ($message = flash('error')): ?><div class="alert alert-error" role="alert"><?= e($message) ?></div><?php endif; ?>
     <?php if ($errors): ?><div class="alert alert-error" role="alert">Revise os campos destacados. Seus dados foram mantidos.</div><?php endif; ?>
